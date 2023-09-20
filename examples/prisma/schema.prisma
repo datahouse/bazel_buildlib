@@ -1,0 +1,39 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "prisma-client"
+  binaryTargets = env("BINARY_TARGET")
+}
+
+generator typegraphql {
+  provider           = "typegraphql-prisma"
+  output             = "typegraphql-prisma"
+  emitTranspiledCode = true
+}
+
+model User {
+  id    Int        @id @default(autoincrement())
+  email String     @unique
+  lists TodoList[]
+}
+
+model TodoList {
+  id       Int        @id @default(autoincrement())
+  name     String
+  owner    User       @relation(fields: [ownerId], references: [id])
+  ownerId  Int
+  archived Boolean
+  items    TodoItem[]
+}
+
+model TodoItem {
+  id     Int      @id @default(autoincrement())
+  text   String
+  done   Boolean
+  list   TodoList @relation(fields: [listId], references: [id])
+  listId Int
+}

@@ -1,0 +1,10 @@
+load("@dh_buildlib//:defs.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:node_modules/@types/node",
+        "//prisma:client",
+    ],
+)

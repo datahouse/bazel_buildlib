@@ -1,0 +1,13 @@
+load("@dh_buildlib//:defs.bzl", "react_app")
+
+react_app(
+    name = "frontend",
+    srcs = [
+        "index.html",
+    ],
+    visibility = ["//:docker-image-users"],
+    deps = [
+        "//frontend/public",
+        "//frontend/src",
+    ],
+)

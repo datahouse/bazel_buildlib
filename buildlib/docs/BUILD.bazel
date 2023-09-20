@@ -1,0 +1,59 @@
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+
+write_source_files(
+    name = "docs",
+    files = {
+        "docker.md": ":docker",
+        "gql.md": ":gql",
+        "prisma.md": ":prisma",
+        "react_app.md": ":react_app",
+        "tooling.md": ":tooling",
+        "ts.md": ":ts",
+    },
+)
+
+stardoc(
+    name = "docker",
+    out = "docker.gen.md",
+    input = "docker.bzl",
+    deps = ["//private/docker:bzl"],
+)
+
+stardoc(
+    name = "gql",
+    out = "gql.gen.md",
+    input = "gql.bzl",
+    deps = ["//private/gql:bzl"],
+)
+
+stardoc(
+    name = "prisma",
+    out = "prisma.gen.md",
+    input = "prisma.bzl",
+    deps = ["//private/prisma:bzl"],
+)
+
+stardoc(
+    name = "react_app",
+    out = "react_app.gen.md",
+    input = "react_app.bzl",
+    deps = ["//private/react_app:bzl"],
+)
+
+stardoc(
+    name = "tooling",
+    out = "tooling.gen.md",
+    input = "tooling.bzl",
+    deps = [
+        "//private/bazelrc:bzl",
+        "//private/renovate:bzl",
+    ],
+)
+
+stardoc(
+    name = "ts",
+    out = "ts.gen.md",
+    input = "ts.bzl",
+    deps = ["//private/ts:bzl"],
+)

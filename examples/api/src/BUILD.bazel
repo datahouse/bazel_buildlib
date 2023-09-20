@@ -1,0 +1,17 @@
+load("@dh_buildlib//:defs.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    visibility = [
+        "//api:__subpackages__",
+    ],
+    deps = [
+        "//:node_modules/@types/express",
+        "//:node_modules/apollo-server-core",
+        "//:node_modules/apollo-server-express",
+        "//:node_modules/express",
+        "//:node_modules/reflect-metadata",
+        "//prisma:typegraphql-prisma",
+        "//prisma/rls",
+    ],
+)

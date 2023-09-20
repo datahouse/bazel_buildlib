@@ -1,0 +1,12 @@
+load("@dh_buildlib//:defs.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    uses_dom = True,
+    deps = [
+        "//:node_modules/@apollo/client",
+        "//:node_modules/@testing-library/jest-dom",
+        "//:node_modules/@testing-library/react",
+        "//frontend/src",
+    ],
+)

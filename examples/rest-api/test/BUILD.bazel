@@ -1,0 +1,11 @@
+load("@dh_buildlib//:defs.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    deps = [
+        "//:node_modules/@types/supertest",
+        "//:node_modules/jest-mock-extended",
+        "//:node_modules/supertest",
+        "//rest-api/src",
+    ],
+)

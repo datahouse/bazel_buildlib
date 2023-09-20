@@ -1,0 +1,6 @@
+load("//:defs.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    visibility = ["//private:__subpackages__"],
+)

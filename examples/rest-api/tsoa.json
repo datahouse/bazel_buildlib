@@ -1,0 +1,16 @@
+{
+  "entryFile": "src/index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/**/controller.ts"],
+  "spec": {
+    "basePath": "/api/v1",
+    "name": "Example Rest API",
+    "description": "REST API to show tsoa integration",
+    "outputDirectory": "src",
+    "specVersion": 3
+  },
+  "routes": {
+    "routesDir": "src",
+    "iocModule": "src/tsoa-ioc"
+  }
+}

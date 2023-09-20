@@ -1,0 +1,12 @@
+load("@dh_buildlib//:defs.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    data = [
+        "data-file.txt",
+    ],
+    deps = [
+        "//:node_modules/@types/node",
+        "//shared-lib/src",
+    ],
+)

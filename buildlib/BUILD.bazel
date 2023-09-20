@@ -1,0 +1,16 @@
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load(":defs.bzl", "bazelrc", "eslintrc", "tsconfig_base")
+
+npm_link_all_packages(name = "node_modules")
+
+tsconfig_base(
+    name = "tsconfig-base",
+    visibility = ["//:__subpackages__"],
+)
+
+eslintrc(
+    name = "eslintrc",
+    visibility = ["//:__subpackages__"],
+)
+
+bazelrc(name = "bazelrc")

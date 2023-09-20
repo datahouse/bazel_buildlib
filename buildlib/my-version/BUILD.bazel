@@ -1,0 +1,40 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load(":private.bzl", "gen_my_version")
+
+gen_my_version(
+    name = "txt",
+    out = "my-version.txt",
+    visibility = ["//visibility:public"],
+)
+
+# Use write_file instead of checking the files in, since that is
+# easier to deal with in terms of line endings
+# (otherwise we'll always get a newline at the end of file).
+
+write_file(
+    name = "ts_prefix",
+    out = "ts-prefix.txt",
+    content = ["const myVersion = \""],
+)
+
+write_file(
+    name = "ts_suffix",
+    out = "ts-suffix.txt",
+    content = [
+        "\";",
+        "export default myVersion;",
+        "",
+    ],
+)
+
+genrule(
+    name = "ts",
+    srcs = [
+        "ts-prefix.txt",
+        "my-version.txt",
+        "ts-suffix.txt",
+    ],
+    outs = ["myVersion.ts"],
+    cmd = "cat $(SRCS) > $@",
+    visibility = ["//visibility:public"],
+)

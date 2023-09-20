@@ -1,0 +1,45 @@
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@dh_buildlib//:defs.bzl", "ts_default_srcs", "ts_library")
+load("@npm//:tsoa/package_json.bzl", _tsoa = "bin")
+
+copy_file(
+    name = "copy-my-version",
+    src = "@dh_buildlib//my-version:myVersion.ts",
+    out = "version/myVersion.ts",
+)
+
+_tsoa.tsoa(
+    name = "tsoa",
+    srcs = glob(["**/controller.ts"]) + [
+        "index.ts",
+        "tsoa-ioc.ts",
+        "//prisma:prisma-client",
+        "//rest-api:tsoa_config",
+    ],
+    outs = [
+        "routes.ts",
+        "swagger.json",
+    ],
+    args = ["spec-and-routes"],
+    chdir = package_name() + "/..",
+)
+
+ts_library(
+    name = "src",
+    srcs = ts_default_srcs() + [
+        ":copy-my-version",
+        ":tsoa",
+    ],
+    visibility = ["//rest-api:__subpackages__"],
+    deps = [
+        "//:node_modules/@tsoa/runtime",
+        "//:node_modules/@types/express",
+        "//:node_modules/@types/node",
+        "//:node_modules/@types/swagger-ui-express",
+        "//:node_modules/express",
+        "//:node_modules/swagger-ui-express",
+        "//:node_modules/tsoa",
+        "//prisma:prisma-client",
+        "//prisma/rls",
+    ],
+)

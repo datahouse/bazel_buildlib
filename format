@@ -1,0 +1,6 @@
+#! /bin/sh
+
+# Run as root, otherwise the container cannot modify the mounted files.
+docker run --rm --user root --volume $(pwd):/work tmknom/prettier prettier --write .
+
+docker run --rm --volume $(pwd):/work --workdir=/work owncloudci/bazel-buildifier buildifier --mode=fix --lint=fix --warnings=all -r .

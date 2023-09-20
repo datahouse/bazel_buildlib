@@ -1,0 +1,10 @@
+--- contrib/BUILD
++++ contrib/BUILD
+@@ -71,7 +71,6 @@ alias(
+ bzl_library(
+     name = "push-all_bzl",
+     srcs = ["push-all.bzl"],
+-    visibility = ["//visibility:private"],
+ )
+ 
+ bzl_library(

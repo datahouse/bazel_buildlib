@@ -1,0 +1,3 @@
+pnpm-lock.yaml
+buildlib/docs/*.md
+!buildlib/docs/README.md

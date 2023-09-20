@@ -1,0 +1,55 @@
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@dh_buildlib//:defs.bzl", "bazelrc", "dh_docker_images_push", "eslintrc", "renovate_config", "tsconfig_base")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+copy_file(
+    # Grab renovate.json5 from the git repo root. This is not needed in a normal
+    # project, where the git repo root is the bazel workspace root.
+    name = "renovate_config",
+    src = "@repo_root//:renovate.json5",
+    out = "renovate.json5",
+)
+
+# Package group for visibility of docker images.
+# Remove if you do not build docker images.
+package_group(
+    name = "docker-image-users",
+    packages = [
+        "//",  # for pushing
+        "//dc",  # for docker-compose
+    ],
+)
+
+renovate_config(
+    name = "renovate",
+    # Ensure the extension here matches the file.
+    # If you do not have a renovate setup (you should!), remove this rule.
+    src = "renovate.json5",
+)
+
+bazelrc(
+    name = "bazelrc",
+)
+
+tsconfig_base(
+    name = "tsconfig-base",
+    visibility = ["//:__subpackages__"],
+)
+
+eslintrc(
+    name = "eslintrc",
+    visibility = ["//:__subpackages__"],
+)
+
+dh_docker_images_push(
+    name = "docker-push",
+    images = {
+        # Put your own images here (or leave empty to start with).
+        "api": "//api",
+        "frontend": "//frontend",
+        "proxy": "//proxy",
+    },
+    repository_prefix = "it-bazel/example",
+)

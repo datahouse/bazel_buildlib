@@ -1,0 +1,33 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  automerge: true,
+  packageRules: [
+    // Do not automerge major updates in buildlib:
+    // They are potentially breaking for downstream.
+    {
+      matchPaths: ["buildlib/**"],
+      matchUpdateTypes: ["major"],
+      automerge: false,
+    },
+    // Group prisma packages together.
+    //
+    // prisma and @prisma/client need to be at the same version.
+    //
+    // typegraphql-prisma requires prisma to exactly match the version it was
+    // built for; so updating the packages individually will always fail.
+    //
+    // This approach has downsides:
+    // Because prisma and typegraphql-prisma do not have the same versions,
+    // this will create immortal PRs:
+    // https://docs.renovatebot.com/key-concepts/pull-requests/#grouped-updates-with-different-versions
+    //
+    // However, for this repository, this is definitely acceptable.
+    {
+      matchPackageNames: ["prisma", "typegraphql-prisma", "@prisma/client"],
+      groupName: "prisma",
+    },
+  ],
+  constraints: {
+    pnpm: "8.6.7",
+  },
+}

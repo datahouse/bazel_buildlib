@@ -1,0 +1,8 @@
+load("//:defs.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    deps = [
+        "//private/js-lib/src",
+    ],
+)

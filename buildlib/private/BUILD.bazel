@@ -1,0 +1,14 @@
+load("@dh_buildlib_private_npm//:defs.bzl", "npm_link_all_packages")
+load("@dh_buildlib_private_npm//private:prettier/package_json.bzl", _prettier = "bin")
+
+npm_link_all_packages(name = "node_modules")
+
+config_setting(
+    name = "stamp",
+    values = {"stamp": "true"},
+)
+
+_prettier.prettier_binary(
+    name = "prettier",
+    visibility = ["//visibility:public"],
+)

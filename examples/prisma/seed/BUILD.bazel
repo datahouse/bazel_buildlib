@@ -1,0 +1,17 @@
+load("@dh_buildlib//:defs.bzl", "js_binary", "ts_library")
+
+ts_library(
+    name = "src",
+    deps = [
+        "//prisma:prisma-client",
+    ],
+)
+
+js_binary(
+    name = "seed",
+    data = ["src"],
+    entry_point = "index.js",
+    visibility = [
+        "//prisma:__pkg__",
+    ],
+)

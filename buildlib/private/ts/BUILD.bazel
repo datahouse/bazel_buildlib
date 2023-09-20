@@ -1,0 +1,42 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:common_settings.bzl", "string_setting")
+load(":swcrc.bzl", "swcrc")
+
+exports_files(["eslint.dh-defaults.js"])
+
+string_setting(
+    name = "module",
+    # Use commonjs by default, since it is what Node.js expects.
+    build_setting_default = "commonjs",
+    values = [
+        "commonjs",
+        # Use es2020 for now: Allows dynamic import but not top-level await
+        # (doesn't work in CommonJS modules in Node).
+        "es2020",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["**/*.bzl"]),
+    visibility = [
+        "//docs:__pkg__",
+        "//private:__subpackages__",
+    ],
+    deps = [
+        "@aspect_bazel_lib//lib:write_source_files",
+        "@aspect_rules_js//js:defs",
+        "@aspect_rules_swc//swc:defs",
+        "@aspect_rules_ts//ts:defs",
+        "@bazel_skylib//rules:common_settings",
+        "@bazel_skylib//rules:copy_file",
+        "@bazel_skylib//rules:select_file",
+    ],
+)
+
+swcrc(
+    name = "swcrc",
+    out = ".swcrc.json",
+    visibility = ["//visibility:public"],
+)

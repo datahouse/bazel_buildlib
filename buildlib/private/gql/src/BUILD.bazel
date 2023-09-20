@@ -1,0 +1,9 @@
+load("//:defs.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//private:node_modules/@types/node",
+    ],
+)

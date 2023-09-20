@@ -1,0 +1,24 @@
+load("@dh_buildlib//:defs.bzl", "dc_service_reference", "docker_compose")
+
+docker_compose(
+    name = "dc",
+    src = "docker-compose.yml",
+    project = "it-bazel-examples",
+    deps = [
+        "//api",
+        "//frontend",
+        "//proxy",
+        "//rest-api",
+        "@postgres_image//image",
+    ],
+)
+
+dc_service_reference(
+    name = "db",
+    dc = ":dc",
+    port = 5432,
+    service_name = "db",
+    visibility = [
+        "//prisma:__pkg__",
+    ],
+)

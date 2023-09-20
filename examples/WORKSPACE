@@ -1,0 +1,75 @@
+# Pull in the dh_buildlib.
+#
+# When setting up in a different repository, replace this with
+#
+# load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+#
+# git_repository(
+#     name = "dh_buildlib",
+#     commit = "<latest commit hash>",
+#     remote = "git@git.datahouse.ch:datahouse/it-bazel.git",
+#     strip_prefix = "buildlib",
+# )
+local_repository(
+    name = "dh_buildlib",
+    path = "../buildlib",
+)
+
+# Hack to make the renovate.json5 config from the repo root accessible
+# in this subproject. See the renovate_config rule in the BUILD of the root
+# package.
+#
+# When setting up in a different repository, remove this rule.
+local_repository(
+    name = "repo_root",
+    path = "..",
+)
+
+load("@dh_buildlib//repositories:setup0.bzl", "dh_buildlib_setup0")
+
+dh_buildlib_setup0()
+
+load("@dh_buildlib//repositories:setup1.bzl", "dh_buildlib_setup1")
+
+dh_buildlib_setup1()
+
+load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
+
+# If you do not need prisma, set `enable_prisma = False` or remove the argument entirely.
+dh_buildlib_setup2(enable_prisma = True)
+
+load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
+
+# Docker images your project needs.
+# - `node_image` is required by the base setup.
+# - Remove others if you do not need them.
+
+container_pull(
+    name = "nginx_image",
+    architecture = "amd64",
+    digest = "sha256:9504f3f64a3f16f0eaf9adca3542ff8b2a6880e6abfb13e478cca23f6380080a",
+    os = "linux",
+    registry = "index.docker.io",
+    repository = "nginx",
+    tag = "1.25.2",  # ignored, doc only
+)
+
+container_pull(
+    name = "node_image",
+    architecture = "amd64",
+    digest = "sha256:c2ed73be34c27a42bd202021c7fdf1a92999fb171f2e1d54bd4b461d9344eeb2",
+    os = "linux",
+    registry = "index.docker.io",
+    repository = "node",
+    tag = "20.6.1",  # ignored, doc only
+)
+
+container_pull(
+    name = "postgres_image",
+    architecture = "amd64",
+    digest = "sha256:f007ec48ff3ef9b75dc473d915a3ea3713167ba015340316f6bcabfa86a7b4a6",
+    os = "linux",
+    registry = "index.docker.io",
+    repository = "postgres",
+    tag = "16.0",  # ignored, doc only
+)

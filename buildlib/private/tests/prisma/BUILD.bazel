@@ -1,0 +1,7 @@
+"""tests for prisma"""
+
+load(":lib_tests.bzl", "lib_test_suite")
+
+lib_test_suite(
+    name = "test_lib",
+)

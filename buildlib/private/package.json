@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "@jest/transform": "29.7.0",
+    "@types/argparse": "2.0.10",
+    "@types/eslint": "8.44.2",
+    "@types/js-yaml": "4.0.6",
+    "@types/node": "20.5.9",
+    "@types/parse-passwd": "1.0.0",
+    "@types/stream-buffers": "3.0.4",
+    "@types/tar-stream": "2.2.3",
+    "argparse": "2.0.1",
+    "js-yaml": "4.1.0",
+    "json5": "2.2.3",
+    "parse-passwd": "1.0.0",
+    "prettier": "3.0.3",
+    "stream-buffers": "3.0.2",
+    "tar-stream": "3.1.6"
+  }
+}

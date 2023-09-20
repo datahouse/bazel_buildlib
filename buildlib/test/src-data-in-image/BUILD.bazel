@@ -1,0 +1,15 @@
+"""Regression test for #351"""
+
+load("//:defs.bzl", "node_binary_image", "ts_library")
+
+ts_library(
+    name = "src",
+    data = ["data.txt"],
+)
+
+node_binary_image(
+    name = "image",
+    base = None,
+    data = [":src"],
+    entry_point = "index.js",
+)

@@ -1,0 +1,42 @@
+load("@dh_buildlib//:defs.bzl", "prisma_cli_image", "prisma_dev", "prisma_generate", "prisma_schema")
+
+package_group(
+    name = "prisma-users",
+    packages = [
+        "//api/...",
+        "//rest-api/...",
+    ],
+)
+
+prisma_schema(
+    name = "schema",
+    db_url_env = "DATABASE_URL",
+    schema = "schema.prisma",
+    validate_db_url = "postgres://localhost/",
+    visibility = ["//prisma:__subpackages__"],
+)
+
+prisma_generate(
+    name = "generate",
+    schema = ":schema",
+    visibility = [
+        ":prisma-users",
+        "//prisma:__subpackages__",
+    ],
+)
+
+prisma_dev(
+    name = "prisma",
+    db_service = "//dc:db",
+    db_url = "postgres://postgres:zuuboi4eemae5ee2UNga@${DB_SERVICE}/",
+    schema = ":schema",
+    seed_script = "//prisma/seed",
+)
+
+# TODO: This is currently unused.
+# We'll need to properly build migrations into this, so we can use it to deploy
+# non-local DBs.
+prisma_cli_image(
+    name = "cli",
+    schema = "schema.prisma",
+)

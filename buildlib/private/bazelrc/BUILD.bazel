@@ -1,0 +1,16 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files([
+    "default.bazelrc",
+])
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["**/*.bzl"]),
+    visibility = [
+        "//docs:__pkg__",
+    ],
+    deps = [
+        "@aspect_bazel_lib//lib:write_source_files",
+    ],
+)

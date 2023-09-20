@@ -1,0 +1,17 @@
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@dh_buildlib//:defs.bzl", "ts_library")
+
+# Use a generated file to test IDE integration.
+copy_file(
+    name = "copy-my-version",
+    src = "@dh_buildlib//my-version:myVersion.ts",
+    out = "myVersion.ts",
+)
+
+ts_library(
+    name = "src",
+    srcs = [
+        "index.ts",
+        "myVersion.ts",
+    ],
+)

@@ -1,0 +1,46 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//private/prisma:constants.bzl", "PLATFORMS")
+
+exports_files([
+    "cli.tpl.sh",
+    "dev-run.tpl.sh",
+])
+
+bzl_library(
+    name = "constants",
+    srcs = ["constants.bzl"],
+    visibility = [
+        "//private:__subpackages__",
+    ],
+)
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["**/*.bzl"]),
+    visibility = [
+        "//docs:__pkg__",
+    ],
+    deps = [
+        "//private/docker:bzl",
+        "//private/ts:bzl",
+        "@aspect_bazel_lib//lib:copy_to_bin",
+        "@aspect_bazel_lib//lib:write_source_files",
+        "@aspect_rules_js//js:defs",
+        "@bazel_skylib//lib:paths",
+        "@bazel_skylib//rules:select_file",
+        "@bazel_skylib//rules:write_file",
+        "@io_bazel_rules_docker//container",
+    ],
+)
+
+alias(
+    name = "engines",
+    actual = select({
+        "//private/prisma/configs:" + platform: "@prisma_engines_" + platform + "//:engines"
+        for platform in PLATFORMS.keys()
+    }),
+    # Tag as manual, so the buildlib build doesn't fail
+    # (because it doesn't setup the prisma repositories).
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+)

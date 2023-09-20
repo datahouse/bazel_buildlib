@@ -1,0 +1,12 @@
+load("@dh_buildlib//:defs.bzl", "ts_library")
+
+ts_library(
+    name = "rls",
+    visibility = [
+        "//prisma:prisma-users",
+        "//prisma/test:__pkg__",
+    ],
+    deps = [
+        "//prisma:prisma-client",
+    ],
+)

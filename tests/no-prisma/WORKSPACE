@@ -1,0 +1,28 @@
+local_repository(
+    name = "dh_buildlib",
+    path = "../../buildlib",
+)
+
+load("@dh_buildlib//repositories:setup0.bzl", "dh_buildlib_setup0")
+
+dh_buildlib_setup0()
+
+load("@dh_buildlib//repositories:setup1.bzl", "dh_buildlib_setup1")
+
+dh_buildlib_setup1()
+
+load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
+
+dh_buildlib_setup2()
+
+load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
+
+container_pull(
+    name = "node_image",
+    architecture = "amd64",
+    digest = "sha256:c2ed73be34c27a42bd202021c7fdf1a92999fb171f2e1d54bd4b461d9344eeb2",
+    os = "linux",
+    registry = "index.docker.io",
+    repository = "node",
+    tag = "20.6.1",  # ignored, doc only
+)

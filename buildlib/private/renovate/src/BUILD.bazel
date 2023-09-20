@@ -1,0 +1,13 @@
+load("//:defs.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//private:node_modules/@types/argparse",
+        "//private:node_modules/@types/js-yaml",
+        "//private:node_modules/@types/node",
+        "//private:node_modules/argparse",
+        "//private:node_modules/json5",
+    ],
+)

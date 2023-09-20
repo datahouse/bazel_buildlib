@@ -1,0 +1,38 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files([
+    "load-service-ref.tpl.sh",
+])
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["**/*.bzl"]),
+    visibility = [
+        "//docs:__pkg__",
+        "//private/prisma:__pkg__",
+        "//private/react_app:__pkg__",
+    ],
+    deps = [
+        "//private/prisma:constants",
+        "//private/ts:bzl",
+        "@aspect_rules_js//js:libs",
+        "@aspect_rules_js//js:providers",
+        "@bazel_skylib//lib:paths",
+        "@dh_buildlib_private_ibazel_info//:bzl",
+        "@io_bazel_rules_docker//container",
+        "@io_bazel_rules_docker//container:providers",
+        "@io_bazel_rules_docker//contrib:push-all_bzl",
+        "@io_bazel_rules_docker//skylib:docker",
+    ],
+)
+
+platform(
+    name = "node_default_platform",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "//private/prisma/constraints:linux_debian",
+        "//private/prisma/constraints:openssl_3",
+    ],
+    visibility = ["//visibility:public"],
+)

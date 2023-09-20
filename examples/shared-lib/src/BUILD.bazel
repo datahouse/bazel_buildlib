@@ -1,0 +1,16 @@
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@dh_buildlib//:defs.bzl", "ts_default_srcs", "ts_library")
+
+copy_file(
+    name = "copy-my-version",
+    src = "@dh_buildlib//my-version:myVersion.ts",
+    out = "myVersion.ts",
+)
+
+ts_library(
+    name = "src",
+    srcs = ts_default_srcs() + ["myVersion.ts"],
+    visibility = [
+        "//:__subpackages__",
+    ],
+)

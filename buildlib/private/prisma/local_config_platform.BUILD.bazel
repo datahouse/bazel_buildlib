@@ -1,0 +1,9 @@
+load(":constraints.bzl", "HOST_CONSTRAINTS")
+
+exports_files(["constraints.bzl"])
+
+platform(
+    name = "host",
+    # Auto-detected host platform constraints.
+    constraint_values = HOST_CONSTRAINTS,
+)

@@ -1,0 +1,5 @@
+load("//:defs.bzl", "ts_test")
+
+ts_test(
+    name = "jest-module-mock",
+)

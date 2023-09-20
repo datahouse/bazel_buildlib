@@ -1,0 +1,23 @@
+load("@dh_buildlib//:defs.bzl", "bazelrc", "eslintrc", "node_binary_image", "tsconfig_base")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+bazelrc(name = "bazelrc")
+
+node_binary_image(
+    name = "test",
+    base = "@node_image//image",
+    data = ["//src"],
+    entry_point = "//src:index.js",
+)
+
+tsconfig_base(
+    name = "tsconfig-base",
+    visibility = ["//:__subpackages__"],
+)
+
+eslintrc(
+    name = "eslintrc",
+    visibility = ["//:__subpackages__"],
+)

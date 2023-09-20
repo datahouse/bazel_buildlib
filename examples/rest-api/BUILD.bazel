@@ -1,0 +1,17 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@dh_buildlib//:defs.bzl", "node_binary_image")
+
+js_library(
+    name = "tsoa_config",
+    srcs = ["tsoa.json"],
+    visibility = ["//rest-api/src:__pkg__"],
+)
+
+node_binary_image(
+    name = "rest-api",
+    base = "@node_image//image",
+    data = ["//rest-api/src"],
+    entry_point = "//rest-api/src:index.js",
+    ports = ["8000"],
+    visibility = ["//:docker-image-users"],
+)

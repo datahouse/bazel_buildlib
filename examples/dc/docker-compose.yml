@@ -1,0 +1,31 @@
+version: "3.5"
+
+volumes:
+  blob-store:
+
+services:
+  proxy:
+    bazel-image: "@//proxy:proxy"
+
+  frontend:
+    bazel-image: "@//frontend:frontend"
+
+  api:
+    bazel-image: "@//api:api"
+    environment:
+      GQL_ENABLE_PLAYGROUND: true
+      DATABASE_URL: postgres://api_priviledged:uh0Fahth8nu1ong9phai@db/postgres
+    volumes:
+      - blob-store:/blob_store
+
+  rest-api:
+    bazel-image: "@//rest-api:rest-api"
+    environment:
+      DATABASE_URL: postgres://api_priviledged:uh0Fahth8nu1ong9phai@db/postgres
+
+  db:
+    bazel-image: "@postgres_image//image:image"
+    ports:
+      - 5432 # for prisma.
+    environment:
+      POSTGRES_PASSWORD: zuuboi4eemae5ee2UNga

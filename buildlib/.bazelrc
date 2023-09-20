@@ -1,0 +1,28 @@
+# Configure remote cache (read only)
+build --remote_upload_local_results=false
+build --remote_cache=https://developer:<redacted>@bazel-cache.datahouse.ch/
+
+# More aggressive sandboxing
+build --sandbox_default_allow_network=false
+build --incompatible_strict_action_env
+test --incompatible_exclusive_test_sandboxed # sandbox tests that have tag "exclusive"
+
+# Look into directories for updates (so if you change a file in them,
+# they are considered "changed").
+startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
+
+# Configure skipLibCheck for rules_ts
+build --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+fetch --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+query --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+
+# Display test output if something fails
+test --test_output=errors
+
+# Don't stop early on failure, build / test as much as possible.
+build --keep_going
+
+# Import for project specific bazelrc
+# If you use this, please check (with an it-bazel issue), whether
+# this should be a central option.
+try-import %workspace%/project.bazelrc

@@ -1,0 +1,9 @@
+load("//:defs.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    deps = [
+        "//:node_modules/jest-extended",
+        "//private/docker/src",
+    ],
+)
