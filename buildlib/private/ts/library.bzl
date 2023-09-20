@@ -5,7 +5,7 @@ load("@aspect_rules_swc//swc:defs.bzl", "swc")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load(":config.bzl", "tsconfig")
-load(":js_binary.bzl", "js_test")
+load(":eslint.bzl", "eslint")
 load(":providers.bzl", "TsLibraryInfo")
 
 def ts_default_srcs():
@@ -119,32 +119,9 @@ def ts_library(
         testonly = testonly,
     )
 
-    # TODO(tos): This doesn't support fixing yet.
-    # Setting this up is not trivial, because we're at the intersection of bazel / non-bazel:
-    # - Bazel will stubbornly refuse to modify files.
-    # - Non-bazel (plain npm) will not have the dependencies properly set up and will not
-    #   easily find the right files.
-    js_test(
+    eslint(
         name = name + ".lint",
-        args = [
-            "$(rootpaths %s)" % src
-            for src in srcs
-        ],
-        entry_point = Label("//private/ts/src:run-eslint.js"),
-        data = srcs + deps + [
-            Label("//private/ts/src"),
-            ":tsconfig",
-            "//:eslintrc",
-            "//:node_modules/eslint",
-            "//:node_modules/@typescript-eslint/eslint-plugin",
-            "//:node_modules/@typescript-eslint/parser",
-            "//:node_modules/eslint-config-airbnb",
-            "//:node_modules/eslint-config-airbnb-typescript",
-            "//:node_modules/eslint-config-prettier",
-            "//:node_modules/eslint-plugin-import",
-            "//:node_modules/eslint-plugin-jest",
-            "//:node_modules/eslint-plugin-react",
-            "//:node_modules/eslint-plugin-react-hooks",
-            "//:node_modules/eslint-plugin-jsx-a11y",
-        ],
+        srcs = srcs,
+        deps = deps,
+        testonly = testonly,
     )

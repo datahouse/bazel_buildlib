@@ -47,7 +47,7 @@ load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
 container_pull(
     name = "nginx_image",
     architecture = "amd64",
-    digest = "sha256:9504f3f64a3f16f0eaf9adca3542ff8b2a6880e6abfb13e478cca23f6380080a",
+    digest = "sha256:b2888fc9cfe7cd9d6727aeb462d13c7c45dec413b66f2819a36c4a3cb9d4df75",
     os = "linux",
     registry = "index.docker.io",
     repository = "nginx",
@@ -57,17 +57,17 @@ container_pull(
 container_pull(
     name = "node_image",
     architecture = "amd64",
-    digest = "sha256:c2ed73be34c27a42bd202021c7fdf1a92999fb171f2e1d54bd4b461d9344eeb2",
+    digest = "sha256:1155995dda741e93afe4b1c6ced2d01734a6ec69865cc0997daf1f4db7259a36",
     os = "linux",
     registry = "index.docker.io",
     repository = "node",
-    tag = "20.6.1",  # ignored, doc only
+    tag = "20.7.0",  # ignored, doc only
 )
 
 container_pull(
     name = "postgres_image",
     architecture = "amd64",
-    digest = "sha256:f007ec48ff3ef9b75dc473d915a3ea3713167ba015340316f6bcabfa86a7b4a6",
+    digest = "sha256:b7662e5572febc3380fd5773fa600824f0433b82935e7e5b4c180e9541b2b3d7",
     os = "linux",
     registry = "index.docker.io",
     repository = "postgres",

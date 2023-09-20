@@ -27,8 +27,8 @@ devDependencies:
     specifier: 3.0.4
     version: 3.0.4
   '@types/tar-stream':
-    specifier: 2.2.3
-    version: 2.2.3
+    specifier: 3.1.0
+    version: 3.1.0
   argparse:
     specifier: 2.0.1
     version: 2.0.1
@@ -408,8 +408,8 @@ packages:
       '@types/node': 20.5.9
     dev: true
 
-  /@types/tar-stream@2.2.3:
-    resolution: {integrity: sha512-if3mugZfjVkXOMZdFjIHySxY13r6GXPpyOlsDmLffvyI7tLz9wXE8BFjNivXsvUeyJ1KNlOpfLnag+ISmxgxPw==}
+  /@types/tar-stream@3.1.0:
+    resolution: {integrity: sha512-U05c7l6K5VdO1ZV+j3E0NJOX1hfJB497M1+QT2rXx2QqyMbEQJqBw3Utk9eUVnWPyLLqYKt5Ja1kPV1ejm6cZw==}
     dependencies:
       '@types/node': 20.5.9
     dev: true
