@@ -13,4 +13,4 @@ dh_buildlib_setup1()
 
 load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
 
-dh_buildlib_setup2()
+dh_buildlib_setup2(enable_prisma = True)

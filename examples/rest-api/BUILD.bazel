@@ -9,7 +9,6 @@ js_library(
 
 node_binary_image(
     name = "rest-api",
-    base = "@node_image//image",
     data = ["//rest-api/src"],
     entry_point = "//rest-api/src:index.js",
     ports = ["8000"],

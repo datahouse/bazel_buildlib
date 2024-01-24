@@ -1,0 +1,8 @@
+"""tests for prisma"""
+
+load(":parse_distro_tests.bzl", "parse_distro_test_suite")
+load(":parse_libssl_version_tests.bzl", "parse_lib_ssl_version_test_suite")
+
+parse_distro_test_suite(name = "parse_distro_test")
+
+parse_lib_ssl_version_test_suite(name = "parse_lib_ssl_version_test")

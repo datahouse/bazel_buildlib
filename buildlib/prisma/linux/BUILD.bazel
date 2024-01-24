@@ -1,0 +1,15 @@
+package(default_visibility = ["//visibility:public"])
+
+constraint_setting(
+    name = "linux",
+)
+
+constraint_value(
+    name = "debian",
+    constraint_setting = ":linux",
+)
+
+constraint_value(
+    name = "musl",
+    constraint_setting = ":linux",
+)

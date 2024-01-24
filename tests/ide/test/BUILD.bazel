@@ -1,0 +1,19 @@
+load("@dh_buildlib//:defs.bzl", "docker_image_for_ts_test", "ts_test")
+load("@rules_oci//oci:defs.bzl", "oci_image")
+
+# An empty docker image for testing.
+oci_image(
+    name = "my-image",
+    architecture = "amd64",
+    os = "linux",
+)
+
+docker_image_for_ts_test(
+    name = "load_my_image",
+    image = ":my-image",
+)
+
+ts_test(
+    name = "test",
+    deps = [":load_my_image"],
+)

@@ -8,6 +8,7 @@ module.exports = {
     "airbnb/hooks",
     "airbnb-typescript",
     "plugin:@typescript-eslint/recommended-type-checked",
+    "plugin:react/jsx-runtime",
     "prettier",
   ],
   parser: "@typescript-eslint/parser",
@@ -24,6 +25,12 @@ module.exports = {
       files: ["*.test.ts", "*.test.tsx"],
       plugins: ["jest"],
       extends: "plugin:jest/recommended",
+
+      rules: {
+        // Mock-aware unbound method check.
+        "@typescript-eslint/unbound-method": "off",
+        "jest/unbound-method": "error",
+      },
     },
   ],
   rules: {
@@ -36,19 +43,24 @@ module.exports = {
     // principled ways of doing this (e.g. a logging library that takes varargs).
     "@typescript-eslint/restrict-template-expressions": "off",
 
-    // Disable all rules that warn about unsafe any assignments.
+    // Disable all typescript-eslint rules that are affected by imprecise types.
     //
-    // While we'd really want these to catch any's that sneak in from libraries,
-    // they unfortunately seem to be broken when "complex" types (e.g.
-    // Map<string, string> or a PrismaClient extension) are pulled in from other
-    // compilation units.
+    // It seems that typescript-eslint is not as powerful as tsc when
+    // determining types: "complex" types (e.g. Map<string, string> or a
+    // PrismaClient extension) sometimes get simplified to any.
     //
-    // So until we can fix that issue, these will cause more noise than good.
+    // An example upstream report of this:
+    // https://github.com/typescript-eslint/typescript-eslint/issues/3856
+    //
+    // As a result, the rules below cause false alerts (all of them are rules
+    // we'd actually want to enable). So until this is fixed upstream, we
+    // unfortunately need to disable them to avoid unnecessary noise.
     "@typescript-eslint/no-unsafe-assignment": "off",
     "@typescript-eslint/no-unsafe-argument": "off",
     "@typescript-eslint/no-unsafe-call": "off",
     "@typescript-eslint/no-unsafe-member-access": "off",
     "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-redundant-type-constituents": "off",
 
     // class-methods-use-this is too noisy:
     // Both type-graphql and tsoa use classes as encapsulation for logic, but
@@ -59,6 +71,16 @@ module.exports = {
     //
     // Therefore, we disable the linter check to avoid noise.
     "class-methods-use-this": "off",
+
+    // Do not check extraneous dependencies:
+    // The bazel setup already does this with the combination of:
+    // - pnpm style layout (cannot include transitive dependencies).
+    // - normal bazel dependencies (cannot include undeclared packages).
+    //
+    // The check adds unnecessary noise for sythesized node modules
+    // (notably for translate_esm_to_cjs).
+    "import/no-extraneous-dependencies": "off",
+
     // Allow modules with a single non-default export.
     //
     // - Both type-graphql and tsoa require us to do this (export a named class).
@@ -66,6 +88,37 @@ module.exports = {
     //   number of module exports will remain constant. This makes it harder /
     //   more noisy to build up a module gradually.
     "import/prefer-default-export": "off",
+
+    // Require file extensions in imports
+    //
+    // This is to ensure compatibility with the Node.js ESM loader (which
+    // requires extensions).
+    //
+    // Whether and if we can move to that loader is unclear. However,
+    // explicit file extensions are the least common denominator between the
+    // loaders so this will ensure better forward compatibility.
+    "import/extensions": ["error", "ignorePackages"],
+
+    // Allow void to ignore floating promises.
+    //
+    // In react code, we often rely on the react runtime to deal with the result
+    // of an operation (through hooks). In these scenarios we do not care about
+    // the promises returned by the operations.
+    //
+    // However, eslint will (correctly) flag these promises (and suggest we
+    // ignore using void). To allow this, we use more specific void operator
+    // checking: Allow in general, disallow when it doesn't ignore a value.
+    //
+    // The use of the void operator for this purpose (rather than, say, an
+    // `.ignorePromise()` method) is unfortunate.
+    // That being said, at the time of writing, being consistent with what the
+    // eslint checks recommend was deemed more important.
+    "@typescript-eslint/no-meaningless-void-operator": [
+      "error",
+      { checkNever: true },
+    ],
+    "no-void": "off",
+
     // we need await inside loops because sometimes we cannot list promises
     "no-await-in-loop": "off",
     "no-restricted-syntax": [
@@ -103,5 +156,14 @@ module.exports = {
     will mutate the objects referenced by the parameters and not the
     parameters themselves.*/
     "no-param-reassign": ["error", { props: false }],
+
+    // Allow dangling underscores.
+    //
+    // Prisma uses them for aggregations, so we use them heavily:
+    // https://www.prisma.io/docs/concepts/components/prisma-client/aggregation-grouping-summarizing
+    //
+    // The argument of this preventing use of members "hinted" to be private is
+    // very weak thanks to type defintions.
+    "no-underscore-dangle": "off",
   },
 };

@@ -14,7 +14,7 @@ import path from "node:path";
 
 import * as extendedMatchers from "jest-extended";
 
-import syncFiles from "../src/syncFiles";
+import syncFiles from "../src/syncFiles.js";
 
 expect.extend(extendedMatchers);
 

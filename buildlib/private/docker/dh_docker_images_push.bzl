@@ -1,38 +1,81 @@
 """Rule to label and push docker images to docker.datarepo.ch."""
 
-load("@io_bazel_rules_docker//container:container.bzl", "container_bundle", "container_image")
-load("@io_bazel_rules_docker//contrib:push-all.bzl", "container_push")
+load("@aspect_bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
+load("@aspect_rules_js//js:libs.bzl", "js_binary_lib")
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load(":oci_util.bzl", "get_oci_dir")
 
-def _load_stamp_data_impl(ctx):
-    if ctx.attr.stamp:
-        args = ctx.actions.args()
+def _oci_pushes_impl(ctx):
+    crane = ctx.toolchains["@rules_oci//oci:crane_toolchain_type"]
 
-        args.add("--info-file", ctx.info_file)
-        args.add_all(ctx.outputs.outs)
+    image_info = {
+        name: get_oci_dir(target).short_path
+        for target, name in ctx.attr.images.items()
+    }
 
-        ctx.actions.run(
-            inputs = [ctx.info_file],
-            outputs = ctx.outputs.outs,
-            arguments = [args],
-            env = {"BAZEL_BINDIR": "."},
-            executable = ctx.executable._loader,
-        )
+    image_info_file = ctx.actions.declare_file("%s-image-infos.json" % ctx.label.name)
+    ctx.actions.write(image_info_file, json.encode(image_info))
 
-    else:
-        for out in ctx.outputs.outs:
-            ctx.actions.write(out, "<unstamped bazel build>")
+    launcher = js_binary_lib.create_launcher(
+        ctx,
+        log_prefix_rule_set = "dh_buildlib",
+        log_prefix_rule = "oci_images_push",
+        fixed_args = [
+            "--cranePath",
+            crane.crane_info.binary.short_path,
+            "--stamp",
+            "true" if maybe_stamp(ctx) else "false",
+            "--tagFile",
+            ctx.file.remote_tag.short_path,
+            "--repositoryPrefix",
+            ctx.attr.repository_prefix,
+            "--imageInfoFile",
+            image_info_file.short_path,
+        ],
+    )
 
-_load_stamp_data = rule(
-    implementation = _load_stamp_data_impl,
-    attrs = {
-        "outs": attr.output_list(),
-        "stamp": attr.bool(),
-        "_loader": attr.label(
-            default = Label("//private/docker/src:load-workspace-status"),
-            executable = True,
-            cfg = "exec",
-        ),
-    },
+    runfiles = ctx.runfiles(
+        files = [ctx.file.remote_tag, image_info_file],
+        transitive_files = depset(transitive = [
+            i.files
+            for i in ctx.attr.images
+        ]),
+    ).merge_all([launcher.runfiles, crane.default.default_runfiles])
+
+    return DefaultInfo(
+        executable = launcher.executable,
+        runfiles = runfiles,
+    )
+
+_oci_pushes = rule(
+    doc = """
+    Rule to push multiple docker images to a registry.
+
+    This is our own rule (instead of some multi-run of oci_push), because
+    oci_push isn't handling transitions sufficiently well: We'd need to get
+    the oci_push target in the exec configuration. However, oci_push would need
+    to get its dependencies in the target configuration.
+
+    It seems it doesn't do that. Therefore, we write our own pusher. This also
+    allows us to put in a couple of defenses against pushing improperly stamped images.
+
+    The pusher is an adjusted js_binary rule so we can use the `fixed_args` machinery.
+    """,
+    implementation = _oci_pushes_impl,
+    attrs = dicts.add(
+        js_binary_lib.attrs,
+        STAMP_ATTRS,
+        {
+            "images": attr.label_keyed_string_dict(),
+            "remote_tag": attr.label(allow_single_file = True),
+            "repository_prefix": attr.string(),
+        },
+    ),
+    executable = True,
+    toolchains = js_binary_lib.toolchains + [
+        "@rules_oci//oci:crane_toolchain_type",
+    ],
 )
 
 def dh_docker_images_push(name, images, repository_prefix):
@@ -51,53 +94,22 @@ def dh_docker_images_push(name, images, repository_prefix):
     if name != "docker-push" or native.package_name() != "":
         fail("dh_docker_images_push must be at //:docker-push")
 
-    _load_stamp_data(
-        name = name + ".stamp-data",
-        stamp = select({
-            Label("//private:stamp"): True,
-            "//conditions:default": False,
-        }),
-        outs = ["STABLE_GIT_COMMIT", "STABLE_GIT_REPO_URL", "STABLE_WEB_REPO_URL"],
-    )
-
     for image_name, image_target in images.items():
-        container_image(
+        oci_image(
             name = image_name + ".stamped",
             base = image_target,
-            labels = {
-                "org.opencontainers.image.revision": "@STABLE_GIT_COMMIT",
-                "org.opencontainers.image.source": "@STABLE_GIT_REPO_URL",
-                "org.opencontainers.image.url": "@STABLE_WEB_REPO_URL",
-            },
+            labels = Label(":push-labels.txt"),
         )
 
-    full_prefix = "docker.datarepo.ch/" + repository_prefix
-
-    # Real bundle.
-    container_bundle(
-        name = name + ".bundle",
+    _oci_pushes(
+        name = "docker-push",
+        repository_prefix = "docker.datarepo.ch/" + repository_prefix,
+        remote_tag = Label(":push-tag.txt"),
         images = {
-            # Set the tag with --embed_label
-            full_prefix + "/" + image_name + ":{BUILD_EMBED_LABEL}": image_name + ".stamped"
-            for image_name in images.keys()
+            image_name + ".stamped": image_name
+            for image_name in images
         },
-    )
-
-    # Fake bundle to avoid pushing unstamped containers.
-    container_bundle(
-        name = name + ".empty.bundle",
-    )
-
-    container_push(
-        name = name,
-        format = "Docker",
-        # Push the empty bundle in case we're not stamping:
-        # This makes sure we never push unstamped containers.
-        #
-        # Even better would be to fail on run (but not on build).
-        # However, for this we'd need support from container_push.
-        bundle = select({
-            Label("//private:stamp"): name + ".bundle",
-            "//conditions:default": name + ".empty.bundle",
-        }),
+        entry_point = Label("//private/docker/src:oci-pusher.js"),
+        data = [Label("//private/docker/src")],
+        enable_runfiles = True,
     )

@@ -1,14 +1,12 @@
-load("@dh_buildlib//:defs.bzl", "docker_pull_info", "ts_default_srcs", "ts_test")
+load("@dh_buildlib//:defs.bzl", "docker_image_for_ts_test", "ts_test")
 
-docker_pull_info(
-    name = "postgres_info",
-    out = "postgres-info.json",
-    image = "@postgres_image//image",
+docker_image_for_ts_test(
+    name = "load_postgres_image",
+    image = "@postgres_image",
 )
 
 ts_test(
     name = "test",
-    srcs = ts_default_srcs() + ["postgres-info.json"],
     data = [
         "//prisma:schema",
         "//prisma/migrations",
@@ -18,6 +16,7 @@ ts_test(
         "requires-network",  # access to docker socket
     ],
     deps = [
+        ":load_postgres_image",
         "//:node_modules/@testcontainers/postgresql",
         "//:node_modules/@types/node",
         "//prisma:prisma-client",

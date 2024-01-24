@@ -1,0 +1,28 @@
+local_repository(
+    name = "dh_buildlib",
+    path = "../../buildlib",
+)
+
+load("@dh_buildlib//repositories:setup0.bzl", "dh_buildlib_setup0")
+
+dh_buildlib_setup0()
+
+load("@dh_buildlib//repositories:setup1.bzl", "dh_buildlib_setup1")
+
+dh_buildlib_setup1()
+
+load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
+
+dh_buildlib_setup2(enable_prisma = True)
+
+load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
+
+container_pull(
+    name = "node_alpine_image",
+    architecture = "amd64",
+    digest = "sha256:9b54d010b382f0ef176dc93cd829bd4f2a905092b260746b3999aa824c9b7121",
+    os = "linux",
+    registry = "index.docker.io",
+    repository = "node",
+    tag = "21.5.0-alpine",  # ignored, doc only
+)

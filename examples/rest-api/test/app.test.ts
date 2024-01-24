@@ -2,10 +2,10 @@ import supertest from "supertest";
 
 import { mockDeep, DeepMockProxy } from "jest-mock-extended";
 
-import { PrismaClient as RLSPrismaClient } from "../../prisma/rls";
-import { PrismaClient } from "../../prisma/prisma-client";
+import { PrismaClient as RLSPrismaClient } from "../../prisma/rls/index.js";
+import { PrismaClient } from "../../prisma/prisma-client/index.js";
 
-import { setupApp, Console } from "../src/app";
+import { setupApp, Console } from "../src/app.js";
 
 const setupTest = () => {
   const mockConsole: DeepMockProxy<Console> = mockDeep<Console>();

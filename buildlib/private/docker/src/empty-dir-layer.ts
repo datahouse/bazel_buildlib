@@ -1,27 +1,28 @@
 import assert from "node:assert/strict";
+
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createGzip, createGunzip } from "node:zlib";
-import { createWriteStream, createReadStream } from "node:fs";
+import { createWriteStream } from "node:fs";
+import streamConsumers from "node:stream/consumers";
 
 import argparse from "argparse";
 import tar from "tar-stream";
 import parse_passwd from "parse-passwd";
-import { WritableStreamBuffer } from "stream-buffers";
 
-const readStreamToString = async (stream: Readable): Promise<string> => {
-  const buf = new WritableStreamBuffer();
+import { LayerFormat, OCIImage, Descriptor } from "./OCIImage.js";
 
-  await pipeline(stream, buf);
+type LayerPipe = (r: Readable, w: tar.Extract) => Promise<void>;
 
-  // getContentsAsString returns false if the buffer is size 0.
-  // This is a normal condition, so we simply replace by the empty string.
-  return buf.getContentsAsString("utf8") || "";
+const layerPipes: Record<LayerFormat, LayerPipe> = {
+  tar: (r, w) => pipeline(r, w),
+  "tar+gzip": (r, w) => pipeline(r, createGunzip(), w),
 };
 
 const findFileInLayer = async (
   name: string,
-  layer: string,
+  image: OCIImage,
+  layer: Descriptor,
 ): Promise<string | undefined> => {
   const extract = tar.extract();
 
@@ -32,26 +33,29 @@ const findFileInLayer = async (
 
     if (header.name === name) {
       assert(result === undefined);
-      result = readStreamToString(stream);
+      result = streamConsumers.text(stream);
     } else {
       stream.resume(); // skip all data.
     }
   });
 
-  await pipeline(createReadStream(layer), createGunzip(), extract);
+  const pipeLayer = layerPipes[OCIImage.layerFormat(layer)];
+  await pipeLayer(image.read(layer), extract);
 
   return result;
 };
 
 const findFileInLayers = async (
   name: string,
-  layers: string[],
+  image: OCIImage,
 ): Promise<string> => {
+  const { layers } = image.manifest;
+
   const revLayers = [...layers];
   revLayers.reverse();
 
   for (const layer of revLayers) {
-    const result = await findFileInLayer(name, layer);
+    const result = await findFileInLayer(name, image, layer);
     if (result !== undefined) return result;
   }
 
@@ -86,15 +90,14 @@ const writeTar = async (
   await pipe;
 };
 
-const main = async () => {
+const parseArgs = () => {
   const parser = new argparse.ArgumentParser({
     description:
       "Builder for layer with empty, writeable directories (for volumes)",
   });
 
-  parser.add_argument("--layer", {
-    help: "layers of the base image (to find uid / gid)",
-    nargs: "*",
+  parser.add_argument("--base", {
+    help: "directory of the base image (to find uid / gid)",
     required: true,
   });
   parser.add_argument("--user", {
@@ -108,9 +111,20 @@ const main = async () => {
   });
   parser.add_argument("--output", { help: "tar output (.tar.gz)" });
 
-  const args = parser.parse_args();
+  return parser.parse_args() as {
+    base: string;
+    user: string;
+    path: string[];
+    output: string;
+  };
+};
 
-  const passwdRaw = await findFileInLayers("etc/passwd", args.layer);
+const main = async () => {
+  const args = parseArgs();
+
+  const image = await OCIImage.load(args.base);
+
+  const passwdRaw = await findFileInLayers("etc/passwd", image);
   const userEntry = parse_passwd(passwdRaw).find(
     (p) => p.username === args.user,
   );

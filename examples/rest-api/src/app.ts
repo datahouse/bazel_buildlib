@@ -3,9 +3,9 @@ import swaggerUi from "swagger-ui-express";
 import { ValidateError } from "tsoa";
 
 import swaggerDocument from "./swagger.json";
-import { RegisterRoutes } from "./routes";
+import { RegisterRoutes } from "./routes.js";
 
-import { ContextFactory, RegisterServerContext } from "./tsoa-ioc";
+import { ContextFactory, RegisterServerContext } from "./tsoa-ioc.js";
 
 export interface Console {
   error(msg: string, ...params: unknown[]): void;

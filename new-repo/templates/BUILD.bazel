@@ -1,0 +1,15 @@
+load("@dh_buildlib//:defs.bzl", "bazelrc", "ts_setup")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+# Comment this out, once the Renovate onboarding PR is merged.
+#renovate_config(
+#    name = "renovate",
+#    # Ensure the extension here matches the file.
+#    src = "renovate.json5",
+#)
+
+bazelrc(name = "bazelrc")
+
+ts_setup(name = "ts_setup")

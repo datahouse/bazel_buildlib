@@ -48,7 +48,7 @@ Example: [`@examples//prisma:cli`](../../examples/prisma/BUILD.bazel#:~:text=nam
 | :------------- | :------------- | :------------- |
 | <a id="prisma_cli_image-name"></a>name |  name of the rule.   |  none |
 | <a id="prisma_cli_image-schema"></a>schema |  prisma schema to use.   |  none |
-| <a id="prisma_cli_image-base"></a>base |  base image to use   |  `"@node_image//image"` |
+| <a id="prisma_cli_image-base"></a>base |  base image to use   |  `"@node_image"` |
 | <a id="prisma_cli_image-platform"></a>platform |  Platform of the base image.   |  `Label("//private/docker:node_default_platform")` |
 | <a id="prisma_cli_image-visibility"></a>visibility |  visibility of the rule   |  `None` |
 | <a id="prisma_cli_image-testonly"></a>testonly |  testonly flag for all targets.   |  `None` |
@@ -114,7 +114,6 @@ For a generator with name `<name>`, you need (at least) the following settings i
 generator <anything> {
   provider      = "prisma-client-js"
   output        = "<name>"
-  binaryTargets = env("BINARY_TARGET")
 }
 ```
 

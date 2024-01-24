@@ -1,0 +1,31 @@
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+
+js_run_binary(
+    name = "fake-load-stamp-data",
+    testonly = 1,
+    srcs = ["fake-stable-info-file.txt"],
+    outs = [
+        "fake-labels.txt",
+        "fake-tag.txt",
+    ],
+    args = [
+        "--infoFile=fake-stable-info-file.txt",
+        "--labelsFile=fake-labels.txt",
+        "--tagFile=fake-tag.txt",
+    ],
+    chdir = package_name(),
+    tool = "//private/docker/src:load-stamp-data",
+)
+
+diff_test(
+    name = "fake-labels-test",
+    file1 = "fake-labels.txt",
+    file2 = "expected-labels.txt",
+)
+
+diff_test(
+    name = "fake-tag-test",
+    file1 = "fake-tag.txt",
+    file2 = "expected-tag.txt",
+)

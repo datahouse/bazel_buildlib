@@ -1,6 +1,6 @@
 """prisma_schema rule."""
 
-load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_file_to_bin_action")
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "COPY_FILE_TO_BIN_TOOLCHAINS", "copy_file_to_bin_action")
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load(":providers.bzl", "PrismaSchemaInfo")
 
@@ -27,7 +27,13 @@ def _validate_schema(ctx, schema):
 
 def _format_schema(ctx, schema):
     ctx.actions.run_shell(
-        command = "cp --no-preserve=mode $2 $3 && $1 format --schema $3",
+        # Use cat and pipes to avoid mode preservation,
+        # (otherwise the target file would be read-only).
+        # A cleaner option would be `cp --no-preserve-mode`, but MacOSX does not
+        # support this.
+        # And yes, we do all this, because prisma format does not support
+        # specifying a different output file.
+        command = "cat $2 > $3 && $1 format --schema $3",
         arguments = [
             ctx.executable._prisma_tool.path,
             schema.path,
@@ -79,6 +85,7 @@ _prisma_schema = rule(
             default = "@prisma//:cli",
         ),
     },
+    toolchains = COPY_FILE_TO_BIN_TOOLCHAINS,
 )
 
 def prisma_schema(name, schema, db_url_env, validate_db_url, visibility = None, testonly = None):

@@ -1,11 +1,19 @@
+# Explicitly disable bzlmod to support Bazel 6 & 7.
+common --noenable_bzlmod
+
 # Configure remote cache (read only)
 build --remote_upload_local_results=false
-build --remote_cache=https://developer:<redacted>@bazel-cache.datahouse.ch/
+build --remote_cache=https://developer:fe5Haino9uonahtah5tohMahbaiShu@bazel-cache.datahouse.ch/
+
+# Configure our own host platform detection.
+build --host_platform=@dh_buildlib//:host_platform
 
 # More aggressive sandboxing
 build --sandbox_default_allow_network=false
 build --incompatible_strict_action_env
-test --incompatible_exclusive_test_sandboxed # sandbox tests that have tag "exclusive"
+
+# No legacy runfiles for speed.
+build --nolegacy_external_runfiles
 
 # Look into directories for updates (so if you change a file in them,
 # they are considered "changed").

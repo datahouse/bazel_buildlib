@@ -1,7 +1,6 @@
 """buildlib internal rules to build layers for JS images (for node apps)."""
 
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
-load("@io_bazel_rules_docker//container:container.bzl", "container_layer")
 
 def _node_image_transition_impl(_settings, attr):
     return {
@@ -78,10 +77,13 @@ def _js_image_layer_impl(ctx):
         else:
             app_files.append(f)
 
-    _build_js_image_layer(ctx, "node_modules", node_modules_files, ctx.outputs.node_modules_layer)
-    _build_js_image_layer(ctx, "app", app_files, ctx.outputs.app_layer)
+    if ctx.outputs.node_modules_layer:
+        _build_js_image_layer(ctx, "node_modules", node_modules_files, ctx.outputs.node_modules_layer)
 
-_js_image_layer = rule(
+    if ctx.outputs.app_layer:
+        _build_js_image_layer(ctx, "app", app_files, ctx.outputs.app_layer)
+
+js_image_layers = rule(
     doc = """Build two JS layers from the runfiles:
     - One containing the node_modules
     - One containing the app files
@@ -90,10 +92,12 @@ _js_image_layer = rule(
         "app_layer": attr.output(),
         "data": attr.label_list(
             providers = [JsInfo],  # not used, but prevents bad usage.
+            mandatory = True,
         ),
         "node_modules_layer": attr.output(),
         "platform": attr.label(
             doc = "Target platform",
+            mandatory = True,
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
@@ -107,27 +111,3 @@ _js_image_layer = rule(
     implementation = _js_image_layer_impl,
     cfg = _node_image_transition,
 )
-
-def js_image_layers(name, data, platform, testonly = None):
-    """Builds two container layers with node modules and app data (internal)."""
-
-    _js_image_layer(
-        name = name + ".layers",
-        data = data,
-        platform = platform,
-        app_layer = name + "-app-layer.tar.gz",
-        node_modules_layer = name + "-node-modules-layer.tar.gz",
-        testonly = testonly,
-    )
-
-    container_layer(
-        name = name + ".node-modules",
-        tars = [name + "-node-modules-layer.tar.gz"],
-        testonly = testonly,
-    )
-
-    container_layer(
-        name = name + ".app",
-        tars = [name + "-app-layer.tar.gz"],
-        testonly = testonly,
-    )

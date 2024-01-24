@@ -1,6 +1,6 @@
 import { Controller, Get, Route } from "tsoa";
 
-import myVersion from "./myVersion";
+import myVersion from "./myVersion.js";
 
 @Route("version")
 export class VersionController extends Controller {

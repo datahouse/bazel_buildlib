@@ -1,0 +1,19 @@
+load("@aspect_bazel_lib//lib:testing.bzl", "assert_archive_contains")
+load("//private/tar:tar.bzl", "tar_auto_mtree")
+
+tar_auto_mtree(
+    name = "tar_for_test",
+    testonly = 1,
+    srcs = ["file.txt"],
+    out = "test.tar",
+    replace_prefix = "test/tar",
+    strip_prefix = package_name(),
+)
+
+assert_archive_contains(
+    name = "test_prefix",
+    archive = "test.tar",
+    expected = [
+        "test/tar/file.txt",
+    ],
+)

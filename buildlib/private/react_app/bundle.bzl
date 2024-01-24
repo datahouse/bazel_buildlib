@@ -1,9 +1,11 @@
 """Rules to bundle react apps."""
 
-load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file_action")
+load("@aspect_bazel_lib//lib:copy_file.bzl", "COPY_FILE_TOOLCHAINS", "copy_file_action")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("//private/tar:tar.bzl", "tar_auto_mtree")
 load("//private/ts:npm_js_binary.bzl", "npm_js_binary")
 load(":esm_transition.bzl", "esm_transition")
 
@@ -65,6 +67,7 @@ _bundle = rule(
     # Therefore, we transition on the inbound edge. Since this rule itself is not
     # configurable by the module type, it doesn't matter.
     cfg = esm_transition,
+    toolchains = COPY_FILE_TOOLCHAINS,
 )
 
 def bundle(name, deps, nginx_image, testonly = None):
@@ -85,11 +88,16 @@ def bundle(name, deps, nginx_image, testonly = None):
         vite = name + ".bin",
     )
 
-    container_image(
+    tar_auto_mtree(
+        name = name + ".tar",
+        strip_prefix = paths.join(native.package_name(), name + ".bundle"),
+        replace_prefix = "usr/share/nginx/html",
+        srcs = [name + ".bundle"],
+    )
+
+    oci_image(
         name = name,
         base = nginx_image,
-        data_path = "./{}.bundle".format(name),
-        directory = "/usr/share/nginx/html",
-        files = [name + ".bundle"],
+        tars = [name + ".tar"],
         testonly = testonly,
     )

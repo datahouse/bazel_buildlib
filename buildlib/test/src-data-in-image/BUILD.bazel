@@ -1,5 +1,6 @@
 """Regression test for #351"""
 
+load("@rules_oci//oci:defs.bzl", "oci_image")
 load("//:defs.bzl", "node_binary_image", "ts_library")
 
 ts_library(
@@ -7,9 +8,15 @@ ts_library(
     data = ["data.txt"],
 )
 
+oci_image(
+    name = "fake-base",
+    architecture = "amd64",
+    os = "linux",
+)
+
 node_binary_image(
     name = "image",
-    base = None,
+    base = ":fake-base",
     data = [":src"],
     entry_point = "index.js",
 )

@@ -10,6 +10,5 @@ bzl_library(
         "//private/ts:bzl",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_ts//ts:defs",
-        "@bazel_skylib//rules:expand_template",
     ],
 )

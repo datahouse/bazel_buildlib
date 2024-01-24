@@ -5,15 +5,15 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//private:node_modules/@types/argparse",
+        "//private:node_modules/@types/dockerode",
         "//private:node_modules/@types/js-yaml",
         "//private:node_modules/@types/node",
         "//private:node_modules/@types/parse-passwd",
-        "//private:node_modules/@types/stream-buffers",
         "//private:node_modules/@types/tar-stream",
         "//private:node_modules/argparse",
+        "//private:node_modules/dockerode",
         "//private:node_modules/js-yaml",
         "//private:node_modules/parse-passwd",
-        "//private:node_modules/stream-buffers",
         "//private:node_modules/tar-stream",
         "//private/js-lib/src",
     ],
@@ -34,10 +34,10 @@ js_binary(
 )
 
 js_binary(
-    name = "load-workspace-status",
+    name = "load-stamp-data",
     data = [":src"],
-    entry_point = "load-workspace-status.js",
-    visibility = ["//visibility:public"],
+    entry_point = "load-stamp-data.js",
+    visibility = ["//private/docker:__subpackages__"],
 )
 
 js_binary(

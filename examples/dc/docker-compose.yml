@@ -5,26 +5,32 @@ volumes:
 
 services:
   proxy:
-    bazel-image: "@//proxy:proxy"
+    bazel-image: //proxy
 
   frontend:
-    bazel-image: "@//frontend:frontend"
+    bazel-image: //frontend
 
   api:
-    bazel-image: "@//api:api"
+    bazel-image: //api
     environment:
       GQL_ENABLE_PLAYGROUND: true
-      DATABASE_URL: postgres://api_priviledged:uh0Fahth8nu1ong9phai@db/postgres
+      DATABASE_URL: postgres://api_login:uh0Fahth8nu1ong9phai@db/postgres
     volumes:
       - blob-store:/blob_store
 
   rest-api:
+    # bazel-image can be set to:
+    #
+    # - the verbatim label in `deps` (like in the examples above),
+    # - the canonical bazel label (like here for rest-api).
+    #
+    # The latter is discouraged due to its verbosity.
     bazel-image: "@//rest-api:rest-api"
     environment:
-      DATABASE_URL: postgres://api_priviledged:uh0Fahth8nu1ong9phai@db/postgres
+      DATABASE_URL: postgres://api_login:uh0Fahth8nu1ong9phai@db/postgres
 
   db:
-    bazel-image: "@postgres_image//image:image"
+    bazel-image: "@postgres_image"
     ports:
       - 5432 # for prisma.
     environment:

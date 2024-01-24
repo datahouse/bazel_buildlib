@@ -1,0 +1,20 @@
+package(default_visibility = ["//visibility:public"])
+
+constraint_setting(
+    name = "openssl",
+)
+
+constraint_value(
+    name = "3",
+    constraint_setting = ":openssl",
+)
+
+constraint_value(
+    name = "1.1",
+    constraint_setting = ":openssl",
+)
+
+constraint_value(
+    name = "1.0",
+    constraint_setting = ":openssl",
+)

@@ -14,4 +14,7 @@ ts_library(
         "index.ts",
         "myVersion.ts",
     ],
+    deps = [
+        "//prisma:client",  # Test generated library.
+    ],
 )

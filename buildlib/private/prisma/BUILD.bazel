@@ -24,12 +24,13 @@ bzl_library(
         "//private/docker:bzl",
         "//private/ts:bzl",
         "@aspect_bazel_lib//lib:copy_to_bin",
+        "@aspect_bazel_lib//lib:tar",
         "@aspect_bazel_lib//lib:write_source_files",
         "@aspect_rules_js//js:defs",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//rules:select_file",
         "@bazel_skylib//rules:write_file",
-        "@io_bazel_rules_docker//container",
+        "@rules_oci//oci:defs",
     ],
 )
 

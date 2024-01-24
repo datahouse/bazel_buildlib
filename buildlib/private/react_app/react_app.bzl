@@ -3,26 +3,10 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
-load("@io_bazel_rules_docker//container:providers.bzl", "ImageInfo")
 load("//private/docker:providers.bzl", "HotReloadableInfo")
 load(":bundle.bzl", "bundle")
 load(":esm_transition.bzl", "esm_transition")
 load(":hot_reload_base.bzl", "hot_reload_base")
-
-def _delegate_run(ctx, target):
-    # Forwarder binary to run an executable defined by target.
-    #
-    # bazel doesn't allow us to simply return the DefaultInfo of the target, but insists we return
-    # an executable created by this rule. So we write a little forwarder.
-    runner = ctx.actions.declare_file(ctx.label.name + ".runner.sh")
-
-    ctx.actions.write(runner, "#! /bin/sh\nexec ./{} \"$@\"".format(target.files_to_run.executable.short_path))
-
-    return DefaultInfo(
-        executable = runner,
-        files = target.files,
-        runfiles = target.default_runfiles,
-    )
 
 def _react_app_impl(ctx):
     files = js_lib_helpers.gather_files_from_js_providers(
@@ -39,12 +23,11 @@ def _react_app_impl(ctx):
     ])
 
     return [
-        _delegate_run(ctx, ctx.attr.run_image),
-        ctx.attr.run_image[ImageInfo],
+        DefaultInfo(files = depset([ctx.file.run_image])),
         HotReloadableInfo(
             files = filtered_files,
             container_path = "/app/hot",
-            image = ctx.attr.dev_image,
+            oci_image = ctx.file.dev_image,
         ),
     ]
 
@@ -56,21 +39,20 @@ _react_app = rule(
             providers = [JsInfo],
             cfg = esm_transition,
         ),
-        "dev_image": attr.label(providers = [ImageInfo]),
-        "run_image": attr.label(providers = [ImageInfo]),
+        "dev_image": attr.label(allow_single_file = True),
+        "run_image": attr.label(allow_single_file = True),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    executable = True,
 )
 
 def react_app(
         name,
         srcs = [],
         deps = [],
-        nginx_image = "@nginx_image//image",
-        node_image = "@node_image//image",
+        nginx_image = "@nginx_image",
+        node_image = "@node_image",
         node_image_platform = Label("//private/docker:node_default_platform"),
         visibility = None,
         testonly = None):

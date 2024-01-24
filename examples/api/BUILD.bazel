@@ -2,7 +2,6 @@ load("@dh_buildlib//:defs.bzl", "gql_schema", "node_binary_image")
 
 node_binary_image(
     name = "api",
-    base = "@node_image//image",
     data = ["//api/src"],
     entry_point = "//api/src:index.js",
     ports = ["4000"],

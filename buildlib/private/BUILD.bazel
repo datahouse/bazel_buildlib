@@ -1,11 +1,11 @@
 load("@dh_buildlib_private_npm//:defs.bzl", "npm_link_all_packages")
 load("@dh_buildlib_private_npm//private:prettier/package_json.bzl", _prettier = "bin")
+load("//:defs.bzl", "pnpm_lock_test")
 
 npm_link_all_packages(name = "node_modules")
 
-config_setting(
-    name = "stamp",
-    values = {"stamp": "true"},
+pnpm_lock_test(
+    name = "pnpm_lock_test",
 )
 
 _prettier.prettier_binary(

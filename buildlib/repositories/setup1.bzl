@@ -1,12 +1,14 @@
 """Datahouse buildib setup stage 1."""
 
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
 load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 load("@aspect_rules_swc//swc:dependencies.bzl", "rules_swc_dependencies")
 load("@aspect_rules_swc//swc:repositories.bzl", "LATEST_SWC_VERSION", "swc_register_toolchains")
 load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
-load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+load("@rules_oci//oci:dependencies.bzl", "rules_oci_dependencies")
+load("@rules_oci//oci:repositories.bzl", "LATEST_CRANE_VERSION", "oci_register_toolchains")
 
 visibility("public")
 
@@ -33,7 +35,15 @@ def dh_buildlib_setup1(bins = {}):
         swc_version = LATEST_SWC_VERSION,
     )
 
-    container_repositories()
+    aspect_bazel_lib_dependencies()
+    aspect_bazel_lib_register_toolchains()
+
+    rules_oci_dependencies()
+
+    oci_register_toolchains(
+        name = "oci",
+        crane_version = LATEST_CRANE_VERSION,
+    )
 
     # Main npm repository comes from user workspace.
     npm_translate_lock(

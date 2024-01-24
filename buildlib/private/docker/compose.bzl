@@ -12,67 +12,65 @@ $ sudo apt-get install docker-compose-plugin
 load("@aspect_rules_js//js:libs.bzl", "js_binary_lib")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@dh_buildlib_private_ibazel_info//:is_ibazel.bzl", "is_ibazel")
-load("@io_bazel_rules_docker//container:providers.bzl", "ImageInfo", "PullInfo")
-load("@io_bazel_rules_docker//skylib:docker.bzl", "docker_path")
 load("//private/ts:js_binary.bzl", "commonjs_transition")
+load(":oci_util.bzl", "get_oci_dir")
 load(":providers.bzl", "DockerComposeInfo", "HotReloadableInfo")
-load(":pull_info.bzl", "pull_info_dict")
 
-def _build_built_image_info(key, image, builder):
-    digest_file = image[ImageInfo].container_parts["config_digest"]
+def _build_built_image_info(keys, oci_dir, builder):
+    builder.oci_images.append(oci_dir)
 
-    builder.digest_files.append(digest_file)
-    builder.runfiles.append(image.default_runfiles)
-
-    builder.image_infos[key] = {
-        "digestFile": digest_file.path,
-        "loadCmd": image.files_to_run.executable.short_path,
+    return {
+        "keys": keys,
+        "ociDir": oci_dir.path,
+        "ociDirShort": oci_dir.short_path,
     }
 
-def _build_hot_reload_info(ctx, key, info, builder):
-    _build_built_image_info(key, info.image, builder)
+def _build_hot_reload_info(ctx, keys, image_label, hot_reload_info, builder):
+    image_info = _build_built_image_info(keys, hot_reload_info.oci_image, builder)
 
-    builder.runfiles.append(ctx.runfiles(transitive_files = info.files))
+    builder.hot_reload_files.append(hot_reload_info.files)
 
-    builder.image_infos[key]["hotReload"] = {
-        "containerPath": info.container_path,
-        "files": [file.short_path for file in info.files.to_list()],
-        "hostHomePath": ".cache/dh-buildlib/dc-hot/{}/{}/{}".format(ctx.attr.project, info.image.label.package, info.image.label.name),
+    image_info["hotReload"] = {
+        "containerPath": hot_reload_info.container_path,
+        "files": [file.short_path for file in hot_reload_info.files.to_list()],
+        "hostHomePath": ".cache/dh-buildlib/dc-hot/{}/{}/{}".format(ctx.attr.project, image_label.package, image_label.name),
     }
 
-def _build_image_info(ctx, image, builder):
-    key = str(image.label)
+    return image_info
 
-    if is_ibazel and HotReloadableInfo in image:
-        _build_hot_reload_info(ctx, key, image[HotReloadableInfo], builder)
-    elif ImageInfo in image:
-        _build_built_image_info(key, image, builder)
-    elif PullInfo in image:
-        builder.image_infos[key] = pull_info_dict(image)
-    else:
-        fail("%s had neither ImageInfo nor PullInfo provider" % image.label)
+def _build_image_info(ctx, image_target, image_key, builder):
+    keys = [
+        image_key,
+        str(image_target.label),  # backwards compatibility
+    ]
+
+    if is_ibazel and HotReloadableInfo in image_target:
+        return _build_hot_reload_info(ctx, keys, image_target.label, image_target[HotReloadableInfo], builder)
+
+    return _build_built_image_info(keys, get_oci_dir(image_target), builder)
 
 def _write_image_info(ctx):
     builder = struct(
-        digest_files = [],
-        runfiles = [],
-        image_infos = {},
+        oci_images = [],
+        hot_reload_files = [],
     )
 
-    for image in ctx.attr.deps:
-        _build_image_info(ctx, image, builder)
+    image_infos = [
+        _build_image_info(ctx, image_target, image_key, builder)
+        for image_target, image_key in ctx.attr.deps.items()
+    ]
 
     image_info_file = ctx.actions.declare_file(ctx.label.name + ".image-info.json")
-    ctx.actions.write(image_info_file, json.encode(builder.image_infos))
+    ctx.actions.write(image_info_file, json.encode(image_infos))
 
     return struct(
         file = image_info_file,
-        digest_files = builder.digest_files,
-        runfiles = builder.runfiles,
+        oci_images = builder.oci_images,
+        hot_reload_files = depset(transitive = builder.hot_reload_files),
     )
 
-def _preprocess_dc(ctx, image_info_file, digest_files):
-    inputs = [ctx.file.src, image_info_file] + digest_files
+def _preprocess_dc(ctx, image_info_file, oci_images):
+    inputs = [ctx.file.src, image_info_file] + oci_images
 
     new_dc = ctx.actions.declare_file("docker-compose.gen.yml")
     ctx.actions.run(
@@ -92,24 +90,22 @@ def _preprocess_dc(ctx, image_info_file, digest_files):
 
     return new_dc
 
-def _docker_compose_up(ctx, dc_file, image_info_file, runfiles):
-    docker_toolchain = ctx.toolchains["@io_bazel_rules_docker//toolchains/docker:toolchain_type"].info
-
+def _docker_compose_up(ctx, dc_file, image_info):
     launcher = js_binary_lib.create_launcher(
         ctx,
         log_prefix_rule_set = "dh_buildlib",
         log_prefix_rule = "docker_compose",
         fixed_args = [
-            docker_path(docker_toolchain),
             dc_file.short_path,
             ctx.attr.project,
-            image_info_file.short_path,
+            image_info.file.short_path,
         ],
     )
 
-    runfiles = ctx.runfiles(files = [dc_file, image_info_file]).merge_all(
-        [launcher.runfiles] + runfiles,
-    )
+    runfiles = ctx.runfiles(
+        files = [dc_file, image_info.file] + image_info.oci_images,
+        transitive_files = image_info.hot_reload_files,
+    ).merge(launcher.runfiles)
 
     return DefaultInfo(
         executable = launcher.executable,
@@ -119,9 +115,9 @@ def _docker_compose_up(ctx, dc_file, image_info_file, runfiles):
 def _docker_compose_impl(ctx):
     image_info = _write_image_info(ctx)
 
-    new_dc = _preprocess_dc(ctx, image_info.file, image_info.digest_files)
+    new_dc = _preprocess_dc(ctx, image_info.file, image_info.oci_images)
 
-    executable_info = _docker_compose_up(ctx, new_dc, image_info.file, image_info.runfiles)
+    executable_info = _docker_compose_up(ctx, new_dc, image_info)
 
     return [
         executable_info,
@@ -142,9 +138,12 @@ _docker_compose = rule(
     """,
     implementation = _docker_compose_impl,
     attrs = dicts.add(js_binary_lib.attrs, {
-        "deps": attr.label_list(
-            providers = [[ImageInfo], [PullInfo]],
-            doc = "Container images required by this docker-compose file",
+        "deps": attr.label_keyed_string_dict(
+            doc = """Container images required by this docker-compose file.
+
+            This is a dict to preserve to original label strings (for use inside the docker-compose.yml).
+            """,
+            allow_files = True,
         ),
         "project": attr.string(),
         "src": attr.label(
@@ -161,7 +160,7 @@ _docker_compose = rule(
         ),
     }),
     executable = True,
-    toolchains = js_binary_lib.toolchains + ["@io_bazel_rules_docker//toolchains/docker:toolchain_type"],
+    toolchains = js_binary_lib.toolchains,
     cfg = commonjs_transition,
 )
 
@@ -185,7 +184,7 @@ def docker_compose(name, project, src, deps, visibility = None, testonly = None)
         name = name,
         project = project,
         src = src,
-        deps = deps,
+        deps = {d: d for d in deps},  # key will be implicitly converted to label.
         entry_point = Label("//private/docker/src:dc-runner.js"),
         data = [Label("//private/docker/src")],
         visibility = visibility,

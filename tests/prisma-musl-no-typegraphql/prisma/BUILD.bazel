@@ -1,0 +1,19 @@
+load("@dh_buildlib//:defs.bzl", "prisma_generate", "prisma_providers", "prisma_schema")
+
+prisma_schema(
+    name = "schema",
+    db_url_env = "DATABASE_URL",
+    schema = "schema.prisma",
+    validate_db_url = "postgres://localhost/",
+)
+
+prisma_generate(
+    name = "generate",
+    generators = {
+        "client": prisma_providers.prisma_client_js(),
+    },
+    schema = ":schema",
+    visibility = [
+        "//:__subpackages__",
+    ],
+)

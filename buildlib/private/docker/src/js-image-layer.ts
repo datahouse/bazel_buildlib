@@ -2,7 +2,7 @@ import { readdir, realpath, readFile } from "node:fs/promises";
 import * as path from "node:path";
 import argparse from "argparse";
 
-import LayerBuilder from "./LayerBuilder";
+import LayerBuilder from "./LayerBuilder.js";
 
 async function* walkDirForFiles(
   walkDir: string,

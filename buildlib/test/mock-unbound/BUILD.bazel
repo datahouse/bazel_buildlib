@@ -1,0 +1,8 @@
+load("//:defs.bzl", "ts_test")
+
+ts_test(
+    name = "mock-unbound",
+    deps = [
+        "//:node_modules/jest-mock-extended",
+    ],
+)

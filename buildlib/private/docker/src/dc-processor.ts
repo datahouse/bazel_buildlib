@@ -2,7 +2,9 @@ import { readFile, writeFile } from "node:fs/promises";
 import argparse from "argparse";
 import YAML from "js-yaml";
 
-import { ImageInfo, readImageInfos } from "./ImageInfos";
+import { ImageInfo, readImageInfos } from "./ImageInfos.js";
+
+import { OCIImage } from "./OCIImage.js";
 
 type InfoWithReference = ImageInfo & { reference: string };
 
@@ -18,22 +20,29 @@ interface DockerCompose {
   };
 }
 
+const loadImageReference = async (
+  info: ImageInfo,
+): Promise<InfoWithReference> => {
+  const image = await OCIImage.load(info.ociDir);
+
+  const shaPrefix = "sha256:";
+
+  const { config } = image.manifest;
+
+  if (!config.digest.startsWith(shaPrefix))
+    throw new Error("unsupported digest");
+
+  const reference = config.digest.slice(shaPrefix.length);
+
+  return { reference, ...info };
+};
+
 const loadImageInfos = async (
   infoFile: string,
 ): Promise<Map<string, InfoWithReference>> => {
   const infos = await readImageInfos(infoFile);
-
-  const withReference = async ([label, info]: [string, ImageInfo]): Promise<
-    [string, InfoWithReference]
-  > => {
-    if ("reference" in info) return [label, info];
-
-    const digest = await readFile(info.digestFile, "utf8");
-
-    return [label, { reference: digest, ...info }];
-  };
-
-  return new Map(await Promise.all(Object.entries(infos).map(withReference)));
+  const withRef = await Promise.all(infos.map(loadImageReference));
+  return new Map(withRef.flatMap((info) => info.keys.map((k) => [k, info])));
 };
 
 const patchService = (

@@ -1,0 +1,21 @@
+load("//:defs.bzl", "js_binary", "ts_library")
+
+ts_library(
+    name = "src",
+    deps = [
+        "//private:node_modules/@babel/core",
+        "//private:node_modules/@babel/plugin-transform-modules-commonjs",
+        "//private:node_modules/@types/argparse",
+        "//private:node_modules/@types/babel__core",
+        "//private:node_modules/@types/node",
+        "//private:node_modules/argparse",
+        "//private:node_modules/babel-plugin-module-resolver",
+    ],
+)
+
+js_binary(
+    name = "transpile-esm-to-cjs",
+    data = [":src"],
+    entry_point = "transpile-esm-to-cjs.js",
+    visibility = ["//visibility:public"],
+)

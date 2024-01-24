@@ -15,5 +15,14 @@
 [tooling.md](./tooling.md)
 : Rules for language angostic tooling (bazel, renovate).
 
+[tar.md](./tar.md)
+: Convenience rules for tars.
+
 [ts.md](./ts.md)
 : Rules for Typescript (compiling, testing, linting).
+
+[ts_setup.md](./ts_setup.md)
+: Rules to set up the JavaScript / Typescript base system.
+
+[hacks.md](./hacks.md)
+: Hacks that we unfortunately seem to need.

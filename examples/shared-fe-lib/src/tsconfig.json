@@ -1,5 +1,5 @@
 {
-  "compilerOptions": { "lib": ["dom", "es2018"] },
+  "compilerOptions": { "lib": ["dom", "dom.iterable", "es2018"] },
   "extends": "../../tsconfig-base.json",
   "include": ["**/*"],
   "references": [{ "path": "../../shared-lib/src" }]

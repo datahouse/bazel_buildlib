@@ -1,7 +1,10 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":stamping.bzl", "load_stamp_data")
 
 exports_files([
     "load-service-ref.tpl.sh",
+    "load-image-for-ts-test.d.ts",
+    "load-image-for-ts-test.tpl.js",
 ])
 
 bzl_library(
@@ -15,14 +18,12 @@ bzl_library(
     deps = [
         "//private/prisma:constants",
         "//private/ts:bzl",
+        "@aspect_bazel_lib//lib:copy_file",
         "@aspect_rules_js//js:libs",
         "@aspect_rules_js//js:providers",
         "@bazel_skylib//lib:paths",
         "@dh_buildlib_private_ibazel_info//:bzl",
-        "@io_bazel_rules_docker//container",
-        "@io_bazel_rules_docker//container:providers",
-        "@io_bazel_rules_docker//contrib:push-all_bzl",
-        "@io_bazel_rules_docker//skylib:docker",
+        "@rules_oci//oci:defs",
     ],
 )
 
@@ -31,8 +32,15 @@ platform(
     constraint_values = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
-        "//private/prisma/constraints:linux_debian",
-        "//private/prisma/constraints:openssl_3",
+        "//prisma/linux:debian",
+        "//prisma/openssl:3",
     ],
+    visibility = ["//visibility:public"],
+)
+
+load_stamp_data(
+    name = "push_stamp_data",
+    docker_tag = "push-tag.txt",
+    labels = "push-labels.txt",
     visibility = ["//visibility:public"],
 )

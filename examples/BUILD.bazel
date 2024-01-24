@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@dh_buildlib//:defs.bzl", "bazelrc", "dh_docker_images_push", "eslintrc", "renovate_config", "tsconfig_base")
+load("@dh_buildlib//:defs.bzl", "bazelrc", "dh_docker_images_push", "renovate_config", "transpile_esm_to_cjs", "ts_setup")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
@@ -33,14 +33,8 @@ bazelrc(
     name = "bazelrc",
 )
 
-tsconfig_base(
-    name = "tsconfig-base",
-    visibility = ["//:__subpackages__"],
-)
-
-eslintrc(
-    name = "eslintrc",
-    visibility = ["//:__subpackages__"],
+ts_setup(
+    name = "ts_setup",
 )
 
 dh_docker_images_push(
@@ -50,6 +44,29 @@ dh_docker_images_push(
         "api": "//api",
         "frontend": "//frontend",
         "proxy": "//proxy",
+        "rest-api": "//rest-api",
     },
     repository_prefix = "it-bazel/example",
+)
+
+# Hack: Transpilation rules for graphql-upload (which is ESM only).
+
+transpile_esm_to_cjs(
+    name = "node_modules/fs-capacitor-cjs",
+    node_module = "//:node_modules/fs-capacitor",
+)
+
+transpile_esm_to_cjs(
+    name = "node_modules/graphql-upload-cjs",
+    node_module = "//:node_modules/graphql-upload",
+    replacements = {
+        ":node_modules/fs-capacitor-cjs": "fs-capacitor",
+    },
+    visibility = ["//:__subpackages__"],
+)
+
+transpile_esm_to_cjs(
+    name = "node_modules/@types/graphql-upload-cjs",
+    node_module = "//:node_modules/@types/graphql-upload",
+    visibility = ["//:__subpackages__"],
 )

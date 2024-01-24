@@ -1,4 +1,4 @@
-import parseWorkspaceStatus from "../src/parseWorkspaceStatus";
+import parseWorkspaceStatus from "../src/parseWorkspaceStatus.js";
 
 describe("parseWorkspaceStatus", () => {
   it("should parse trivial data", () => {

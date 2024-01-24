@@ -154,7 +154,7 @@ def get_ssl_version(ctx, paths):
     """Get the SSL version of the host.
 
     Original:
-    https://github.com/prisma/prisma/blob/71fed12cedb23721c32e44c648ff86b6393582fa/packages/get-platform/src/getPlatform.ts#L334-L394
+    https://github.com/prisma/prisma/blob/cddc868597386278c35878d96168cbf14f7eb5da/packages/get-platform/src/getPlatform.ts#L334-L394
 
     Args:
       ctx: repository rule context
@@ -164,13 +164,80 @@ def get_ssl_version(ctx, paths):
       The libssl version (or fails)
     """
 
+    libssl_filename_from_specific_path = _find_lib_ssl_in_locations(ctx, paths)
+    return parse_lib_ssl_version(libssl_filename_from_specific_path)
+
+def _find_lib_ssl_in_locations(ctx, paths):
+    """Looks for libssl in specified directories, returns the first one found
+
+    Original:
+    https://github.com/prisma/prisma/blob/cddc868597386278c35878d96168cbf14f7eb5da/packages/get-platform/src/getPlatform.ts#L400-L409
+
+    Args:
+      ctx: repository rule context
+      paths: paths to look for libssl in.
+
+    Returns:
+      The libssl filename (or fails)
+    """
+
     for path in paths:
         res = ctx.execute(["ls", path])
         if res.return_code != 0:
             fail("failed to ls '{}': {}".format(path, res.stderr))
 
         for line in res.stdout.splitlines():
-            if line.startswith("libssl.so."):
-                return line.removeprefix("libssl.so.")
+            if line.startswith("libssl.so.") and not line.startswith("libssl.so.0"):
+                return line
 
     fail("couldn't find libssl in {}".format(paths))
+
+def parse_lib_ssl_version(input):
+    """Parse the OpenSSL version from the output of the libssl.so file
+
+    Note that we do not have regexes available in starlark.
+    Further: We only return the truncated version (without trailing 0.x).
+
+    Exposed for tests.
+
+    Original:
+    https://github.com/prisma/prisma/blob/cddc868597386278c35878d96168cbf14f7eb5da/packages/get-platform/src/getPlatform.ts#L252-L282
+
+    Supported versions are here:
+    https://github.com/prisma/prisma/blob/cddc868597386278c35878d96168cbf14f7eb5da/packages/get-platform/src/getPlatform.ts#L16
+
+    Args:
+      input: filename
+
+    Returns:
+      The libssl version.
+
+    """
+
+    # Hand match  /libssl\.so\.(\d)(\.\d)?/
+
+    if not input.startswith("libssl.so."):
+        fail("unexpected input: {}".format(input))
+
+    v = input.removeprefix("libssl.so.")
+
+    if not v[0].isdigit():
+        fail("expected a digit after 'libssl.so.', got: {}".format(input))
+    major = int(v[0])
+
+    minor = 0  # default
+    if len(v) >= 3 and v[1] == "." and v[2].isdigit():
+        minor = int(v[2])
+
+    if major == 1:
+        v = "{}.{}".format(major, minor)
+
+        if minor not in [0, 1]:
+            fail("openssl {} is not supported".format(v))
+
+        return v
+
+    if major != 3:
+        fail("openssl {} is not supported".format(major))
+
+    return "{}".format(major)

@@ -1,0 +1,20 @@
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "dh_buildlib",
+    commit = "{{ BUILDLIB_SHA }}",  # {{ BUILDLIB_TAG }}
+    remote = "git@git.datahouse.ch:datahouse/it-bazel.git",
+    strip_prefix = "buildlib",
+)
+
+load("@dh_buildlib//repositories:setup0.bzl", "dh_buildlib_setup0")
+
+dh_buildlib_setup0()
+
+load("@dh_buildlib//repositories:setup1.bzl", "dh_buildlib_setup1")
+
+dh_buildlib_setup1()
+
+load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
+
+dh_buildlib_setup2()

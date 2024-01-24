@@ -1,0 +1,11 @@
+.footer {
+  border-top: solid black 1px;
+  padding-top: 0.4em;
+  text-align: center;
+}
+
+.footer img {
+  height: 1.2em;
+  vertical-align: -0.3em;
+  padding-right: 0.5em;
+}

@@ -1,0 +1,26 @@
+load("@dh_buildlib//:defs.bzl", "bazelrc", "node_binary_image", "ts_setup")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+bazelrc(name = "bazelrc")
+
+ts_setup(name = "ts_setup")
+
+platform(
+    name = "node_alpine_platform",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "@dh_buildlib//prisma/linux:musl",
+        "@dh_buildlib//prisma/openssl:3",
+    ],
+)
+
+node_binary_image(
+    name = "musl_image",
+    base = "@node_alpine_image",
+    data = ["//src"],
+    entry_point = "//src:index.js",
+    platform = ":node_alpine_platform",
+)

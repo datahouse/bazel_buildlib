@@ -7,9 +7,11 @@ ts_library(
     ],
     deps = [
         "//:node_modules/@types/express",
+        "//:node_modules/@types/graphql-upload-cjs",
         "//:node_modules/apollo-server-core",
         "//:node_modules/apollo-server-express",
         "//:node_modules/express",
+        "//:node_modules/graphql-upload-cjs",
         "//:node_modules/reflect-metadata",
         "//prisma:typegraphql-prisma",
         "//prisma/rls",

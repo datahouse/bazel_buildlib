@@ -1,8 +1,28 @@
-load("//:defs.bzl", "ts_test")
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("//:defs.bzl", "docker_image_for_ts_test", "ts_test")
+load("//private/tar:tar.bzl", "tar_auto_mtree")
+
+tar_auto_mtree(
+    name = "test-image-tar",
+    srcs = ["file-in-image.txt"],
+)
+
+oci_image(
+    name = "test-image",
+    architecture = "amd64",
+    os = "linux",
+    tars = ["test-image-tar"],
+)
+
+docker_image_for_ts_test(
+    name = "load_test_image",
+    image = ":test-image",
+)
 
 ts_test(
     name = "test",
     deps = [
+        ":load_test_image",
         "//:node_modules/jest-extended",
         "//private/docker/src",
     ],

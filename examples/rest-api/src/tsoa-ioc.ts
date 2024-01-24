@@ -12,7 +12,7 @@ import { Request, Application } from "express";
 
 import { IocContainer, IocContainerFactory } from "@tsoa/runtime";
 
-import ServerContext from "./ServerContext";
+import ServerContext from "./ServerContext.js";
 
 class IocContainerAdapter implements IocContainer {
   constructor(private ctx: ServerContext) {}

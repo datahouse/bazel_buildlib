@@ -23,31 +23,31 @@ PLATFORMS = {
         constraint_values = [
             "@platforms//cpu:x86_64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:linux_debian",
-            "//private/prisma/constraints:openssl_1.0",
+            "//prisma/linux:debian",
+            "//prisma/openssl:1.0",
         ],
     ),
     "debian-openssl-1.1.x": struct(
         constraint_values = [
             "@platforms//cpu:x86_64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:linux_debian",
-            "//private/prisma/constraints:openssl_1.1",
+            "//prisma/linux:debian",
+            "//prisma/openssl:1.1",
         ],
     ),
     "debian-openssl-3.0.x": struct(
         constraint_values = [
             "@platforms//cpu:x86_64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:linux_debian",
-            "//private/prisma/constraints:openssl_3",
+            "//prisma/linux:debian",
+            "//prisma/openssl:3",
         ],
     ),
     "linux-arm64-openssl-1.0.x": struct(
         constraint_values = [
             "@platforms//cpu:arm64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:openssl_1.0",
+            "//prisma/openssl:1.0",
         ],
     ),
     # Distro detection doesn't support RHEL.
@@ -58,14 +58,14 @@ PLATFORMS = {
         constraint_values = [
             "@platforms//cpu:arm64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:openssl_1.1",
+            "//prisma/openssl:1.1",
         ],
     ),
     "linux-arm64-openssl-3.0.x": struct(
         constraint_values = [
             "@platforms//cpu:arm64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:openssl_3",
+            "//prisma/openssl:3",
         ],
     ),
     # linux-arm-openssl-* fail to downloads (see #179)
@@ -76,31 +76,31 @@ PLATFORMS = {
         constraint_values = [
             "@platforms//cpu:x86_64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:linux_musl",
+            "//prisma/linux:musl",
         ],
     ),
     "linux-musl-arm64-openssl-1.1.x": struct(
         constraint_values = [
             "@platforms//cpu:arm64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:linux_musl",
-            "//private/prisma/constraints:openssl_1.1",
+            "//prisma/linux:musl",
+            "//prisma/openssl:1.1",
         ],
     ),
     "linux-musl-arm64-openssl-3.0.x": struct(
         constraint_values = [
             "@platforms//cpu:arm64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:linux_musl",
-            "//private/prisma/constraints:openssl_3",
+            "//prisma/linux:musl",
+            "//prisma/openssl:3",
         ],
     ),
     "linux-musl-openssl-3.0.x": struct(
         constraint_values = [
             "@platforms//cpu:x86_64",
             "@platforms//os:linux",
-            "//private/prisma/constraints:linux_musl",
-            "//private/prisma/constraints:openssl_3",
+            "//prisma/linux:musl",
+            "//prisma/openssl:3",
         ],
     ),
     #"linux-nixos", // nixios not in platforms/os

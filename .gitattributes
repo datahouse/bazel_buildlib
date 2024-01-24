@@ -1,3 +1,4 @@
+.bazelrc linguist-generated=true
 pnpm-lock.yaml linguist-generated=true
 tsconfig.json linguist-generated=true
 tsconfig-base.json linguist-generated=true

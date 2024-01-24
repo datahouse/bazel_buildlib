@@ -1,9 +1,5 @@
 {
   "extends": "../../tsconfig-base.json",
-  "include": [
-    "**/*",
-    "../../bazel-bin/prisma/test/postgres-info.json",
-    "postgres-info.json"
-  ],
+  "include": ["**/*"],
   "references": [{ "path": "../rls" }]
 }

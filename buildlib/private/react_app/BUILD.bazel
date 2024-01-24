@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//private/tar:tar.bzl", "tar_auto_mtree")
 
 exports_files(["vite.config.js"])
 
@@ -10,10 +11,21 @@ bzl_library(
     ],
     deps = [
         "//private/docker:bzl",
+        "//private/tar:bzl",
         "@aspect_bazel_lib//lib:copy_file",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_js//js:libs",
         "@aspect_rules_js//js:providers",
-        "@io_bazel_rules_docker//container:providers",
+        "@rules_oci//oci:defs",
+    ],
+)
+
+tar_auto_mtree(
+    name = "vite-config-tar",
+    srcs = ["vite.config.js"],
+    replace_prefix = "app/",
+    strip_prefix = package_name(),
+    visibility = [
+        "//visibility:public",
     ],
 )

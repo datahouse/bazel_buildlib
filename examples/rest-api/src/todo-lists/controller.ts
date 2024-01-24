@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Route, Path, Body } from "tsoa";
 
-import { TodoList, TodoItem } from "../../../prisma/prisma-client";
+import { TodoList, TodoItem } from "../../../prisma/prisma-client/index.js";
 
-import ServerContext from "../ServerContext";
+import ServerContext from "../ServerContext.js";
 
 @Route("todo-lists")
 export class TodoListsController extends Controller {

@@ -15,7 +15,7 @@ def eslintrc(name, visibility = None):
     Provides a test that ensures the eslintrc includes the Datahouse base eslint
     config.
 
-    Example: [`@examples//:eslintrc`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22eslintrc%22%2C)
+    Example: See [`ts_setup`](#ts_setup)
 
     Args:
       name: Name of the rule. Must be "eslintrc".

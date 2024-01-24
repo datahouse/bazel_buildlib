@@ -9,7 +9,7 @@ docker_compose(
         "//frontend",
         "//proxy",
         "//rest-api",
-        "@postgres_image//image",
+        "@postgres_image",
     ],
 )
 

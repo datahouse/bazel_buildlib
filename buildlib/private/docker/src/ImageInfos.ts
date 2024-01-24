@@ -6,11 +6,12 @@ export interface HotReloadInfo {
   containerPath: string;
 }
 
-export type ImageInfo =
-  | { digestFile: string; loadCmd: string; hotReload?: HotReloadInfo }
-  | { reference: string };
+export interface ImageInfo {
+  keys: string[];
+  ociDir: string;
+  ociDirShort: string;
+  hotReload?: HotReloadInfo;
+}
 
-export type ImageInfos = { [label: string]: ImageInfo };
-
-export const readImageInfos = async (path: string): Promise<ImageInfos> =>
-  JSON.parse(await fs.readFile(path, "utf8")) as ImageInfos;
+export const readImageInfos = async (path: string): Promise<ImageInfo[]> =>
+  JSON.parse(await fs.readFile(path, "utf8")) as ImageInfo[];

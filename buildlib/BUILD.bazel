@@ -1,16 +1,16 @@
+load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load(":defs.bzl", "bazelrc", "eslintrc", "tsconfig_base")
+load("@prisma_host_constraints//:constraints.bzl", "PRISMA_HOST_CONSTRAINTS")
+load(":defs.bzl", "bazelrc", "ts_setup")
 
 npm_link_all_packages(name = "node_modules")
 
-tsconfig_base(
-    name = "tsconfig-base",
-    visibility = ["//:__subpackages__"],
-)
-
-eslintrc(
-    name = "eslintrc",
-    visibility = ["//:__subpackages__"],
-)
+ts_setup(name = "ts_setup")
 
 bazelrc(name = "bazelrc")
+
+platform(
+    name = "host_platform",
+    # Auto-detected host platform constraints.
+    constraint_values = HOST_CONSTRAINTS + PRISMA_HOST_CONSTRAINTS,
+)

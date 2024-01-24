@@ -1,10 +1,10 @@
-import { PrismaClient } from "../prisma-client";
+import { PrismaClient } from "../prisma-client/index.js";
 
 const prisma = new PrismaClient();
 
 const seed = async () => {
-  // Set the dev password for the api_priviledged user.
-  await prisma.$executeRaw`ALTER ROLE api_priviledged WITH PASSWORD 'uh0Fahth8nu1ong9phai'`;
+  // Set the dev password for the api_login user.
+  await prisma.$executeRaw`ALTER ROLE api_login WITH PASSWORD 'uh0Fahth8nu1ong9phai'`;
 
   await prisma.user.create({
     data: {
@@ -12,7 +12,7 @@ const seed = async () => {
       lists: {
         create: [
           {
-            name: "my TODOs",
+            name: "Work",
             archived: false,
             items: {
               create: [
@@ -23,7 +23,18 @@ const seed = async () => {
             },
           },
           {
-            name: "my old TODOs",
+            name: "Personal",
+            archived: false,
+            items: {
+              create: [
+                { done: false, text: "blibb" },
+                { done: true, text: "blabb" },
+                { done: true, text: "blubb" },
+              ],
+            },
+          },
+          {
+            name: "Old TODOs",
             archived: true,
             items: {
               create: [{ done: false, text: "get milk" }],

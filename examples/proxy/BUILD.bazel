@@ -1,9 +1,16 @@
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@dh_buildlib//:defs.bzl", "tar_auto_mtree")
+load("@rules_oci//oci:defs.bzl", "oci_image")
 
-container_image(
+tar_auto_mtree(
+    name = "tar",
+    srcs = ["default.conf"],
+    replace_prefix = "etc/nginx/conf.d/",
+    strip_prefix = package_name(),
+)
+
+oci_image(
     name = "proxy",
-    base = "@nginx_image//image",
-    directory = "/etc/nginx/conf.d",
-    files = ["default.conf"],
+    base = "@nginx_image",
+    tars = ["tar"],
     visibility = ["//:docker-image-users"],
 )

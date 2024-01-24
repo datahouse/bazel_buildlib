@@ -2,37 +2,6 @@
 
 Typescript compilation and linting rules.
 
-<a id="eslintrc"></a>
-
-## eslintrc
-
-<pre>
-eslintrc(<a href="#eslintrc-name">name</a>, <a href="#eslintrc-visibility">visibility</a>)
-</pre>
-
-Declares an eslintrc file.
-
-The following source files are implicititly depended on:
-- .eslintrc.js (main config)
-- .eslintignore (if it exists)
-- package.json
-- tsconfig-base.json
-
-Provides a test that ensures the eslintrc includes the Datahouse base eslint
-config.
-
-Example: [`@examples//:eslintrc`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22eslintrc%22%2C)
-
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="eslintrc-name"></a>name |  Name of the rule. Must be "eslintrc".   |  none |
-| <a id="eslintrc-visibility"></a>visibility |  Visibility of the eslintrc rule.   |  `None` |
-
-
 <a id="js_binary"></a>
 
 ## js_binary
@@ -135,30 +104,5 @@ Example: [`@examples//shared-lib/test`](../../examples/shared-lib/test/BUILD.baz
 | <a id="ts_test-data"></a>data |  required runtime data (e.g. csv files)   |  `[]` |
 | <a id="ts_test-uses_dom"></a>uses_dom |  Whether the tests (or the code under test) requires a DOM.   |  `False` |
 | <a id="ts_test-tags"></a>tags |  tags (propagated to the test rule)   |  `None` |
-
-
-<a id="tsconfig_base"></a>
-
-## tsconfig_base
-
-<pre>
-tsconfig_base(<a href="#tsconfig_base-name">name</a>, <a href="#tsconfig_base-visibility">visibility</a>)
-</pre>
-
-Base tsconfig for repository root.
-
-- must be in the root package
-- name must be tsconfig-base
-
-Example: [`@examples//:tsconfig-base`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22tsconfig%2Dbase%22%2C)
-
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="tsconfig_base-name"></a>name |  Name of the rule (must be "tsconfig-base").   |  none |
-| <a id="tsconfig_base-visibility"></a>visibility |  Visibility of the tsconfig rule.   |  `None` |
 
 

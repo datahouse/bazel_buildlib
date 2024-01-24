@@ -1,4 +1,4 @@
-import fun from "./moduleToMock";
+import fun from "./moduleToMock.js";
 
 // exported for tests
 export const codeUnderTestInternal = (

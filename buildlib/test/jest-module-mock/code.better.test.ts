@@ -1,4 +1,4 @@
-import { codeUnderTestInternal } from "./code.better";
+import { codeUnderTestInternal } from "./code.better.js";
 
 // This is an  example of how to stub / mock / fake out dependencies in tests
 // without using jest.mock.

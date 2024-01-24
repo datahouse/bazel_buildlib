@@ -1,4 +1,4 @@
-import fun from "./moduleToMock";
+import fun from "./moduleToMock.js";
 
 const codeUnderTest = (arg: string) => fun(arg);
 

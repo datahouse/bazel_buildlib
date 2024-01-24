@@ -1,11 +1,8 @@
 """Rules to reference docker-compose services."""
 
-load("@io_bazel_rules_docker//skylib:docker.bzl", "docker_path")
 load(":providers.bzl", "DcServiceReferenceInfo", "DockerComposeInfo")
 
 def _dc_service_reference_impl(ctx):
-    docker_toolchain = ctx.toolchains["@io_bazel_rules_docker//toolchains/docker:toolchain_type"].info
-
     executable = ctx.actions.declare_file(ctx.label.name + "-load-service-ref.sh")
 
     dc_info = ctx.attr.dc[DockerComposeInfo]
@@ -26,7 +23,6 @@ def _dc_service_reference_impl(ctx):
             "{{COMPOSE_FILE}}": dc_file.short_path,
             "{{COMPOSE_LABEL}}": str(ctx.attr.dc.label),
             "{{COMPOSE_PROJECT}}": dc_info.project,
-            "{{DOCKER_CLI}}": docker_path(docker_toolchain),
             "{{SERVICE_INDEX}}": str(ctx.attr.index),
             "{{SERVICE_NAME}}": ctx.attr.service_name,
             "{{SERVICE_PORT}}": str(ctx.attr.port),
@@ -73,5 +69,4 @@ Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%2
     },
     implementation = _dc_service_reference_impl,
     executable = True,
-    toolchains = ["@io_bazel_rules_docker//toolchains/docker:toolchain_type"],
 )

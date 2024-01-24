@@ -83,7 +83,7 @@ def _gen_tsconfig_impl(ctx):
     }
 
     if ctx.attr.uses_dom:
-        cfg["compilerOptions"] = {"lib": ["dom", "es2018"]}
+        cfg["compilerOptions"] = {"lib": ["dom", "dom.iterable", "es2018"]}
 
     ctx.actions.write(
         content = json.encode(cfg),
@@ -128,6 +128,7 @@ def _gen_tsconfig_base_impl(ctx):
             "resolveJsonModule": True,
             "rootDir": ".",
             "rootDirs": [".", "bazel-bin"],
+            "skipLibCheck": True,
             "sourceMap": True,
             "strict": True,
             "target": "es2018",
@@ -234,7 +235,7 @@ def tsconfig_base(name, visibility = None):
     - must be in the root package
     - name must be tsconfig-base
 
-    Example: [`@examples//:tsconfig-base`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22tsconfig%2Dbase%22%2C)
+    Example: See [`ts_setup`](#ts_setup)
 
     Args:
       name: Name of the rule (must be "tsconfig-base").

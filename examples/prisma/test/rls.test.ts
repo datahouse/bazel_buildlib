@@ -7,10 +7,10 @@ import {
   StartedPostgreSqlContainer,
 } from "@testcontainers/postgresql";
 
-import { PrismaClient as BasePrismaClient } from "../prisma-client";
-import enableRLS, { PrismaClient } from "../rls";
+import { PrismaClient as BasePrismaClient } from "../prisma-client/index.js";
+import enableRLS, { PrismaClient } from "../rls/index.js";
 
-import postgresInfo from "./postgres-info.json";
+import loadPostgresImage from "./load_postgres_image.js";
 
 const pushSchema = (url: string) =>
   // Invoke prisma CLI. No programmatic access for now.
@@ -30,7 +30,16 @@ const createTestData = async (prisma: BasePrismaClient) => {
           name: "alice",
           archived: false,
           items: {
-            create: { done: false, text: "alice" },
+            create: {
+              done: false,
+              text: "alice",
+              attachments: {
+                create: {
+                  filename: "alice's file.txt",
+                  mimetype: "text/plain",
+                },
+              },
+            },
           },
         },
       },
@@ -45,7 +54,16 @@ const createTestData = async (prisma: BasePrismaClient) => {
           name: "bob",
           archived: false,
           items: {
-            create: { done: false, text: "bob" },
+            create: {
+              done: false,
+              text: "bob",
+              attachments: {
+                create: {
+                  filename: "bob's file.txt",
+                  mimetype: "text/plain",
+                },
+              },
+            },
           },
         },
       },
@@ -57,19 +75,23 @@ describe("RLS for alice", () => {
   let psqlContainer: StartedPostgreSqlContainer;
   let priviledgedPrisma: BasePrismaClient;
   let prisma: PrismaClient;
+  let elevatedPrisma: PrismaClient;
 
   beforeAll(
     async () => {
-      psqlContainer = await new PostgreSqlContainer(
-        postgresInfo.reference,
-      ).start();
+      const image = await loadPostgresImage();
+
+      psqlContainer = await new PostgreSqlContainer(image).start();
 
       const url = psqlContainer.getConnectionUri();
 
       priviledgedPrisma = new BasePrismaClient({
         datasources: { db: { url } },
       });
-      prisma = enableRLS(priviledgedPrisma, "alice@example.com");
+      ({ prisma, elevatedPrisma } = enableRLS(
+        priviledgedPrisma,
+        "alice@example.com",
+      ));
 
       await Promise.all([priviledgedPrisma.$connect(), pushSchema(url)]);
 
@@ -107,5 +129,84 @@ describe("RLS for alice", () => {
   it("alice can only see her own lists", async () => {
     const todos = await prisma.todoList.findMany({ select: { name: true } });
     expect(todos).toEqual([{ name: "alice" }]);
+  });
+
+  it("supports transactions", async () => {
+    const todos = await prisma.$transaction((tx) =>
+      tx.todoList.findMany({ select: { name: true } }),
+    );
+    expect(todos).toEqual([{ name: "alice" }]);
+  });
+
+  it("alice can only see her own attachment", async () => {
+    const attachments = await prisma.todoAttachment.findMany({
+      select: { filename: true },
+    });
+    expect(attachments).toEqual([{ filename: "alice's file.txt" }]);
+  });
+
+  it("alice cannot delete any attachments", async () => {
+    await expect(prisma.todoAttachment.deleteMany({})).rejects.toThrow();
+
+    // Check nothing got deleted.
+    const attachments = await prisma.todoAttachment.findMany({
+      select: { filename: true },
+    });
+
+    expect(attachments).toEqual([{ filename: "alice's file.txt" }]);
+  });
+
+  it("alice cannot create attachments", async () => {
+    // Get a valid ID.
+    const { id: itemId } = await prisma.todoItem.findFirstOrThrow({
+      select: { id: true },
+    });
+
+    await expect(
+      prisma.todoAttachment.create({
+        data: {
+          itemId,
+          filename: "test.txt",
+          mimetype: "text/plain",
+        },
+      }),
+    ).rejects.toThrow();
+
+    // Check it actually isn't here.
+    expect(
+      await prisma.todoAttachment.findFirst({
+        where: { filename: "test.txt" },
+      }),
+    ).toBeNull();
+  });
+
+  it("api for alice can cannot create attachments for bob", async () => {
+    // Get a valid ID.
+    const { id: itemId } = await priviledgedPrisma.todoItem.findFirstOrThrow({
+      where: {
+        list: {
+          owner: {
+            email: "bob@example.com",
+          },
+        },
+      },
+    });
+
+    const result = elevatedPrisma.todoAttachment.create({
+      data: {
+        itemId,
+        filename: "alices-injected-file.txt",
+        mimetype: "text/plain",
+      },
+    });
+
+    await expect(result).rejects.toThrow();
+
+    // Check it actually isn't here.
+    expect(
+      await priviledgedPrisma.todoAttachment.findFirst({
+        where: { filename: "alices-injected-file.txt" },
+      }),
+    ).toBeNull();
   });
 });

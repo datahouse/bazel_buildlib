@@ -1,9 +1,9 @@
 import process from "node:process";
 
-import { PrismaClient } from "../../prisma/prisma-client";
-import enableRLS from "../../prisma/rls";
+import { PrismaClient } from "../../prisma/prisma-client/index.js";
+import enableRLS from "../../prisma/rls/index.js";
 
-import { setupApp } from "./app";
+import { setupApp } from "./app.js";
 
 const port = 8000;
 
@@ -16,7 +16,7 @@ const main = () => {
   const app = setupApp(console, () => {
     // TODO: Take subject from JWT token on the request.
     const sub = "alice@example.com";
-    const prisma = enableRLS(priviledgedPrisma, sub);
+    const { prisma } = enableRLS(priviledgedPrisma, sub);
     return { prisma, priviledgedPrisma };
   });
 

@@ -1,15 +1,11 @@
-import React from "react";
-import "./App.css";
-
-import Greeter from "../../shared-fe-lib/src/Greeter";
-import TodoLists from "./TodoLists";
+import Footer from "../../shared-fe-lib/src/Footer.js";
+import TodoLists from "./TodoLists.js";
 
 export default function App() {
   return (
-    <div className="App">
-      <Greeter />
-      This is the application.
+    <>
       <TodoLists />
-    </div>
+      <Footer />
+    </>
   );
 }

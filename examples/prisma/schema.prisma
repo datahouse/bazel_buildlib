@@ -4,9 +4,8 @@ datasource db {
 }
 
 generator client {
-  provider      = "prisma-client-js"
-  output        = "prisma-client"
-  binaryTargets = env("BINARY_TARGET")
+  provider = "prisma-client-js"
+  output   = "prisma-client"
 }
 
 generator typegraphql {
@@ -31,9 +30,19 @@ model TodoList {
 }
 
 model TodoItem {
-  id     Int      @id @default(autoincrement())
-  text   String
-  done   Boolean
-  list   TodoList @relation(fields: [listId], references: [id])
-  listId Int
+  id          Int              @id @default(autoincrement())
+  text        String
+  done        Boolean
+  list        TodoList         @relation(fields: [listId], references: [id])
+  listId      Int
+  attachments TodoAttachment[]
+}
+
+model TodoAttachment {
+  id       Int      @id @default(autoincrement())
+  item     TodoItem @relation(fields: [itemId], references: [id])
+  itemId   Int
+  filename String
+  mimetype String
+  uuid     String   @unique @default(uuid()) @db.Uuid
 }

@@ -26,26 +26,37 @@ Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%2
 | <a id="dc_service_reference-service_name"></a>service_name |  Docker compose service name   | String | required |  |
 
 
-<a id="docker_pull_info"></a>
+<a id="container_pull"></a>
 
-## docker_pull_info
+## container_pull
 
 <pre>
-docker_pull_info(<a href="#docker_pull_info-name">name</a>, <a href="#docker_pull_info-out">out</a>, <a href="#docker_pull_info-image">image</a>)
+container_pull(<a href="#container_pull-name">name</a>, <a href="#container_pull-registry">registry</a>, <a href="#container_pull-repository">repository</a>, <a href="#container_pull-digest">digest</a>, <a href="#container_pull-tag">tag</a>, <a href="#container_pull-os">os</a>, <a href="#container_pull-architecture">architecture</a>)
 </pre>
 
-Generates a json with info about a pulled image.
+Pulls a docker image from a docker registry.
 
-Example: [`@examples//prisma/test:postgres_info`](../../examples/prisma/test/BUILD.bazel#:~:text=name%20%3D%20%22postgres_info%22%2C)
+This is a repository rule, you can only use it in the WORKSPACE file.
 
-**ATTRIBUTES**
+Example: [`example/WORKSPACE`](../../examples/WORKSPACE#:~:text=name%20%3D%20%22nginx_image%22%2C).
+
+This calls
+[oci_pull](https://github.com/bazel-contrib/rules_oci/blob/main/docs/pull.md)
+under the hood.
 
 
-| Name  | Description | Type | Mandatory | Default |
-| :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="docker_pull_info-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="docker_pull_info-out"></a>out |  json file to write info to.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="docker_pull_info-image"></a>image |  Image to get info from (must be a container_pull target).   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="container_pull-name"></a>name |  name of the repository   |  none |
+| <a id="container_pull-registry"></a>registry |  registry to pull from (e.g. `index.docker.io`)   |  none |
+| <a id="container_pull-repository"></a>repository |  repository to pull (e.g. `nginx`)   |  none |
+| <a id="container_pull-digest"></a>digest |  digest to pull (e.g. `sha256:abcdef...`)   |  none |
+| <a id="container_pull-tag"></a>tag |  tag to pull (e.g. `2.3.4`). This is for documentation purposes / renovate only. The actual image is determined via the digest.   |  none |
+| <a id="container_pull-os"></a>os |  Operating system to pull for (typically `linux`). This is for documentation purposes / renovate only. The actual image is determined via the digest.   |  none |
+| <a id="container_pull-architecture"></a>architecture |  Architecture to pull for (typically `amd64`). This is for documentation purposes / renovate only. The actual image is determined via the digest.   |  none |
 
 
 <a id="dh_docker_images_push"></a>
@@ -97,12 +108,69 @@ Example: [`@examples//dc`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%20%2
 | <a id="docker_compose-testonly"></a>testonly |  Testonly flag.   |  `None` |
 
 
+<a id="docker_image_for_ts_test"></a>
+
+## docker_image_for_ts_test
+
+<pre>
+docker_image_for_ts_test(<a href="#docker_image_for_ts_test-name">name</a>, <a href="#docker_image_for_ts_test-image">image</a>, <a href="#docker_image_for_ts_test-visibility">visibility</a>)
+</pre>
+
+Prepares a docker image to be loaded in a TS test.
+
+Typically, this is for use with testcontainers.
+
+For example, say you have the following in your BUILD.bazel:
+
+```BUILD
+docker_image_for_ts_test(
+  name = "load_my_image",
+  image = "//path/to/my:image",
+)
+
+ts_test(
+  name = "test"
+  deps = [":load_my_image"],
+)
+```
+
+Now inside your test, you can:
+
+```ts
+import { GenericContainer } from "testcontainers";
+import loadMyImage from "./load_my_image.js";
+
+test("my test", async () => {
+  // This will load the image into the local docker daemon
+  // and return a reference you can use with testcontainers.
+  const image = await loadMyImage();
+
+  const container = await new GenericContainer(image).start();
+});
+```
+
+Note: This rule can only be used for tests.
+
+Example: [`@examples//prisma/test:load_postgres_image`](../../examples/prisma/test/BUILD.bazel#:~:text=name%20%3D%20%22load_postgres_image%22%2C)
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="docker_image_for_ts_test-name"></a>name |  Name of the rule and the generated JS file.   |  none |
+| <a id="docker_image_for_ts_test-image"></a>image |  The docker image to load.   |  none |
+| <a id="docker_image_for_ts_test-visibility"></a>visibility |  Visibility specification.   |  `None` |
+
+
 <a id="node_binary_image"></a>
 
 ## node_binary_image
 
 <pre>
-node_binary_image(<a href="#node_binary_image-name">name</a>, <a href="#node_binary_image-base">base</a>, <a href="#node_binary_image-data">data</a>, <a href="#node_binary_image-entry_point">entry_point</a>, <a href="#node_binary_image-user">user</a>, <a href="#node_binary_image-ports">ports</a>, <a href="#node_binary_image-volumes">volumes</a>, <a href="#node_binary_image-platform">platform</a>, <a href="#node_binary_image-visibility">visibility</a>)
+node_binary_image(<a href="#node_binary_image-name">name</a>, <a href="#node_binary_image-entry_point">entry_point</a>, <a href="#node_binary_image-data">data</a>, <a href="#node_binary_image-base">base</a>, <a href="#node_binary_image-user">user</a>, <a href="#node_binary_image-ports">ports</a>, <a href="#node_binary_image-volumes">volumes</a>, <a href="#node_binary_image-platform">platform</a>, <a href="#node_binary_image-visibility">visibility</a>,
+                  <a href="#node_binary_image-testonly">testonly</a>)
 </pre>
 
 Builds a docker image that runs the entry_point script.
@@ -116,13 +184,14 @@ Example: [`@examples//api`](../../examples/api/BUILD.bazel#:~:text=name%20%3D%20
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="node_binary_image-name"></a>name |  name of the target.   |  none |
-| <a id="node_binary_image-base"></a>base |  docker base image, must contain the node binary.   |  none |
-| <a id="node_binary_image-data"></a>data |  ts_project(s) that are required for this app.   |  none |
 | <a id="node_binary_image-entry_point"></a>entry_point |  JS file that is to be run. The cmd of the created image will be `node <entry_point>`   |  none |
+| <a id="node_binary_image-data"></a>data |  ts_project(s) that are required for this app.   |  none |
+| <a id="node_binary_image-base"></a>base |  docker base image, must contain the node binary.   |  `"@node_image"` |
 | <a id="node_binary_image-user"></a>user |  User the image runs with (must exist in the base image).   |  `"node"` |
 | <a id="node_binary_image-ports"></a>ports |  Ports this image exposes (like EXPOSE in Dockerfile).   |  `[]` |
-| <a id="node_binary_image-volumes"></a>volumes |  mount points this image uses (like VOLUME in Dockerfile). These should be full paths not names (e.g. `["/data"]`). For each of these, a directory owned by `user` is automatically created in the image (to allow the node process to actually write to it).   |  `[]` |
+| <a id="node_binary_image-volumes"></a>volumes |  mount points this image uses (like VOLUME in Dockerfile). These should be full paths not names (e.g. `["/data"]`). For each of these, a directory owned by `user` is automatically created in the image (to allow the node process to actually write to it).<br><br>Note: Due to a missing feature in rules_oci ([rules_oci#406](https://github.com/bazel-contrib/rules_oci/issues/406)), setting this does currently not set the volume paths on the resulting image.<br><br>Since volumes are just metadata which we do not really use, this is OK-ish.   |  `[]` |
 | <a id="node_binary_image-platform"></a>platform |  Platform to build the dependencies that go into the image for. Mostly relevant for Prisma engines. Defaults to Debian Linux with OpenSSL 3.x.   |  `Label("//private/docker:node_default_platform")` |
 | <a id="node_binary_image-visibility"></a>visibility |  visibility of the main target.   |  `None` |
+| <a id="node_binary_image-testonly"></a>testonly |  testonly flag.   |  `None` |
 
 

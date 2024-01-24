@@ -1,0 +1,6 @@
+STABLE_GIT_REPO_URL git@example.com:fake.git
+STABLE_GIT_COMMIT da39a3ee5e6b4b0d3255bfef95601890afd80709
+STABLE_WEB_REPO_URL https://example.com/git/fake
+BUILD_EMBED_LABEL fake-tag
+BUILD_HOST fake-host
+BUILD_USER fake-user

@@ -6,10 +6,13 @@ write_source_files(
     files = {
         "docker.md": ":docker",
         "gql.md": ":gql",
+        "hacks.md": ":hacks",
         "prisma.md": ":prisma",
         "react_app.md": ":react_app",
+        "tar.md": ":tar",
         "tooling.md": ":tooling",
         "ts.md": ":ts",
+        "ts_setup.md": ":ts_setup",
     },
 )
 
@@ -17,7 +20,10 @@ stardoc(
     name = "docker",
     out = "docker.gen.md",
     input = "docker.bzl",
-    deps = ["//private/docker:bzl"],
+    deps = [
+        "//private/docker:bzl",
+        "//repositories:docker_containers",
+    ],
 )
 
 stardoc(
@@ -52,8 +58,29 @@ stardoc(
 )
 
 stardoc(
+    name = "tar",
+    out = "tar.gen.md",
+    input = "tar.bzl",
+    deps = ["//private/tar:bzl"],
+)
+
+stardoc(
     name = "ts",
     out = "ts.gen.md",
     input = "ts.bzl",
     deps = ["//private/ts:bzl"],
+)
+
+stardoc(
+    name = "ts_setup",
+    out = "ts_setup.gen.md",
+    input = "ts_setup.bzl",
+    deps = ["//private/ts:bzl"],
+)
+
+stardoc(
+    name = "hacks",
+    out = "hacks.gen.md",
+    input = "hacks.bzl",
+    deps = ["//private/hacks:bzl"],
 )

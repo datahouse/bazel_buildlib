@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import argparse from "argparse";
 
-import parseWorkspaceStatus from "../../js-lib/src/parseWorkspaceStatus";
+import parseWorkspaceStatus from "../../js-lib/src/parseWorkspaceStatus.js";
 
 // Stamp and workspace status aware calculation of my version.
 async function calcMyVersion(infoFile: string): Promise<string> {

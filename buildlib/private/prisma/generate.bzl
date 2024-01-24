@@ -46,9 +46,6 @@ def _prisma_generate_impl(ctx):
             # Add node_modules/.bin to the path, so we can find typegraphql-prisma.
             "PATH": node_modules_bin_path("."),
 
-            # Prisma binary target
-            "BINARY_TARGET": "[\"%s\"]" % engines.platform,
-
             # do not install @prisma/client
             "PRISMA_GENERATE_SKIP_AUTOINSTALL": "True",
 
@@ -93,7 +90,6 @@ def _provider_prisma_client_js():
     generator <anything> {
       provider      = "prisma-client-js"
       output        = "<name>"
-      binaryTargets = env("BINARY_TARGET")
     }
     ```
 

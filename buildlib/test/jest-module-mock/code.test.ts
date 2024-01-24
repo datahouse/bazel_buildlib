@@ -1,5 +1,5 @@
-import moduleToMock from "./moduleToMock";
-import codeUnderTest from "./code";
+import moduleToMock from "./moduleToMock.js";
+import codeUnderTest from "./code.js";
 
 // README: This test checks whether jest module mocking works (see #247).
 //

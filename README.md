@@ -23,38 +23,24 @@ sudo apt-get install docker-compose-plugin
 ## Setup a new repository
 
 1. Setup bazel (see above).
-1. Copy the following from `examples/` to the root of the new repository:
+1. Run `./new-repo.sh DIRECTORY`. This will create and set up a git repo.
 
-   - `WORKSPACE`
-   - `BUILD.bazel`
-   - `.bazelversion`
-   - `.bazelignore`
-   - `.npmrc`
-   - `.nvmrc`
-   - `.eslintrc.js`
-   - `.gitignore`
+1. Optional: Set up the repo on git.datahouse.ch
 
-1. Address and remove the comments in the following files:
+   1. Create a new repo (make sure the project is in the
+      [project list](https://git.datahouse.ch/datahouse/pl-projects/src/branch/master/projects.md)).
+   1. Log into https://drone.datahouse.ch
+   1. On the Dashboard, click "Sync"
+   1. Search for the repository (make sure you display inactive repositories) and click on it.
+   1. Click "Activate Repository".
+   1. Push the local git repository to it:
 
-   - `WORKSPACE`
-   - `BUILD.bazel`
-   - `.eslintrc.js`
+      ```sh
+      git remote add origin git@git.datahouse.ch:datahouse/project-<TLA>.git`
+      git push --set-upstream origin main
+      ```
 
-1. Bootstrap pnpm:
-
-   ```sh
-   touch pnpm-lock.yaml
-   bazelisk run -- @pnpm//:pnpm --dir $PWD install --save-dev --save-exact typescript
-   ```
-
-1. Run `bazelisk build //...` and address the problems until it doesn't fail anymore.
-
-   You'll need to create / update automatically generated files:
-   Some messages will tell you to `bazel run ...`. Do `bazelisk run ...` instead.
-
-1. Run `bazelisk test //...` and check it passes.
-
-1. Base setup complete (probably a good point to commit and push).
+   1. Check that the Drone build triggered (and succeeded).
 
 1. Proceed to set-up the parts of the example you need for your project.
 

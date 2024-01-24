@@ -1,0 +1,32 @@
+---
+kind: pipeline
+type: docker
+name: main
+steps:
+  - name: bazel
+    image: docker.datarepo.ch/it-drone-bazel/plugin@sha256:a1ed2404bd26c743f4bb1bae5e45e49f6201b1115e0ca7aefabb86eac7549c23
+    settings:
+      # remove this line, once you have a dh_docker_images_push rule.
+      disable_docker_push: true
+      bazel_dh_buildlib_pull_key:
+        from_secret: bazel_dh_buildlib_pull_key
+      bazel_cache_token:
+        from_secret: bazel_cache_token
+      harbor_token:
+        from_secret: harbor_token
+      harbor_pull_token:
+        from_secret: harbor_pull_token
+image_pull_secrets:
+  - habor_pull_docker_config
+---
+kind: pipeline
+name: lint
+steps:
+  - name: prettier
+    image: tmknom/prettier@sha256:b6de997a66a7c01402e377a20ee83e938bf814dc26d4f67627762b74507f91d7
+    commands:
+      - prettier --check .
+  - name: buildifier
+    image: owncloudci/bazel-buildifier@sha256:0bcee776bdc760cbecacca88d24cb625822299ea874632c3cb88bdd75fc7a21d
+    commands:
+      - buildifier --mode=diff --diff_command=diff --lint=warn --warnings=all -r .

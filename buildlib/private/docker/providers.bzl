@@ -18,6 +18,6 @@ HotReloadableInfo = provider(
     fields = {
         "container_path": "Path inside container where to mount the hot reloadable files.",
         "files": "Depset of files to be hot reloaded (into container_path).",
-        "image": "The image to use for hot reload.",
+        "oci_image": "The oci image (directory) to use for hot reload.",
     },
 )
