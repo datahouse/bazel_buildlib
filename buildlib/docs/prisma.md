@@ -4,11 +4,27 @@ Prisma rules.
 
 Also see [examples/prisma/BUILD.bazel](../../examples/prisma/BUILD.bazel).
 
+
+## Rules
+
+- [prisma_dev](#prisma_dev)
+
+## Functions
+
+- [prisma_cli_image](#prisma_cli_image)
+- [prisma_generate](#prisma_generate)
+- [prisma_providers.prisma_client_js](#prisma_providers.prisma_client_js)
+- [prisma_providers.typegraphql_prisma](#prisma_providers.typegraphql_prisma)
+- [prisma_schema](#prisma_schema)
+
+
 <a id="prisma_dev"></a>
 
 ## prisma_dev
 
 <pre>
+load("@dh_buildlib//prisma:defs.bzl", "prisma_dev")
+
 prisma_dev(<a href="#prisma_dev-name">name</a>, <a href="#prisma_dev-db_service">db_service</a>, <a href="#prisma_dev-db_url">db_url</a>, <a href="#prisma_dev-schema">schema</a>, <a href="#prisma_dev-seed_script">seed_script</a>)
 </pre>
 
@@ -33,6 +49,8 @@ Example: [`@examples//prisma`](../../examples/prisma/BUILD.bazel#:~:text=name%20
 ## prisma_cli_image
 
 <pre>
+load("@dh_buildlib//prisma:defs.bzl", "prisma_cli_image")
+
 prisma_cli_image(<a href="#prisma_cli_image-name">name</a>, <a href="#prisma_cli_image-schema">schema</a>, <a href="#prisma_cli_image-base">base</a>, <a href="#prisma_cli_image-platform">platform</a>, <a href="#prisma_cli_image-visibility">visibility</a>, <a href="#prisma_cli_image-testonly">testonly</a>)
 </pre>
 
@@ -49,7 +67,7 @@ Example: [`@examples//prisma:cli`](../../examples/prisma/BUILD.bazel#:~:text=nam
 | <a id="prisma_cli_image-name"></a>name |  name of the rule.   |  none |
 | <a id="prisma_cli_image-schema"></a>schema |  prisma schema to use.   |  none |
 | <a id="prisma_cli_image-base"></a>base |  base image to use   |  `"@node_image"` |
-| <a id="prisma_cli_image-platform"></a>platform |  Platform of the base image.   |  `Label("//private/docker:node_default_platform")` |
+| <a id="prisma_cli_image-platform"></a>platform |  Platform of the base image.   |  `Label("@dh_buildlib//private/docker:node_default_platform")` |
 | <a id="prisma_cli_image-visibility"></a>visibility |  visibility of the rule   |  `None` |
 | <a id="prisma_cli_image-testonly"></a>testonly |  testonly flag for all targets.   |  `None` |
 
@@ -59,6 +77,8 @@ Example: [`@examples//prisma:cli`](../../examples/prisma/BUILD.bazel#:~:text=nam
 ## prisma_generate
 
 <pre>
+load("@dh_buildlib//prisma:defs.bzl", "prisma_generate")
+
 prisma_generate(<a href="#prisma_generate-name">name</a>, <a href="#prisma_generate-schema">schema</a>, <a href="#prisma_generate-generators">generators</a>, <a href="#prisma_generate-visibility">visibility</a>, <a href="#prisma_generate-testonly">testonly</a>)
 </pre>
 
@@ -103,6 +123,8 @@ Also see [`@examples//prisma:schema.prisma`](../../examples/prisma/schema.prisma
 ## prisma_providers.prisma_client_js
 
 <pre>
+load("@dh_buildlib//prisma:defs.bzl", "prisma_providers")
+
 prisma_providers.prisma_client_js()
 </pre>
 
@@ -127,6 +149,8 @@ https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prisma
 ## prisma_providers.typegraphql_prisma
 
 <pre>
+load("@dh_buildlib//prisma:defs.bzl", "prisma_providers")
+
 prisma_providers.typegraphql_prisma(<a href="#prisma_providers.typegraphql_prisma-prisma_client">prisma_client</a>)
 </pre>
 
@@ -158,6 +182,8 @@ For more: https://prisma.typegraphql.com/docs/basics/configuration
 ## prisma_schema
 
 <pre>
+load("@dh_buildlib//prisma:defs.bzl", "prisma_schema")
+
 prisma_schema(<a href="#prisma_schema-name">name</a>, <a href="#prisma_schema-schema">schema</a>, <a href="#prisma_schema-db_url_env">db_url_env</a>, <a href="#prisma_schema-validate_db_url">validate_db_url</a>, <a href="#prisma_schema-visibility">visibility</a>, <a href="#prisma_schema-testonly">testonly</a>)
 </pre>
 

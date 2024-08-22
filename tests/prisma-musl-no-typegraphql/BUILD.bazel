@@ -1,4 +1,4 @@
-load("@dh_buildlib//:defs.bzl", "bazelrc", "node_binary_image", "ts_setup")
+load("@dh_buildlib//:defs.bzl", "bazelrc", "format", "node_binary_image", "ts_setup")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
@@ -6,6 +6,8 @@ npm_link_all_packages(name = "node_modules")
 bazelrc(name = "bazelrc")
 
 ts_setup(name = "ts_setup")
+
+format(name = "format")
 
 platform(
     name = "node_alpine_platform",

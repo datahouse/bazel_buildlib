@@ -1,16 +1,7 @@
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@dh_buildlib//:defs.bzl", "bazelrc", "dh_docker_images_push", "renovate_config", "transpile_esm_to_cjs", "ts_setup")
+load("@dh_buildlib//:defs.bzl", "bazelrc", "dh_docker_images_push", "format", "ts_setup")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
-
-copy_file(
-    # Grab renovate.json5 from the git repo root. This is not needed in a normal
-    # project, where the git repo root is the bazel workspace root.
-    name = "renovate_config",
-    src = "@repo_root//:renovate.json5",
-    out = "renovate.json5",
-)
 
 # Package group for visibility of docker images.
 # Remove if you do not build docker images.
@@ -22,13 +13,6 @@ package_group(
     ],
 )
 
-renovate_config(
-    name = "renovate",
-    # Ensure the extension here matches the file.
-    # If you do not have a renovate setup (you should!), remove this rule.
-    src = "renovate.json5",
-)
-
 bazelrc(
     name = "bazelrc",
 )
@@ -37,6 +21,8 @@ ts_setup(
     name = "ts_setup",
 )
 
+format(name = "format")
+
 dh_docker_images_push(
     name = "docker-push",
     images = {
@@ -44,29 +30,8 @@ dh_docker_images_push(
         "api": "//api",
         "frontend": "//frontend",
         "proxy": "//proxy",
+        "proxy-blob-auth": "//proxy/blob-auth",
         "rest-api": "//rest-api",
     },
     repository_prefix = "it-bazel/example",
-)
-
-# Hack: Transpilation rules for graphql-upload (which is ESM only).
-
-transpile_esm_to_cjs(
-    name = "node_modules/fs-capacitor-cjs",
-    node_module = "//:node_modules/fs-capacitor",
-)
-
-transpile_esm_to_cjs(
-    name = "node_modules/graphql-upload-cjs",
-    node_module = "//:node_modules/graphql-upload",
-    replacements = {
-        ":node_modules/fs-capacitor-cjs": "fs-capacitor",
-    },
-    visibility = ["//:__subpackages__"],
-)
-
-transpile_esm_to_cjs(
-    name = "node_modules/@types/graphql-upload-cjs",
-    node_module = "//:node_modules/@types/graphql-upload",
-    visibility = ["//:__subpackages__"],
 )

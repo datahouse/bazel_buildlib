@@ -20,9 +20,7 @@ build --nolegacy_external_runfiles
 startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
 
 # Configure skipLibCheck for rules_ts
-build --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
-fetch --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
-query --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
 
 # Display test output if something fails
 test --test_output=errors

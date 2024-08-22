@@ -2,13 +2,13 @@ import express, { Application, ErrorRequestHandler } from "express";
 import swaggerUi from "swagger-ui-express";
 import { ValidateError } from "tsoa";
 
-import swaggerDocument from "./swagger.json";
+import swaggerDocument from "./swagger.js";
 import { RegisterRoutes } from "./routes.js";
 
 import { ContextFactory, RegisterServerContext } from "./tsoa-ioc.js";
 
 export interface Console {
-  error(msg: string, ...params: unknown[]): void;
+  error: (msg: string, ...params: unknown[]) => void;
 }
 
 const errorHandler =

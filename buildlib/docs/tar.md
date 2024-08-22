@@ -2,11 +2,24 @@
 
 Concenience rules / macro to ease use of Aspect Bazel Lib's tar / mtree_spec.
 
+
+## Rules
+
+- [mtree_replace_prefix](#mtree_replace_prefix)
+
+## Functions
+
+- [mtree_spec](#mtree_spec)
+- [tar_auto_mtree](#tar_auto_mtree)
+
+
 <a id="mtree_replace_prefix"></a>
 
 ## mtree_replace_prefix
 
 <pre>
+load("@dh_buildlib//tar:defs.bzl", "mtree_replace_prefix")
+
 mtree_replace_prefix(<a href="#mtree_replace_prefix-name">name</a>, <a href="#mtree_replace_prefix-src">src</a>, <a href="#mtree_replace_prefix-out">out</a>, <a href="#mtree_replace_prefix-prefix">prefix</a>, <a href="#mtree_replace_prefix-replacement">replacement</a>)
 </pre>
 
@@ -22,7 +35,7 @@ Drops entries that do not start with `prefix`.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="mtree_replace_prefix-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="mtree_replace_prefix-src"></a>src |  The mtree file to transform   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="mtree_replace_prefix-out"></a>out |  The transformed mtree file   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  |
+| <a id="mtree_replace_prefix-out"></a>out |  The transformed mtree file   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="mtree_replace_prefix-prefix"></a>prefix |  The prefix to remove   | String | required |  |
 | <a id="mtree_replace_prefix-replacement"></a>replacement |  Replacement for the prefix   | String | optional |  `""`  |
 
@@ -32,6 +45,8 @@ Drops entries that do not start with `prefix`.
 ## mtree_spec
 
 <pre>
+load("@dh_buildlib//tar:defs.bzl", "mtree_spec")
+
 mtree_spec(<a href="#mtree_spec-name">name</a>, <a href="#mtree_spec-srcs">srcs</a>, <a href="#mtree_spec-strip_prefix">strip_prefix</a>, <a href="#mtree_spec-replace_prefix">replace_prefix</a>, <a href="#mtree_spec-out">out</a>, <a href="#mtree_spec-visibility">visibility</a>, <a href="#mtree_spec-testonly">testonly</a>)
 </pre>
 
@@ -59,6 +74,8 @@ Strictly equivalent to calling aspect_bazel_lib's mtree_spec followed by `mtree_
 ## tar_auto_mtree
 
 <pre>
+load("@dh_buildlib//tar:defs.bzl", "tar_auto_mtree")
+
 tar_auto_mtree(<a href="#tar_auto_mtree-name">name</a>, <a href="#tar_auto_mtree-srcs">srcs</a>, <a href="#tar_auto_mtree-args">args</a>, <a href="#tar_auto_mtree-compress">compress</a>, <a href="#tar_auto_mtree-strip_prefix">strip_prefix</a>, <a href="#tar_auto_mtree-replace_prefix">replace_prefix</a>, <a href="#tar_auto_mtree-out">out</a>, <a href="#tar_auto_mtree-visibility">visibility</a>, <a href="#tar_auto_mtree-testonly">testonly</a>)
 </pre>
 

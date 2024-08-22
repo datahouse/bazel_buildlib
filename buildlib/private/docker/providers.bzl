@@ -3,6 +3,7 @@
 DockerComposeInfo = provider(
     doc = """Provider for docker compose results (dh buildlib private).""",
     fields = {
+        "fake_dc": "docker-compose.yml file with fake image names",
         "file": "Generated docker-compose.yml file",
         "project": "The docker compse project name",
     },

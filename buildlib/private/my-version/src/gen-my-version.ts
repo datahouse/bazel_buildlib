@@ -38,7 +38,4 @@ const main = async () => {
   await fs.writeFile(args.output, myVersion, "utf8");
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+await main();

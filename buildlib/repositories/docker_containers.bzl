@@ -10,8 +10,8 @@ def container_pull(
         repository,
         digest,
         tag,  # @unused
-        os,  # @unused,
-        architecture):  # @unused
+        os,
+        architecture):
     """Pulls a docker image from a docker registry.
 
     This is a repository rule, you can only use it in the WORKSPACE file.
@@ -29,13 +29,10 @@ def container_pull(
       tag: tag to pull (e.g. `2.3.4`).
           This is for documentation purposes / renovate only.
           The actual image is determined via the digest.
-      digest: digest to pull (e.g. `sha256:abcdef...`)
+      digest: digest to pull (e.g. `sha256:abcdef...`), which can be found by running:
+           `docker manifest inspect [IMAGE]:[TAG]`
       os: Operating system to pull for (typically `linux`).
-          This is for documentation purposes / renovate only.
-          The actual image is determined via the digest.
       architecture: Architecture to pull for (typically `amd64`).
-          This is for documentation purposes / renovate only.
-          The actual image is determined via the digest.
     """
 
     # The registry / repository arguments are somewhat historical
@@ -55,4 +52,5 @@ def container_pull(
         name = name,
         digest = digest,
         image = "{}/{}".format(registry, repository),
+        platforms = ["{}/{}".format(os, architecture)],
     )

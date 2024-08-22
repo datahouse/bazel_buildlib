@@ -1,0 +1,33 @@
+load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@npm//:tsoa/package_json.bzl", _tsoa = "bin")
+
+_tsoa.tsoa(
+    name = "tsoa",
+    srcs = glob(["**/controller.ts"]) + [
+        "index.ts",
+        "tsoa-ioc.ts",
+        "//prisma:prisma-client",
+        "//proxy/blob-auth:tsoa_config",
+    ],
+    outs = ["routes.ts"],
+    args = ["routes"],
+    chdir = package_name() + "/..",
+)
+
+ts_library(
+    name = "src",
+    srcs = glob(["**/*.ts"]) + [":tsoa"],
+    visibility = [
+        "//proxy/blob-auth:__subpackages__",
+        "//proxy/test/fake-blob-auth:__subpackages__",
+    ],
+    deps = [
+        "//:node_modules/@tsoa/runtime",
+        "//:node_modules/@types/express",
+        "//:node_modules/@types/node",
+        "//:node_modules/express",
+        "//:node_modules/tsoa",
+        "//prisma:prisma-client",
+        "//prisma/rls",
+    ],
+)

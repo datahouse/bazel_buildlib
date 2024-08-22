@@ -1,0 +1,16 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@dh_buildlib//:defs.bzl", "node_binary_image")
+
+js_library(
+    name = "tsoa_config",
+    srcs = ["tsoa.json"],
+    visibility = ["//proxy/blob-auth/src:__pkg__"],
+)
+
+node_binary_image(
+    name = "blob-auth",
+    data = ["//proxy/blob-auth/src"],
+    entry_point = "//proxy/blob-auth/src:index.js",
+    ports = ["8000"],
+    visibility = ["//:docker-image-users"],
+)

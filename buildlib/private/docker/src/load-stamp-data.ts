@@ -3,14 +3,19 @@ import { readFile, writeFile } from "node:fs/promises";
 import argparse from "argparse";
 
 import parseWorkspaceStatus from "../../js-lib/src/parseWorkspaceStatus.js";
+import { labelsForStatus } from "./imageLabels.js";
 
 const parseArgs = () => {
   const parser = new argparse.ArgumentParser({
     description: "Bazel workspace status loader",
   });
 
-  parser.add_argument("--infoFile", {
-    help: "workspace status info file (ctx.info_file)",
+  parser.add_argument("--stableStatusFile", {
+    help: "stable workspace status file",
+    required: true,
+  });
+  parser.add_argument("--volatileStatusFile", {
+    help: "volatile workspace status file",
     required: true,
   });
   parser.add_argument("--labelsFile", {
@@ -23,48 +28,59 @@ const parseArgs = () => {
   });
 
   return parser.parse_args() as {
-    infoFile: string;
+    stableStatusFile: string;
+    volatileStatusFile: string;
     labelsFile: string;
     tagFile: string;
   };
 };
 
-const getStatuses = (status: Map<string, string>) => {
-  const get = (name: string) => {
-    const v = status.get(name);
+const getStatus = (status: Map<string, string>, name: string) => {
+  const v = status.get(name);
 
-    if (v === undefined) {
-      throw new Error(
-        `couldn't find workspace status ${name}, did you set --workspace_status_command`,
-      );
-    }
+  if (v === undefined) {
+    throw new Error(
+      `couldn't find workspace status ${name}, did you set --workspace_status_command`,
+    );
+  }
 
-    if (v === "") {
-      throw new Error(`workspace status ${name} is empty, this is not allowed`);
-    }
+  if (v === "") {
+    throw new Error(`workspace status ${name} is empty, this is not allowed`);
+  }
 
-    return v;
-  };
+  return v;
+};
+
+const loadStatus = async (
+  stableStatusFile: string,
+  volatileStatusFile: string,
+) => {
+  const stableStatus = parseWorkspaceStatus(
+    await readFile(stableStatusFile, "utf8"),
+  );
+  const volatileStatus = parseWorkspaceStatus(
+    await readFile(volatileStatusFile, "utf8"),
+  );
 
   return {
-    revision: get("STABLE_GIT_COMMIT"),
-    source: get("STABLE_GIT_REPO_URL"),
-    url: get("STABLE_WEB_REPO_URL"),
-    tag: get("BUILD_EMBED_LABEL"),
+    revision: getStatus(stableStatus, "STABLE_GIT_COMMIT"),
+    source: getStatus(stableStatus, "STABLE_GIT_REPO_URL"),
+    url: getStatus(stableStatus, "STABLE_WEB_REPO_URL"),
+    tag: getStatus(stableStatus, "BUILD_EMBED_LABEL"),
+    buildHost: getStatus(stableStatus, "BUILD_HOST"),
+    buildUser: getStatus(stableStatus, "BUILD_USER"),
+    buildTimestamp: parseInt(getStatus(volatileStatus, "BUILD_TIMESTAMP"), 10),
   };
 };
 
 const main = async () => {
-  const { infoFile, labelsFile, tagFile } = parseArgs();
+  const { stableStatusFile, volatileStatusFile, labelsFile, tagFile } =
+    parseArgs();
 
-  const status = parseWorkspaceStatus(await readFile(infoFile, "utf8"));
+  const status = await loadStatus(stableStatusFile, volatileStatusFile);
 
-  const { revision, source, url, tag } = getStatuses(status);
-
-  const labelContent =
-    `org.opencontainers.image.revision=${revision}\n` +
-    `org.opencontainers.image.source=${source}\n` +
-    `org.opencontainers.image.url=${url}\n`;
+  const labelContent = labelsForStatus(status);
+  const { tag } = status;
 
   await Promise.all([
     writeFile(tagFile, `${tag}\n`),
@@ -72,7 +88,4 @@ const main = async () => {
   ]);
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+await main();

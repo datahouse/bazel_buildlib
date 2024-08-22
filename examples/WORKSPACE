@@ -15,16 +15,6 @@ local_repository(
     path = "../buildlib",
 )
 
-# Hack to make the renovate.json5 config from the repo root accessible
-# in this subproject. See the renovate_config rule in the BUILD of the root
-# package.
-#
-# When setting up in a different repository, remove this rule.
-local_repository(
-    name = "repo_root",
-    path = "..",
-)
-
 load("@dh_buildlib//repositories:setup0.bzl", "dh_buildlib_setup0")
 
 dh_buildlib_setup0()
@@ -47,29 +37,29 @@ load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
 container_pull(
     name = "nginx_image",
     architecture = "amd64",
-    digest = "sha256:161ef4b1bf7effb350a2a9625cb2b59f69d54ec6059a8a155a1438d0439c593c",
+    digest = "sha256:1540e37eebb9abc5afa4256de1bade6542d50bf69b61b1dd855cb7804aaaf444",
     os = "linux",
     registry = "index.docker.io",
     repository = "nginx",
-    tag = "1.25.3",  # ignored, doc only
+    tag = "1.27.1",  # ignored, doc only
 )
 
 container_pull(
     name = "node_image",
     architecture = "amd64",
-    digest = "sha256:1f164f0b09e4ed367705243a41c00d8e3ead518de29c7d14e61d8f8d5e146e0e",
+    digest = "sha256:a3816e038e05ea70d2640c845c285f49e416bdae2481a7ff94fde96647a10607",
     os = "linux",
     registry = "index.docker.io",
     repository = "node",
-    tag = "21.5.0",  # ignored, doc only
+    tag = "22.3.0",  # ignored, doc only
 )
 
 container_pull(
     name = "postgres_image",
     architecture = "amd64",
-    digest = "sha256:60c91e0203ae5ccca0a251953742752cd16a129db181bc15559cca71420b188c",
+    digest = "sha256:c62fdb7fd6f519ef425c54760894c74e8d0cb04fbf4f7d3d79aafd86bae24edd",
     os = "linux",
     registry = "index.docker.io",
     repository = "postgres",
-    tag = "16.1",  # ignored, doc only
+    tag = "16.4",  # ignored, doc only
 )

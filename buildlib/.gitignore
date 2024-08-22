@@ -1,6 +1,0 @@
-/node_modules/
-/private/node_modules/
-/dist/
-/.vscode/
-/.idea/
-/bazel-*

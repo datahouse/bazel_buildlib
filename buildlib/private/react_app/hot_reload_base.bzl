@@ -25,7 +25,7 @@ def hot_reload_base(name, deps, node_image, node_image_platform, testonly = None
             "/app/node_modules/.bin/vite",
             "--host",
             "--config",
-            "/app/vite.config.js",
+            "/app/vite.config.mjs",
         ],
         tars = [
             Label(":vite-config-tar"),

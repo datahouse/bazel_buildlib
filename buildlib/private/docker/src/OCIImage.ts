@@ -48,7 +48,7 @@ const checkLayoutVersion = async (dir: string) => {
 
 const checkOneManifest = (manifests: Descriptor[]) => {
   if (manifests.length !== 1)
-    throw new Error(`expected 1 manfest, got ${manifests}`);
+    throw new Error(`expected 1 manfest, got ${manifests.length}`);
 
   return manifests[0];
 };

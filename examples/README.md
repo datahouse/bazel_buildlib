@@ -44,6 +44,10 @@ Note:
 bazelisk run //prisma -- migrate reset
 ```
 
+## Open application in browser
+
+Head to <http://proxy-it-bazel-examples.localhost/>
+
 ## Automatic reload
 
 For all commands, `bazelisk` can be replaced with `ibazel` to automatically reload. For example:
@@ -54,6 +58,12 @@ ibazel run //dc -- up -d
 
 Note the `-d` flag: The containers will keep running in the background even if
 the command is terminated. However, this allows to recreate only changed containers.
+
+## Format code
+
+```sh
+bazelisk run //:format
+```
 
 ## Build & Test
 

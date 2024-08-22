@@ -1,0 +1,16 @@
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("//private/docker:build_dockerfile.bzl", "build_dockerfile")
+
+build_dockerfile(
+    name = "build_base",
+    src = "Dockerfile",
+    base = "@node_image",
+)
+
+# Load the image as a smoke test.
+oci_image(
+    name = "test",
+    base = "build_base",
+    # Do *something* with it to force the rule to load the base image.
+    env = {"TEST": "test"},
+)

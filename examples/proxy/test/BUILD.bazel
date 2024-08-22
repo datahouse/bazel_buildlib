@@ -1,0 +1,27 @@
+load("@dh_buildlib//:defs.bzl", "docker_image_for_ts_test", "ts_test")
+
+docker_image_for_ts_test(
+    name = "load_proxy_image",
+    image = "//proxy",
+)
+
+docker_image_for_ts_test(
+    name = "load_fake_blob_auth_image",
+    image = "//proxy/test/fake-blob-auth",
+)
+
+ts_test(
+    name = "test",
+    tags = [
+        "requires-network",  # access to docker socket
+    ],
+    deps = [
+        ":load_fake_blob_auth_image",
+        ":load_proxy_image",
+        "//:node_modules/@types/supertest",
+        "//:node_modules/jest-mock-extended",
+        "//:node_modules/supertest",
+        "//:node_modules/testcontainers",
+        "//proxy/test/fake-blob-auth:src",
+    ],
+)

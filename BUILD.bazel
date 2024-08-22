@@ -1,1 +1,15 @@
-exports_files(["renovate.json5"])
+load("@dh_buildlib//:defs.bzl", "bazelrc", "format", "pnpm_lock_test", "renovate_config")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
+
+format(name = "format")
+
+bazelrc(name = "bazelrc")
+
+pnpm_lock_test(name = "pnpm_lock_test")
+
+renovate_config(
+    name = "renovate",
+    src = "renovate.json5",
+)

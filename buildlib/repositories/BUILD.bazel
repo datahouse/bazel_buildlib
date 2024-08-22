@@ -4,7 +4,7 @@ bzl_library(
     name = "docker_containers",
     srcs = ["docker_containers.bzl"],
     visibility = [
-        "//docs:__pkg__",
+        "//docker:__pkg__",
     ],
     deps = [
         "@rules_oci//oci:pull",

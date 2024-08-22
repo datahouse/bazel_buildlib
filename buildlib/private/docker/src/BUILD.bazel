@@ -1,4 +1,5 @@
-load("//:defs.bzl", "js_binary", "ts_library")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("//:defs.bzl", "ts_library")
 
 ts_library(
     name = "src",
@@ -15,6 +16,7 @@ ts_library(
         "//private:node_modules/js-yaml",
         "//private:node_modules/parse-passwd",
         "//private:node_modules/tar-stream",
+        "//private:node_modules/zod",
         "//private/js-lib/src",
     ],
 )
@@ -44,5 +46,12 @@ js_binary(
     name = "empty-dir-layer",
     data = [":src"],
     entry_point = "empty-dir-layer.js",
+    visibility = ["//visibility:public"],
+)
+
+js_binary(
+    name = "build-dockerfile",
+    data = [":src"],
+    entry_point = "build-dockerfile.js",
     visibility = ["//visibility:public"],
 )

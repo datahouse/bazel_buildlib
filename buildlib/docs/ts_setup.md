@@ -8,11 +8,24 @@ instantiates all the other rules.
 However, the individual rules are also provided, in case more fine grained
 control is needed.
 
+
+## Functions
+
+- [eslintrc](#eslintrc)
+- [npmrc](#npmrc)
+- [package_json](#package_json)
+- [pnpm_lock_test](#pnpm_lock_test)
+- [ts_setup](#ts_setup)
+- [tsconfig_base](#tsconfig_base)
+
+
 <a id="eslintrc"></a>
 
 ## eslintrc
 
 <pre>
+load("@dh_buildlib//ts/setup:defs.bzl", "eslintrc")
+
 eslintrc(<a href="#eslintrc-name">name</a>, <a href="#eslintrc-visibility">visibility</a>)
 </pre>
 
@@ -39,11 +52,63 @@ Example: See [`ts_setup`](#ts_setup)
 | <a id="eslintrc-visibility"></a>visibility |  Visibility of the eslintrc rule.   |  `None` |
 
 
+<a id="npmrc"></a>
+
+## npmrc
+
+<pre>
+load("@dh_buildlib//ts/setup:defs.bzl", "npmrc")
+
+npmrc(<a href="#npmrc-name">name</a>)
+</pre>
+
+Rule to test npm config is according to Datahouse standards.
+
+Must be in the repository root.
+
+Example: See [`ts_setup`](#ts_setup)
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="npmrc-name"></a>name |  Name of the rule, must be "npmrc".   |  none |
+
+
+<a id="package_json"></a>
+
+## package_json
+
+<pre>
+load("@dh_buildlib//ts/setup:defs.bzl", "package_json")
+
+package_json(<a href="#package_json-name">name</a>, <a href="#package_json-visibility">visibility</a>)
+</pre>
+
+Declares and validates a package.json file.
+
+- Must be named `package_json`
+- Implicitly depends on `package.json`
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="package_json-name"></a>name |  Name of the main rule, must be `package_json`   |  none |
+| <a id="package_json-visibility"></a>visibility |  Visibility of the main rule.   |  `[]` |
+
+
 <a id="pnpm_lock_test"></a>
 
 ## pnpm_lock_test
 
 <pre>
+load("@dh_buildlib//ts/setup:defs.bzl", "pnpm_lock_test")
+
 pnpm_lock_test(<a href="#pnpm_lock_test-name">name</a>)
 </pre>
 
@@ -69,6 +134,8 @@ Examples:
 ## ts_setup
 
 <pre>
+load("@dh_buildlib//ts/setup:defs.bzl", "ts_setup")
+
 ts_setup(<a href="#ts_setup-name">name</a>)
 </pre>
 
@@ -79,6 +146,11 @@ Example: [`@examples//:ts_setup`](../../examples/BUILD.bazel#:~:text=name%20%3D%
 Strictly equivalent to (but this may evolve over time):
 
 ```
+package_json(
+    name = "package_json",
+    visibility = ["//:__subpackages__"],
+)
+
 tsconfig_base(
     name = "tsconfig-base",
     visibility = ["//:__subpackages__"],
@@ -91,6 +163,10 @@ eslintrc(
 
 pnpm_lock_test(
     name = "pnpm_lock_test",
+)
+
+npmrc(
+    name = "npmrc",
 )
 ```
 
@@ -108,6 +184,8 @@ pnpm_lock_test(
 ## tsconfig_base
 
 <pre>
+load("@dh_buildlib//ts/setup:defs.bzl", "tsconfig_base")
+
 tsconfig_base(<a href="#tsconfig_base-name">name</a>, <a href="#tsconfig_base-visibility">visibility</a>)
 </pre>
 

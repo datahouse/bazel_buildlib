@@ -64,7 +64,4 @@ const main = async () => {
   await writeFile(out, newContent);
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+await main();

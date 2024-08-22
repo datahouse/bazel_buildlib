@@ -4,7 +4,7 @@ ts_test(
     name = "test",
     deps = [
         "//:node_modules/@types/node",
-        "//:node_modules/graphql-upload-cjs",
+        "//:node_modules/graphql-upload",
         "//:node_modules/jest-extended",
         "//:node_modules/jest-mock-extended",
         "//api/src",

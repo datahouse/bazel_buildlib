@@ -20,9 +20,9 @@ load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
 container_pull(
     name = "node_alpine_image",
     architecture = "amd64",
-    digest = "sha256:9b54d010b382f0ef176dc93cd829bd4f2a905092b260746b3999aa824c9b7121",
+    digest = "sha256:415f3219943ef82fa45988acdaa7df05a0b52cabd3502095c59d34cbe28c1bc1",
     os = "linux",
     registry = "index.docker.io",
     repository = "node",
-    tag = "21.5.0-alpine",  # ignored, doc only
+    tag = "22.3.0-alpine",  # ignored, doc only
 )

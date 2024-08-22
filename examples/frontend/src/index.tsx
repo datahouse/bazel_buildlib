@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import { createUploadLink } from "apollo-upload-client";
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import App from "./App.js";
 
 const apolloClient = new ApolloClient({

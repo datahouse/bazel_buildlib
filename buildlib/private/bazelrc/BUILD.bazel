@@ -8,7 +8,7 @@ bzl_library(
     name = "bzl",
     srcs = glob(["**/*.bzl"]),
     visibility = [
-        "//docs:__pkg__",
+        "//bazelrc:__pkg__",
     ],
     deps = [
         "@aspect_bazel_lib//lib:write_source_files",

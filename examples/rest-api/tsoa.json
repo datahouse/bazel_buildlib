@@ -10,6 +10,7 @@
     "specVersion": 3
   },
   "routes": {
+    "esm": true,
     "routesDir": "src",
     "iocModule": "src/tsoa-ioc"
   }

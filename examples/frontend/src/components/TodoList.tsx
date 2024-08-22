@@ -2,8 +2,7 @@ import { useState } from "react";
 
 import { List, ListItem, ListItemButton, styled } from "@mui/joy";
 
-import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
+import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
 
 import { FragmentType, gql, useFragment } from "../gql/index.js";
 
@@ -12,7 +11,7 @@ import TodoItem from "./TodoItem.js";
 const TODO_LIST_FIELDS_FRAGMENT = gql(`
   fragment TodoListFields on TodoList {
     name
-    items {
+    items(orderBy: [{ done: asc }, { text: asc }]) {
       id
       ...TodoItemFields
     }
@@ -25,12 +24,13 @@ const NestedList = styled(List)`
 
 export interface Props {
   list: FragmentType<typeof TODO_LIST_FIELDS_FRAGMENT>;
+  initiallyExpanded: boolean;
 }
 
-export default function TodoList({ list }: Props) {
+export default function TodoList({ list, initiallyExpanded }: Props) {
   const { name, items } = useFragment(TODO_LIST_FIELDS_FRAGMENT, list);
 
-  const [open, setOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
   const itemsSubList = (
     <NestedList>
@@ -42,12 +42,12 @@ export default function TodoList({ list }: Props) {
 
   return (
     <ListItem nested>
-      <ListItemButton onClick={() => setOpen(!open)}>
-        {open ? <KeyboardArrowDown /> : <KeyboardArrowRight />}
+      <ListItemButton onClick={() => setIsExpanded(!isExpanded)}>
+        {isExpanded ? <KeyboardArrowDown /> : <KeyboardArrowRight />}
         {name}
       </ListItemButton>
 
-      {open && itemsSubList}
+      {isExpanded && itemsSubList}
     </ListItem>
   );
 }

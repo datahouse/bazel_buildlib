@@ -10,3 +10,13 @@ export const GET_ACTIVE_TODOS = gql(`
     }
   }
 `);
+
+export const GET_ATTACHMENTS = gql(`
+  query getAttachments ($itemId: Int!) {
+    todoAttachments(where: { itemId: { equals: $itemId } }, orderBy: { filename: asc }) {
+      id
+      filename
+      uuid
+    }
+  }
+`);

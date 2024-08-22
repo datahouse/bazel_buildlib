@@ -1,17 +1,20 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//private/tar:tar.bzl", "tar_auto_mtree")
 
-exports_files(["vite.config.js"])
+exports_files([
+    "vite.config.mjs",
+])
 
 bzl_library(
     name = "bzl",
     srcs = glob(["**/*.bzl"]),
     visibility = [
-        "//docs:__pkg__",
+        "//react_app:__pkg__",
     ],
     deps = [
         "//private/docker:bzl",
         "//private/tar:bzl",
+        "//private/ts:bzl",
         "@aspect_bazel_lib//lib:copy_file",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_js//js:libs",
@@ -22,8 +25,18 @@ bzl_library(
 
 tar_auto_mtree(
     name = "vite-config-tar",
-    srcs = ["vite.config.js"],
+    srcs = ["vite.config.mjs"],
     replace_prefix = "app/",
+    strip_prefix = package_name(),
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
+tar_auto_mtree(
+    name = "nginx-config-tar",
+    srcs = ["default.conf"],
+    replace_prefix = "etc/nginx/conf.d/",
     strip_prefix = package_name(),
     visibility = [
         "//visibility:public",

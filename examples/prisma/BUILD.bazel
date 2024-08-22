@@ -4,6 +4,7 @@ package_group(
     name = "prisma-users",
     packages = [
         "//api/...",
+        "//proxy/blob-auth/...",
         "//rest-api/...",
     ],
 )

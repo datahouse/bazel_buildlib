@@ -19,9 +19,18 @@ docker_image_for_ts_test(
     image = ":test-image",
 )
 
+docker_image_for_ts_test(
+    name = "load_node_image",
+    image = "@node_image",
+)
+
 ts_test(
     name = "test",
+    tags = [
+        "requires-network",  # docker socket
+    ],
     deps = [
+        ":load_node_image",
         ":load_test_image",
         "//:node_modules/jest-extended",
         "//private/docker/src",

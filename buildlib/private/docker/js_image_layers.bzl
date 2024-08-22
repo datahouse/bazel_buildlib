@@ -6,11 +6,6 @@ def _node_image_transition_impl(_settings, attr):
     return {
         # Transition into the right target platform.
         "//command_line_option:platforms": str(attr.platform),
-        # Make sure we're getting commonjs modules.
-        #
-        # Our code does not work with the default node esm resolver
-        # (we do not have file extensions).
-        "//private/ts:module": "commonjs",
     }
 
 _node_image_transition = transition(
@@ -18,7 +13,6 @@ _node_image_transition = transition(
     inputs = [],
     outputs = [
         "//command_line_option:platforms",
-        "//private/ts:module",
     ],
 )
 

@@ -2,10 +2,10 @@ import "reflect-metadata";
 
 import { Arg, Ctx, Mutation, Resolver, Int } from "type-graphql";
 
-import GraphQLUpload from "graphql-upload-cjs/GraphQLUpload";
-import { FileUpload } from "graphql-upload-cjs/Upload";
+import GraphQLUpload from "graphql-upload/GraphQLUpload.mjs";
+import type { FileUpload } from "graphql-upload/Upload.mjs";
 
-import Context from "../Context.js";
+import type Context from "../Context.js";
 
 /** Resolver to add and delete attachments.
  *
@@ -28,6 +28,11 @@ export default class AttachmentResolver {
     @Arg("file", () => GraphQLUpload) file: FileUpload,
     @Ctx() ctx: Context,
   ): Promise<number> {
+    // TODO(#518): In a real application, you should check the mimetype of the
+    // file here (we'll serve it back to browsers so it is somewhat sensitive).
+    // See: https://datatracker.ietf.org/doc/html/rfc2045#section-5.1 for the
+    // specification.
+
     // Execute in a transaction: If downloading / storing the file
     // fails, we do not want to add the row.
     return ctx.elevatedPrisma.$transaction(async (tx) => {

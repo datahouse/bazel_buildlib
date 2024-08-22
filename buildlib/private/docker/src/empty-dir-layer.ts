@@ -140,7 +140,4 @@ const main = async () => {
   );
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+await main();

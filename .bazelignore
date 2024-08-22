@@ -1,0 +1,7 @@
+node_modules
+# new-repo templates
+new-repo/templates/
+# Sub-workspaces
+examples/
+buildlib/
+tests/

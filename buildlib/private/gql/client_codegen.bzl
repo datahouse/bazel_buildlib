@@ -10,6 +10,7 @@ def _config_impl(ctx):
             relative_file(src.short_path, ctx.build_file_path)
             for src in ctx.files.srcs
         ],
+        "emitLegacyCommonJSImports": False,
         "generates": {
             ctx.attr.out_dir: {
                 "plugins": [],

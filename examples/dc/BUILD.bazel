@@ -8,6 +8,7 @@ docker_compose(
         "//api",
         "//frontend",
         "//proxy",
+        "//proxy/blob-auth",
         "//rest-api",
         "@postgres_image",
     ],

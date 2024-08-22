@@ -2,20 +2,29 @@
 
 Typescript compilation and linting rules.
 
-<a id="js_binary"></a>
 
-## js_binary
+## Functions
+
+- [json_to_ts](#json_to_ts)
+- [ts_library](#ts_library)
+- [ts_test](#ts_test)
+
+
+<a id="json_to_ts"></a>
+
+## json_to_ts
 
 <pre>
-js_binary(<a href="#js_binary-kwargs">kwargs</a>)
+load("@dh_buildlib//ts:defs.bzl", "json_to_ts")
+
+json_to_ts(<a href="#json_to_ts-name">name</a>, <a href="#json_to_ts-src">src</a>, <a href="#json_to_ts-out">out</a>, <a href="#json_to_ts-type">type</a>, <a href="#json_to_ts-type_imports">type_imports</a>, <a href="#json_to_ts-visibility">visibility</a>, <a href="#json_to_ts-testonly">testonly</a>)
 </pre>
 
-js_binary rule that transitions its sources to CommonJS modules.
+Convert JSON to Typescript.
 
-Otherwise equivalent to [js_binary in rules_js](https://github.com/aspect-build/rules_js/blob/main/docs/js_binary.md).
-If in doubt, use this over the one in rules_js.
+Produces a typescript file with a single default export containing the JSON data.
 
-Example: [`@examples//prisma/seed`](../../examples/prisma/seed/BUILD.bazel#:~:text=name%20%3D%20%22seed%22%2C)
+Example: [`@buildlib//private/ts/test:data`](../private/ts/test/BUILD.bazel#:~:text=name%20%3D%20%22data%22%2C)
 
 
 **PARAMETERS**
@@ -23,33 +32,13 @@ Example: [`@examples//prisma/seed`](../../examples/prisma/seed/BUILD.bazel#:~:te
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="js_binary-kwargs"></a>kwargs |  Keyword arguments directly forwarded to rules_js' js_binary.   |  none |
-
-
-<a id="ts_default_srcs"></a>
-
-## ts_default_srcs
-
-<pre>
-ts_default_srcs()
-</pre>
-
-Default glob for `ts_library` / `ts_test` `srcs`.
-
-Use this when you want to pass additional (typically generated) `srcs` to
-`ts_library` / `ts_test`, but you also want to include all the default sources.
-
-This is a shorthand for
-
-```
-glob(
-    include = ["**/*.ts", "**/*.tsx", "**/*.json"],
-    exclude = ["**/package.json", "**/package-lock.json", "**/tsconfig*.json"],
-)
-```
-
-Example: [`@examples//shared-lib/src`](../../examples/shared-lib/src/BUILD.bazel#:~:text=srcs%20%3D%20ts_default_srcs)
-
+| <a id="json_to_ts-name"></a>name |  Name of the resulting rule.   |  none |
+| <a id="json_to_ts-src"></a>src |  JSON file to convert to typescript (must end in .json)   |  none |
+| <a id="json_to_ts-out"></a>out |  Output file name (defaults to src with .ts extension).   |  `None` |
+| <a id="json_to_ts-type"></a>type |  Optional type annotation for the type (e.g. `string`).   |  `None` |
+| <a id="json_to_ts-type_imports"></a>type_imports |  Optional import line(s) for the type (e.g. `import type { X } from "./x.js";`).   |  `[]` |
+| <a id="json_to_ts-visibility"></a>visibility |  Visibility specifier.   |  `None` |
+| <a id="json_to_ts-testonly"></a>testonly |  testonly flag.   |  `None` |
 
 
 <a id="ts_library"></a>
@@ -57,6 +46,8 @@ Example: [`@examples//shared-lib/src`](../../examples/shared-lib/src/BUILD.bazel
 ## ts_library
 
 <pre>
+load("@dh_buildlib//ts:defs.bzl", "ts_library")
+
 ts_library(<a href="#ts_library-name">name</a>, <a href="#ts_library-srcs">srcs</a>, <a href="#ts_library-deps">deps</a>, <a href="#ts_library-data">data</a>, <a href="#ts_library-assets">assets</a>, <a href="#ts_library-uses_dom">uses_dom</a>, <a href="#ts_library-visibility">visibility</a>, <a href="#ts_library-testonly">testonly</a>)
 </pre>
 
@@ -71,7 +62,7 @@ Example: [`@examples//shared-lib/src`](../../examples/shared-lib/src/BUILD.bazel
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="ts_library-name"></a>name |  name of the rule   |  none |
-| <a id="ts_library-srcs"></a>srcs |  ts, tsx, json sources to compile. Defaults to `ts_default_srcs()`.   |  `None` |
+| <a id="ts_library-srcs"></a>srcs |  ts, tsx sources to compile. Defaults to `glob(["**/*.ts", "**/*.tsx"])`.   |  `None` |
 | <a id="ts_library-deps"></a>deps |  dependencies (other ts_library or npm dependencies)   |  `[]` |
 | <a id="ts_library-data"></a>data |  required runtime data (e.g. csv files)   |  `None` |
 | <a id="ts_library-assets"></a>assets |  required imported assets (e.g. css files) - Use `assets` for files you `import` (e.g. import './App.css') - Use `data` for files you read programmatically (e.g. `fs.readFile("data.csv")`)   |  `[]` |
@@ -85,6 +76,8 @@ Example: [`@examples//shared-lib/src`](../../examples/shared-lib/src/BUILD.bazel
 ## ts_test
 
 <pre>
+load("@dh_buildlib//ts:defs.bzl", "ts_test")
+
 ts_test(<a href="#ts_test-name">name</a>, <a href="#ts_test-srcs">srcs</a>, <a href="#ts_test-deps">deps</a>, <a href="#ts_test-data">data</a>, <a href="#ts_test-uses_dom">uses_dom</a>, <a href="#ts_test-tags">tags</a>)
 </pre>
 

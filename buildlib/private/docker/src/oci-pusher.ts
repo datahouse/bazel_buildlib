@@ -1,5 +1,3 @@
-import process from "node:process";
-
 import { readFile } from "node:fs/promises";
 
 import argparse from "argparse";
@@ -78,7 +76,4 @@ const main = async () => {
   );
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+await main();

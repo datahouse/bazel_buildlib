@@ -2,62 +2,65 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("//private/docker:ibazel_info.bzl", "ibazel_info")
+load("//private/format:repositories.bzl", "buildifier_repos")
 load("//private/prisma:repositories.bzl", "prisma_host_constraints")
 
 visibility("public")
 
+# False positive due to buildifier_repos()
+# buildifier: disable=unnamed-macro
 def dh_buildlib_setup0():
     """Datahouse buildib setup stage 0."""
 
     http_archive(
         name = "bazel_skylib",
-        sha256 = "cd55a062e763b9349921f0f5db8c3933288dc8ba4f76dd9416aac68acee3cb94",
+        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-1.5.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-1.5.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
         ],
     )
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "bda4a69fa50411b5feef473b423719d88992514d259dadba7d8218a1d02c7883",
-        strip_prefix = "bazel-lib-2.3.0",
-        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.3.0/bazel-lib-v2.3.0.tar.gz",
+        sha256 = "688354ee6beeba7194243d73eb0992b9a12e8edeeeec5b6544f4b531a3112237",
+        strip_prefix = "bazel-lib-2.8.1",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.8.1/bazel-lib-v2.8.1.tar.gz",
     )
 
     http_archive(
         name = "rules_nodejs",
-        sha256 = "f36e4a4747210331767033dc30728ae3df0856e88ecfdc48a0077ba874db16c3",
-        strip_prefix = "rules_nodejs-6.0.3",
-        url = "https://github.com/bazelbuild/rules_nodejs/releases/download/v6.0.3/rules_nodejs-v6.0.3.tar.gz",
+        sha256 = "87c6171c5be7b69538d4695d9ded29ae2626c5ed76a9adeedce37b63c73bef67",
+        strip_prefix = "rules_nodejs-6.2.0",
+        url = "https://github.com/bazelbuild/rules_nodejs/releases/download/v6.2.0/rules_nodejs-v6.2.0.tar.gz",
     )
 
     http_archive(
         name = "aspect_rules_js",
-        sha256 = "0fd06280b6b4982e2fd94be383ac35533ac756ddf34271e1344af0a7ebaafa89",
-        strip_prefix = "rules_js-1.36.0",
-        url = "https://github.com/aspect-build/rules_js/releases/download/v1.36.0/rules_js-v1.36.0.tar.gz",
+        sha256 = "6b7e73c35b97615a09281090da3645d9f03b2a09e8caa791377ad9022c88e2e6",
+        strip_prefix = "rules_js-2.0.0",
+        url = "https://github.com/aspect-build/rules_js/releases/download/v2.0.0/rules_js-v2.0.0.tar.gz",
     )
 
     http_archive(
         name = "aspect_rules_ts",
-        sha256 = "bd3e7b17e677d2b8ba1bac3862f0f238ab16edb3e43fb0f0b9308649ea58a2ad",
-        strip_prefix = "rules_ts-2.1.0",
-        url = "https://github.com/aspect-build/rules_ts/releases/download/v2.1.0/rules_ts-v2.1.0.tar.gz",
+        sha256 = "ee7dcc35faef98f3050df9cf26f2a72ef356cab8ad927efb1c4dc119ac082a19",
+        strip_prefix = "rules_ts-3.0.0",
+        url = "https://github.com/aspect-build/rules_ts/releases/download/v3.0.0/rules_ts-v3.0.0.tar.gz",
     )
 
     http_archive(
         name = "aspect_rules_swc",
-        sha256 = "8eb9e42ed166f20cacedfdb22d8d5b31156352eac190fc3347db55603745a2d8",
-        strip_prefix = "rules_swc-1.1.0",
-        url = "https://github.com/aspect-build/rules_swc/releases/download/v1.1.0/rules_swc-v1.1.0.tar.gz",
+        sha256 = "d63d7b283249fa942f78d2716ecff3edbdc10104ee1b9a6b9464ece471ef95ea",
+        strip_prefix = "rules_swc-2.0.0",
+        url = "https://github.com/aspect-build/rules_swc/releases/download/v2.0.0/rules_swc-v2.0.0.tar.gz",
     )
 
     http_archive(
         name = "rules_oci",
-        sha256 = "58b7a175ee90c12583afeca388523adf6a4e5a0528f330b41c302b91a4d6fc06",
-        strip_prefix = "rules_oci-1.6.0",
-        url = "https://github.com/bazel-contrib/rules_oci/releases/download/v1.6.0/rules_oci-v1.6.0.tar.gz",
+        sha256 = "46ce9edcff4d3d7b3a550774b82396c0fa619cc9ce9da00c1b09a08b45ea5a14",
+        strip_prefix = "rules_oci-1.8.0",
+        url = "https://github.com/bazel-contrib/rules_oci/releases/download/v1.8.0/rules_oci-v1.8.0.tar.gz",
     )
 
     # Declare dependency on bazel_features (transitive dependency of rules_js) explicitly.
@@ -68,9 +71,9 @@ def dh_buildlib_setup0():
     # 3. npm_repositories (depends on npm_translate_lock)
     http_archive(
         name = "bazel_features",
-        sha256 = "53182a68f172a2af4ad37051f82201e222bc19f7a40825b877da3ff4c922b9e0",
-        strip_prefix = "bazel_features-1.3.0",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.3.0/bazel_features-v1.3.0.tar.gz",
+        sha256 = "ba1282c1aa1d1fffdcf994ab32131d7c7551a9bc960fbf05f42d55a1b930cbfb",
+        strip_prefix = "bazel_features-1.15.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.15.0/bazel_features-v1.15.0.tar.gz",
     )
 
     # Always load prisma constraints (they are not dependent on prisms itself,
@@ -78,3 +81,5 @@ def dh_buildlib_setup0():
     prisma_host_constraints(name = "prisma_host_constraints")
 
     ibazel_info(name = "dh_buildlib_private_ibazel_info")
+
+    buildifier_repos()

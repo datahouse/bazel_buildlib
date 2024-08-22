@@ -4,8 +4,8 @@ bzl_library(
     name = "bzl",
     srcs = glob(["**/*.bzl"]),
     visibility = [
-        "//docs:__pkg__",
         "//private/react_app:__pkg__",
+        "//tar:__pkg__",
     ],
     deps = [
         "@aspect_bazel_lib//lib:tar",

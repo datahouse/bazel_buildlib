@@ -8,31 +8,6 @@ load(":config.bzl", "tsconfig")
 load(":eslint.bzl", "eslint")
 load(":providers.bzl", "TsLibraryInfo")
 
-def ts_default_srcs():
-    """Default glob for `ts_library` / `ts_test` `srcs`.
-
-    Use this when you want to pass additional (typically generated) `srcs` to
-    `ts_library` / `ts_test`, but you also want to include all the default sources.
-
-    This is a shorthand for
-
-    ```
-    glob(
-        include = ["**/*.ts", "**/*.tsx", "**/*.json"],
-        exclude = ["**/package.json", "**/package-lock.json", "**/tsconfig*.json"],
-    )
-    ```
-
-    Example: [`@examples//shared-lib/src`](../../examples/shared-lib/src/BUILD.bazel#:~:text=srcs%20%3D%20ts_default_srcs)
-    """
-
-    # Essentially copied from rules_ts
-    # https://github.com/aspect-build/rules_ts/blob/9fed0d6adb1094ea095d86d6970ac2fc041b4cae/ts/defs.bzl#L283-L291
-    return native.glob(
-        include = ["**/*.ts", "**/*.tsx", "**/*.json"],
-        exclude = ["**/package.json", "**/package-lock.json", "**/tsconfig*.json"],
-    )
-
 def _ts_library_impl(ctx):
     base = [
         ctx.attr.base[provider]
@@ -70,7 +45,7 @@ def ts_library(
 
     Args:
       name: name of the rule
-      srcs: ts, tsx, json sources to compile. Defaults to `ts_default_srcs()`.
+      srcs: ts, tsx sources to compile. Defaults to `glob(["**/*.ts", "**/*.tsx"])`.
       deps: dependencies (other ts_library or npm dependencies)
       assets: required imported assets (e.g. css files)
         - Use `assets` for files you `import` (e.g. import './App.css')
@@ -83,7 +58,7 @@ def ts_library(
     """
 
     if srcs == None:
-        srcs = ts_default_srcs()
+        srcs = native.glob(["**/*.ts", "**/*.tsx"])
 
     tsconfig(
         name = "tsconfig",
@@ -103,12 +78,21 @@ def ts_library(
         source_map = True,
         transpiler = partial.make(
             swc,
-            swcrc = Label(":swcrc"),
+            swcrc = Label(":.swcrc"),
         ),
         assets = assets,
-        resolve_json_module = True,
         tsconfig = ":tsconfig",
-        deps = deps,
+        # Note: This deploys the root package.json to the final artifacts.
+        # This will almost certainly declare unnecessary dependencies (the root
+        # package.json contains the dependencies of the entire repository).
+        #
+        # These dependencies are neither actually required/used nor provided/copied
+        # into the artifact, so it is not really an issue (but it might confuse
+        # a downstream tool at some point).
+        #
+        # Avoiding this would unnecessarily complicate the file layout
+        # (especially while preserving IDE support), so for now, we do not do it.
+        deps = deps + ["//:package_json"],
     )
 
     _ts_library(

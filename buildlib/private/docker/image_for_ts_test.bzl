@@ -98,7 +98,7 @@ def docker_image_for_ts_test(name, image, visibility = None):
     js_library(
         name = name,
         srcs = [name + ".js"],
-        declarations = [name + ".d.ts"],
+        types = [name + ".d.ts"],
         data = [image],
         deps = [Label("//private/docker/src")],
         testonly = True,

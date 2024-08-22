@@ -12,5 +12,8 @@ oci_image(
     name = "proxy",
     base = "@nginx_image",
     tars = ["tar"],
-    visibility = ["//:docker-image-users"],
+    visibility = [
+        "//:docker-image-users",
+        "//proxy/test:__pkg__",
+    ],
 )

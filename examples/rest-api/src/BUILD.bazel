@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@dh_buildlib//:defs.bzl", "ts_default_srcs", "ts_library")
+load("@dh_buildlib//:defs.bzl", "json_to_ts", "ts_library")
 load("@npm//:tsoa/package_json.bzl", _tsoa = "bin")
 
 copy_file(
@@ -24,11 +24,17 @@ _tsoa.tsoa(
     chdir = package_name() + "/..",
 )
 
+json_to_ts(
+    name = "swagger",
+    src = "swagger.json",
+)
+
 ts_library(
     name = "src",
-    srcs = ts_default_srcs() + [
+    srcs = glob(["**/*.ts"]) + [
         ":copy-my-version",
-        ":tsoa",
+        ":routes.ts",
+        ":swagger.ts",
     ],
     visibility = ["//rest-api:__subpackages__"],
     deps = [

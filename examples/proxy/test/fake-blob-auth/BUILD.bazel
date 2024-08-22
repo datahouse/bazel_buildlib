@@ -1,0 +1,25 @@
+load("@dh_buildlib//:defs.bzl", "node_binary_image", "ts_library")
+
+ts_library(
+    name = "src",
+    testonly = 1,
+    visibility = [
+        # Allow the test to use this library to access FakePrismaData.ts
+        # This is a bit ugly (a separate tiny library would be cleaner), but it
+        # is good enough for tests.
+        "//proxy/test:__pkg__",
+    ],
+    deps = [
+        "//:node_modules/express",
+        "//proxy/blob-auth/src",
+    ],
+)
+
+node_binary_image(
+    name = "fake-blob-auth",
+    testonly = 1,
+    data = [":src"],
+    entry_point = ":index.js",
+    ports = ["8000"],
+    visibility = ["//proxy/test:__pkg__"],
+)

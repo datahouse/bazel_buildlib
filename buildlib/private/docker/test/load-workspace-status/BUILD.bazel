@@ -4,13 +4,17 @@ load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 js_run_binary(
     name = "fake-load-stamp-data",
     testonly = 1,
-    srcs = ["fake-stable-info-file.txt"],
+    srcs = [
+        "fake-stable-status.txt",
+        "fake-volatile-status.txt",
+    ],
     outs = [
         "fake-labels.txt",
         "fake-tag.txt",
     ],
     args = [
-        "--infoFile=fake-stable-info-file.txt",
+        "--stableStatusFile=fake-stable-status.txt",
+        "--volatileStatusFile=fake-volatile-status.txt",
         "--labelsFile=fake-labels.txt",
         "--tagFile=fake-tag.txt",
     ],

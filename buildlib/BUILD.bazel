@@ -1,9 +1,11 @@
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@prisma_host_constraints//:constraints.bzl", "PRISMA_HOST_CONSTRAINTS")
-load(":defs.bzl", "bazelrc", "ts_setup")
+load(":defs.bzl", "bazelrc", "format", "ts_setup")
 
 npm_link_all_packages(name = "node_modules")
+
+format(name = "format")
 
 ts_setup(name = "ts_setup")
 

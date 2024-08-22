@@ -35,20 +35,20 @@ def eslintrc(name, visibility = None):
 
     copy_file(
         name = "eslintrc.defaults",
-        src = Label(":eslint.dh-defaults.js"),
-        out = "eslintrc.dh-defaults.js",
+        src = Label(":eslint.dh-defaults.cjs"),
+        out = "eslintrc.dh-defaults.cjs",
     )
 
     copy_file(
         name = "eslintrc.defaults.bin",
         src = ":eslintrc.defaults",
-        out = "bazel-bin/eslintrc.dh-defaults.js",
+        out = "bazel-bin/eslintrc.dh-defaults.cjs",
     )
 
     js_library(
         name = name,
         srcs = [
-            ".eslintrc.js",
+            ".eslintrc.cjs",
             "eslintrc.defaults.bin",
             # Add package.json.
             #
@@ -65,7 +65,7 @@ def eslintrc(name, visibility = None):
 
     js_test(
         name = name + ".test",
-        args = ["./.eslintrc.js"],
-        data = [Label("//private/ts/src"), ".eslintrc.js"],
+        args = ["./.eslintrc.cjs"],
+        data = [Label("//private/ts/src"), ".eslintrc.cjs"],
         entry_point = Label("//private/ts/src:check-eslintrc.js"),
     )

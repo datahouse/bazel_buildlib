@@ -1,11 +1,10 @@
 """tsconfig rules"""
 
 load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@aspect_rules_ts//ts:defs.bzl", "TsConfigInfo", "ts_config")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":providers.bzl", "TsLibraryInfo")
+load(":write_source_file_prettier.bzl", "write_source_file_prettier")
 
 def _tsconfig_includes(ctx):
     project_dir = paths.dirname(ctx.build_file_path)
@@ -27,18 +26,6 @@ def _tsconfig_includes(ctx):
             # Generated file, add it explicitly (do *not* use a pattern, many
             # other things are in the generated directory we shouldn't include).
             include.append(paths.join(bin_rel_pattern, file.short_path))
-
-        if file.extension == "json":
-            # Include all json files explicitly.
-            #
-            # An alternative would be to adjust the default wildcard matches, but that
-            # would mean we need to explicitly exclude things like tsconfig.json.
-            #
-            # Note that we even need to add generated JSON files: when running
-            # under rules_js/ts, source files (and the tsconfig.json itself!)
-            # are first copied to the bindir. So even generated json files will
-            # be under the normal relative path.
-            include.append(relative_file(file.short_path, ctx.build_file_path))
 
     return include
 
@@ -72,8 +59,7 @@ def _tsconfig_references(ctx):
     return references
 
 def _gen_tsconfig_impl(ctx):
-    # See the "evil bazel hackery" comment in _write_to_src for why this is not
-    # predeclared in the attrs.
+    # See [evil-bazel-hackery] for why this is not predeclared in the attrs.
     out = ctx.actions.declare_file("tsconfig.json")
 
     cfg = {
@@ -108,8 +94,7 @@ _gen_tsconfig = rule(
 )
 
 def _gen_tsconfig_base_impl(ctx):
-    # See the "evil bazel hackery" comment in _write_to_src for why this is not
-    # predeclared in the attrs.
+    # See [evil-bazel-hackery] for why this is not predeclared in the attrs.
     out = ctx.actions.declare_file("tsconfig-base.json")
 
     cfg = {
@@ -121,11 +106,18 @@ def _gen_tsconfig_base_impl(ctx):
             "forceConsistentCasingInFileNames": True,
             "isolatedModules": True,
             "jsx": "react-jsx",
-            "lib": ["es2018"],
-            "module": ctx.attr._module_setting[BuildSettingInfo].value,
-            "moduleResolution": "node",
+            "lib": ["es2021"],
+            # Module and module resolution:
+            # We want to transpile to ESM and have strict module resolution (node16).
+            # TSC does not allow us to specify `module` explicitly (i.e. es2022)
+            # while having `moduleResolution` set to `node16`.
+            # Therefore, we use package_json to force `"type": "module"` in
+            # `package.json` which configures both Node.js and TSC to emit ESM.
+            #
+            # Also see https://www.typescriptlang.org/docs/handbook/modules/reference.html#node16-nodenext
+            "module": "node16",
+            "moduleResolution": "node16",
             "outDir": "dist",
-            "resolveJsonModule": True,
             "rootDir": ".",
             "rootDirs": [".", "bazel-bin"],
             "skipLibCheck": True,
@@ -133,6 +125,10 @@ def _gen_tsconfig_base_impl(ctx):
             "strict": True,
             "target": "es2018",
         },
+        # Work around
+        # https://github.com/aspect-build/rules_ts/issues/644
+        # https://github.com/microsoft/TypeScript/issues/59036
+        "exclude": [],
     }
 
     ctx.actions.write(
@@ -143,53 +139,9 @@ def _gen_tsconfig_base_impl(ctx):
     return DefaultInfo(files = depset([out]))
 
 _gen_tsconfig_base = rule(
-    attrs = {
-        "_module_setting": attr.label(
-            default = Label("//private/ts:module"),
-            providers = [BuildSettingInfo],
-        ),
-    },
+    attrs = {},
     implementation = _gen_tsconfig_base_impl,
 )
-
-def _write_to_src(name, testonly = None):
-    """Macro to format and write tsconfig to source.
-
-    - Assumes the presence of a target called name + ".gen" providing the relevant file.
-    - Writes to name + ".json"
-
-    This involves some evil bazel hackery:
-    We want tsconfig.json (or tsconfig-base.json) to be generated but also
-    write it to the source folder (so the IDE tools can be happy).
-
-    To achieve this, we do not declare tsconfig.json as a predeclared output
-    of _gen_tsconfig / _gen_tsconfig_base. As such, it will not receive a label
-    (and the label `:tsconfig.json` / `:tsconfig-base.json` will always refer to
-    the source file).
-    """
-
-    # Expand prettier label to resolve repository.
-    # We need a string representation in the `cmd` below.
-    prettier = Label("//private:prettier")
-
-    # Use a genrule instead of js_run_binary because we need redirection:
-    # Prettier refuses to format symlinks (starting 3.x), so we pipe the file
-    # we want to format (but js_run_binary doesn't support stdin piping).
-    native.genrule(
-        name = name + ".fmt",
-        cmd = "BAZEL_BINDIR=. $(location %s) --stdin-filepath $< < $< > $@" % prettier,
-        testonly = testonly,
-        srcs = [name + ".gen"],
-        outs = [name + ".fmt.json"],
-        tools = [prettier],
-    )
-
-    write_source_file(
-        name = name + ".write",
-        testonly = testonly,
-        in_file = name + ".fmt",
-        out_file = name + ".json",
-    )
 
 def tsconfig(name, srcs, deps, uses_dom, testonly = None):
     """tsconfig.json generation for a single ts_library (buildlib internal).
@@ -224,8 +176,10 @@ def tsconfig(name, srcs, deps, uses_dom, testonly = None):
         testonly = testonly,
     )
 
-    _write_to_src(
+    write_source_file_prettier(
         name = "tsconfig",
+        in_file = "tsconfig.gen",
+        out_file = "tsconfig.json",
         testonly = testonly,
     )
 
@@ -258,6 +212,17 @@ def tsconfig_base(name, visibility = None):
         visibility = visibility,
     )
 
-    _write_to_src(
+    write_source_file_prettier(
         name = "tsconfig-base",
+        in_file = "tsconfig-base.gen",
+        out_file = "tsconfig-base.json",
     )
+
+# [evil-bazel-hackery]
+# We want tsconfig.json (or tsconfig-base.json) to be generated but also
+# write it to the source folder (so the IDE tools can be happy).
+#
+# To achieve this, we do not declare tsconfig.json as a predeclared output
+# of _gen_tsconfig / _gen_tsconfig_base. As such, it will not receive a label
+# (and the label `:tsconfig.json` / `:tsconfig-base.json` will always refer to
+# the source file).

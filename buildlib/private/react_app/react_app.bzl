@@ -5,15 +5,16 @@ load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
 load("//private/docker:providers.bzl", "HotReloadableInfo")
 load(":bundle.bzl", "bundle")
-load(":esm_transition.bzl", "esm_transition")
 load(":hot_reload_base.bzl", "hot_reload_base")
 
 def _react_app_impl(ctx):
-    files = js_lib_helpers.gather_files_from_js_providers(
+    files = js_lib_helpers.gather_files_from_js_infos(
         ctx.attr.deps,
+        include_sources = True,
         include_transitive_sources = True,
-        include_declarations = False,
-        include_npm_linked_packages = False,
+        include_types = False,
+        include_transitive_types = False,
+        include_npm_sources = False,
     )
 
     filtered_files = depset([
@@ -37,13 +38,9 @@ _react_app = rule(
     attrs = {
         "deps": attr.label_list(
             providers = [JsInfo],
-            cfg = esm_transition,
         ),
         "dev_image": attr.label(allow_single_file = True),
         "run_image": attr.label(allow_single_file = True),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
     },
 )
 
@@ -56,13 +53,21 @@ def react_app(
         node_image_platform = Label("//private/docker:node_default_platform"),
         visibility = None,
         testonly = None):
-    """Bundles a react app into a hot-reloadable docker image.
+    """Bundles a react single page app into a hot-reloadable docker image.
 
     When built normally, the resulting image is simply a static nginx server
     with the bundled react application (aka run or cold image).
 
     When used with hot reloading (under ibazel), the resulting image will run a dev
     server to provide hot reloading to the browser (aka dev or hot image).
+
+    This rule is deliberately opinionated. Notably, it configures both base
+    images provided (and attempts to keep the behavior of the configs consistent,
+    in case it isn't, please file a bug).
+
+    Per consequence, the base image parameters solely exist so different image
+    versions can be used in the same project / workspace. Non-default configuration
+    injected into the base image may be broken in a minor version without prior notice.
 
     Example: [`@examples//frontend`](../../examples/frontend/BUILD.bazel#:~:text=name%20%3D%20%22frontend%22%2C)
 

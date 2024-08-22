@@ -12,7 +12,6 @@ $ sudo apt-get install docker-compose-plugin
 load("@aspect_rules_js//js:libs.bzl", "js_binary_lib")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@dh_buildlib_private_ibazel_info//:is_ibazel.bzl", "is_ibazel")
-load("//private/ts:js_binary.bzl", "commonjs_transition")
 load(":oci_util.bzl", "get_oci_dir")
 load(":providers.bzl", "DockerComposeInfo", "HotReloadableInfo")
 
@@ -90,6 +89,26 @@ def _preprocess_dc(ctx, image_info_file, oci_images):
 
     return new_dc
 
+def _make_fake_dc(ctx):
+    inputs = [ctx.file.src]
+
+    fake_dc = ctx.actions.declare_file("docker-compose.fake.yml")
+    ctx.actions.run(
+        inputs = inputs,
+        outputs = [fake_dc],
+        arguments = [
+            "--input",
+            ctx.file.src.path,
+            "--output",
+            fake_dc.path,
+            "--fake",
+        ],
+        env = {"BAZEL_BINDIR": "."},
+        executable = ctx.executable._dc_processor,
+    )
+
+    return fake_dc
+
 def _docker_compose_up(ctx, dc_file, image_info):
     launcher = js_binary_lib.create_launcher(
         ctx,
@@ -116,6 +135,7 @@ def _docker_compose_impl(ctx):
     image_info = _write_image_info(ctx)
 
     new_dc = _preprocess_dc(ctx, image_info.file, image_info.oci_images)
+    fake_dc = _make_fake_dc(ctx)
 
     executable_info = _docker_compose_up(ctx, new_dc, image_info)
 
@@ -124,6 +144,7 @@ def _docker_compose_impl(ctx):
         DockerComposeInfo(
             project = ctx.attr.project,
             file = new_dc,
+            fake_dc = fake_dc,
         ),
     ]
 
@@ -150,9 +171,6 @@ _docker_compose = rule(
             allow_single_file = [".yml"],
             doc = "The docker compose file",
         ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
         "_dc_processor": attr.label(
             default = Label("//private/docker/src:dc-processor"),
             executable = True,
@@ -161,7 +179,6 @@ _docker_compose = rule(
     }),
     executable = True,
     toolchains = js_binary_lib.toolchains,
-    cfg = commonjs_transition,
 )
 
 def docker_compose(name, project, src, deps, visibility = None, testonly = None):

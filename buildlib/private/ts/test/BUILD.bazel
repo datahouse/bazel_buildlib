@@ -1,0 +1,24 @@
+load("//ts:defs.bzl", "json_to_ts", "ts_test")
+
+json_to_ts(
+    name = "data",
+    src = "data.json",
+    type = "Data",
+    type_imports = [
+        """import type { Data } from "./data.type.js";""",
+    ],
+)
+
+json_to_ts(
+    name = "untyped_data",
+    src = "data.json",
+    out = "untyped_data.ts",
+)
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]) + [
+        ":data.ts",
+        ":untyped_data.ts",
+    ],
+)

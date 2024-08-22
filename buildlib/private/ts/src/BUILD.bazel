@@ -4,10 +4,10 @@ ts_library(
     name = "src",
     visibility = ["//visibility:public"],
     deps = [
-        "//private:node_modules/@jest/transform",
         "//private:node_modules/@types/argparse",
         "//private:node_modules/@types/eslint",
         "//private:node_modules/@types/node",
         "//private:node_modules/argparse",
+        "//private:node_modules/zod",
     ],
 )

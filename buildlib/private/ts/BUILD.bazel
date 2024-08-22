@@ -1,31 +1,20 @@
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@bazel_skylib//rules:common_settings.bzl", "string_setting")
-load(":swcrc.bzl", "swcrc")
 
 exports_files([
-    "eslint.dh-defaults.js",
+    "eslint.dh-defaults.cjs",
     "test-pnpm-lock.sh",
+    "default.npmrc",
+    "babel.config.cjs",
+    ".swcrc",
 ])
-
-string_setting(
-    name = "module",
-    # Use commonjs by default, since it is what Node.js expects.
-    build_setting_default = "commonjs",
-    values = [
-        "commonjs",
-        # Use es2020 for now: Allows dynamic import but not top-level await
-        # (doesn't work in CommonJS modules in Node).
-        "es2020",
-    ],
-    visibility = ["//visibility:public"],
-)
 
 bzl_library(
     name = "bzl",
     srcs = glob(["**/*.bzl"]),
     visibility = [
-        "//docs:__pkg__",
         "//private:__subpackages__",
+        "//ts:__subpackages__",
     ],
     deps = [
         "@aspect_bazel_lib//lib:write_source_files",
@@ -38,8 +27,10 @@ bzl_library(
     ],
 )
 
-swcrc(
-    name = "swcrc",
-    out = ".swcrc.json",
+# Not a js_library so we can refer to it as individual file in
+# the jest config.
+copy_to_bin(
+    name = "file_transform",
+    srcs = ["FileTransform.cjs"],
     visibility = ["//visibility:public"],
 )

@@ -1,6 +1,7 @@
 """Datahouse specific rules for typescript code."""
 
 load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load(":library.bzl", "ts_library")
 load(":npm_js_binary.bzl", "npm_js_test")
 
@@ -10,9 +11,15 @@ def _jest_config_impl(ctx):
     cfg_path = ctx.outputs.out.short_path
 
     transform = {
-        # Default. Required for module mocks, see #247
-        # https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
-        "\\.[jt]sx?$": "babel-jest",
+        # Invoke babel-jest for all JS sources.
+        # We need this for:
+        # - ESM support: Jest does not support ESM yet, so we transpile the
+        #   sources on the fly (we inject a custom babel config for this).
+        #   We should remove this, once Jest supports ESM:
+        #   https://jestjs.io/docs/ecmascript-modules
+        # - Module mocks, see #247
+        #   https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
+        "\\.[mc]?[jt]sx?$": "babel-jest",
     }
     module_name_mapper = {}
 
@@ -33,6 +40,17 @@ def _jest_config_impl(ctx):
         "setupFiles": ["react-app-polyfill/jsdom"] if dom else [],
         "testEnvironment": "jsdom" if dom else "node",
         "transform": transform,
+        # Selectively CJS transform known node modules that publish only for ESM.
+        #
+        # We use a negative lookahead regex for this as suggested in the doc:
+        # https://jestjs.io/docs/configuration#transformignorepatterns-arraystring
+        #
+        # Note that the selectivity is crucial: At the time of writing,
+        # transforming all node modules on //frontend/test
+        # increases the test runtime from 10s to 70s.
+        "transformIgnorePatterns": [
+            "node_modules/\\.aspect_rules_js/(?!graphql-upload@)",
+        ],
     }
 
     ctx.actions.write(ctx.outputs.out, json.encode(cfg))
@@ -40,7 +58,7 @@ def _jest_config_impl(ctx):
 _jest_config = rule(
     implementation = _jest_config_impl,
     attrs = {
-        "file_transform": attr.label(allow_single_file = [".js"]),
+        "file_transform": attr.label(allow_single_file = [".cjs"]),
         "out": attr.output(),
         "uses_dom": attr.bool(),
     },
@@ -77,8 +95,15 @@ def ts_test(name, srcs = None, deps = [], data = [], uses_dom = False, tags = No
         name = name + ".jest.config",
         uses_dom = uses_dom,
         out = _config_name,
-        file_transform = Label("//private/ts/src:FileTransform.js"),
+        file_transform = Label("//private/ts:file_transform"),
         testonly = True,
+    )
+
+    # Babel config (implicitly read by `babel-jest`).
+    copy_file(
+        name = name + ".babel.config.cjs",
+        src = Label(":babel.config.cjs"),
+        out = "babel.config.cjs",
     )
 
     if uses_dom:
@@ -86,7 +111,7 @@ def ts_test(name, srcs = None, deps = [], data = [], uses_dom = False, tags = No
             "//:node_modules/react-app-polyfill",
             "//:node_modules/jest-environment-jsdom",
             "//:node_modules/identity-obj-proxy",
-            Label("//private/ts/src:FileTransform.js"),
+            Label("//private/ts:file_transform"),
         ]
     else:
         env_deps = []
@@ -102,6 +127,8 @@ def ts_test(name, srcs = None, deps = [], data = [], uses_dom = False, tags = No
         data = [
             name + ".compiled",
             _config_name,
+            name + ".babel.config.cjs",
+            "//:node_modules/@babel/plugin-transform-modules-commonjs",
         ] + env_deps,
         tags = tags,
         args = [

@@ -8,12 +8,16 @@ def _load_stamp_data_impl(ctx):
     if stamp:
         args = ctx.actions.args()
 
-        args.add("--infoFile", stamp.stable_status_file)
+        args.add("--stableStatusFile", stamp.stable_status_file)
+        args.add("--volatileStatusFile", stamp.volatile_status_file)
         args.add("--labelsFile", ctx.outputs.labels)
         args.add("--tagFile", ctx.outputs.docker_tag)
 
         ctx.actions.run(
-            inputs = [stamp.stable_status_file],
+            inputs = [
+                stamp.stable_status_file,
+                stamp.volatile_status_file,
+            ],
             outputs = [ctx.outputs.labels, ctx.outputs.docker_tag],
             arguments = [args],
             env = {"BAZEL_BINDIR": "."},

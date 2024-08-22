@@ -78,4 +78,6 @@ case "$1 $2" in
 	exit 2
 esac
 
+cd "{{PRISMA_EXEC_DIR}}"
+
 exec "${RUNFILES_DIR}/{{PRISMA_TOOL}}" "$@" $ARGS

@@ -76,7 +76,7 @@ const patchService = (
   service.volumes.push(`$HOME/${hostHomePath}:${containerPath}:ro`);
 };
 
-const main = async () => {
+const parseArgs = () => {
   const parser = new argparse.ArgumentParser({
     description: "Bazel docker-compose.yml processor",
   });
@@ -86,20 +86,42 @@ const main = async () => {
   parser.add_argument("--imageInfo", {
     help: "image-info.json mapping labels to digest files",
   });
-  const args = parser.parse_args();
+  parser.add_argument("--fake", {
+    help: "image-info.json mapping labels to digest files",
+    action: argparse.BooleanOptionalAction,
+    default: false,
+  });
 
-  const imageInfos = await loadImageInfos(args.imageInfo);
-  const dc = YAML.load(await readFile(args.input, "utf8")) as DockerCompose;
-
-  // Replace images that have bazel labels (mutably in dc).
-  Object.entries(dc.services).forEach(([name, service]) =>
-    patchService(imageInfos, name, service),
-  );
-
-  await writeFile(args.output, YAML.dump(dc));
+  return parser.parse_args() as {
+    input: string;
+    output: string;
+    imageInfo: string;
+    fake: boolean;
+  };
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+const main = async () => {
+  const { imageInfo, input, output, fake } = parseArgs();
+
+  const dc = YAML.load(await readFile(input, "utf8")) as DockerCompose;
+
+  if (fake) {
+    Object.values(dc.services).forEach((service) => {
+      if ("bazel-image" in service) {
+        service.image = "fake";
+        delete service["bazel-image"];
+      }
+    });
+  } else {
+    const imageInfos = await loadImageInfos(imageInfo);
+
+    // Replace images that have bazel labels (mutably in dc).
+    Object.entries(dc.services).forEach(([name, service]) =>
+      patchService(imageInfos, name, service),
+    );
+  }
+
+  await writeFile(output, YAML.dump(dc));
+};
+
+await main();

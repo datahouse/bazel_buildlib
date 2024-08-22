@@ -1,5 +1,4 @@
 import path from "node:path";
-import util from "node:util";
 
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -8,6 +7,8 @@ import streamConsumers from "node:stream/consumers";
 import tar from "tar-stream";
 
 import Docker from "dockerode";
+
+import { z } from "zod";
 
 import { OCIImage, Descriptor, LayerFormat } from "./OCIImage.js";
 
@@ -50,44 +51,29 @@ const loadedRE = /^Loaded image ID: sha256:([0-9a-f]{64})\n$/;
 
 type DockerLoadResult = { error: string } | { digest: string };
 
+// See
+// https://github.com/moby/moby/blob/796da163f92ad486a4f0118b4008d9bd17b27c2e/pkg/jsonmessage/jsonmessage.go#L145-L158
+const dockerMsgSchema = z.union([
+  z.object({ stream: z.string() }),
+  z.object({ error: z.string() }),
+]);
+
 /** Calls loadImage on the provided Docker and assembles the result. */
 const callLoadImage = async (
   input: Readable,
   docker: Docker,
 ): Promise<DockerLoadResult> => {
   const stream = await docker.loadImage(input);
-  const result = await streamConsumers.json(stream);
-
-  // Result *should* have this shape:
-  // https://github.com/moby/moby/blob/796da163f92ad486a4f0118b4008d9bd17b27c2e/pkg/jsonmessage/jsonmessage.go#L145-L158
-  //
-  // The following code is extremely defensive, because it (ab)uses undocumented implementation details.
-
-  const badResult = () => {
-    const str = util.inspect(result);
-    throw new Error(
-      `unexpected result from Docker daemon (report this as a dh_buildlib bug): ${str}`,
-    );
-  };
-
-  const asString = (x: unknown): string =>
-    typeof x !== "string" ? badResult() : x;
-
-  if (typeof result !== "object" || result === null) {
-    return badResult();
-  }
+  const result = dockerMsgSchema.parse(await streamConsumers.json(stream));
 
   if ("error" in result) {
-    return { error: asString(result.error) };
+    return { error: result.error };
   }
 
-  if (!("stream" in result)) {
-    return badResult();
-  }
+  const streamMatch = result.stream.match(loadedRE);
 
-  const streamMatch = asString(result.stream).match(loadedRE);
-
-  if (!streamMatch) return badResult();
+  if (!streamMatch)
+    throw new Error(`Unexpected stream result: ${result.stream}`);
 
   return { digest: streamMatch[1] };
 };

@@ -9,10 +9,10 @@ load("//private/ts:npm_js_binary.bzl", "npm_js_binary")
 load(":node_modules_bin_path.bzl", "node_modules_bin_path")
 
 def _prisma_generate_impl(ctx):
-    out_dirs = [
-        ctx.actions.declare_directory(out_dir)
+    out_dirs = {
+        out_dir: ctx.actions.declare_directory(out_dir)
         for out_dir in ctx.attr.out_dirs
-    ]
+    }
 
     schema = ctx.attr.schema[PrismaSchemaInfo].schema
 
@@ -29,16 +29,34 @@ def _prisma_generate_impl(ctx):
             d[JsInfo].transitive_sources
             for d in ctx.attr.deps
         ] + [
-            d[JsInfo].transitive_npm_linked_package_files
+            d[JsInfo].npm_sources
             for d in ctx.attr.deps
         ],
     )
 
-    ctx.actions.run(
-        executable = ctx.executable.prisma,
-        arguments = ["generate", "--schema", schema.short_path],
+    cmd = "&&".join([
+        "$1 generate --schema $2",
+    ] + [
+        # Add a `package.json` to define the module type.
+        #
+        # Using arguments would be cleaner than string formatting, but leads to
+        # less readable code (we'd need to track argument numbers, more mutability, etc.)
+        "echo '{content}' > {path}/package.json".format(
+            content = json.encode({"type": module_type}),
+            path = out_dirs[out_dir].path,
+        )
+        for out_dir, module_type in ctx.attr.out_dirs.items()
+    ])
+
+    ctx.actions.run_shell(
+        command = cmd,
+        arguments = [
+            ctx.executable.prisma.path,
+            schema.short_path,
+        ],
         inputs = inputs,
-        outputs = out_dirs,
+        tools = [ctx.executable.prisma],
+        outputs = out_dirs.values(),
         # buildifier: disable=unsorted-dict-items
         env = {
             "BAZEL_BINDIR": ctx.bin_dir.path,
@@ -60,13 +78,15 @@ def _prisma_generate_impl(ctx):
         },
     )
 
-    return DefaultInfo(files = depset(out_dirs))
+    return DefaultInfo(files = depset(out_dirs.values()))
 
 _prisma_generate = rule(
     implementation = _prisma_generate_impl,
     attrs = {
         "deps": attr.label_list(providers = [JsInfo]),
-        "out_dirs": attr.string_list(),
+        "out_dirs": attr.string_dict(
+            doc = "Dictionary from directory name to module type",
+        ),
         "prisma": attr.label(
             executable = True,
             cfg = "exec",
@@ -112,6 +132,7 @@ def _provider_prisma_client_js():
         generate_deps = [
             "//:node_modules/@prisma/client",
         ],
+        module_type = "commonjs",
         build_fun = _build,
     )
 
@@ -159,6 +180,7 @@ def _provider_typegraphql_prisma(prisma_client):
             "//:node_modules/typegraphql-prisma",
             "//:node_modules/type-graphql",
         ],
+        module_type = "commonjs",
         build_fun = _build,
     )
 
@@ -222,7 +244,10 @@ def prisma_generate(name, schema, generators = None, visibility = None, testonly
     _prisma_generate(
         name = name,
         schema = schema,
-        out_dirs = generators.keys(),
+        out_dirs = {
+            name: gen.module_type
+            for name, gen in generators.items()
+        },
         deps = [
             dep
             for gen in generators.values()

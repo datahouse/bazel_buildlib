@@ -4,8 +4,7 @@
     "**/*",
     "../../bazel-bin/rest-api/src/version/myVersion.ts",
     "../../bazel-bin/rest-api/src/routes.ts",
-    "../../bazel-bin/rest-api/src/swagger.json",
-    "swagger.json"
+    "../../bazel-bin/rest-api/src/swagger.ts"
   ],
   "references": [{ "path": "../../prisma/rls" }]
 }

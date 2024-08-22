@@ -2,6 +2,8 @@
 
 load(":config.bzl", "tsconfig_base")
 load(":eslintrc.bzl", "eslintrc")
+load(":npmrc.bzl", "npmrc")
+load(":package_json.bzl", "package_json")
 load(":pnpm_lock_test.bzl", "pnpm_lock_test")
 
 def ts_setup(name):
@@ -13,6 +15,11 @@ def ts_setup(name):
     Strictly equivalent to (but this may evolve over time):
 
     ```
+    package_json(
+        name = "package_json",
+        visibility = ["//:__subpackages__"],
+    )
+
     tsconfig_base(
         name = "tsconfig-base",
         visibility = ["//:__subpackages__"],
@@ -25,6 +32,10 @@ def ts_setup(name):
 
     pnpm_lock_test(
         name = "pnpm_lock_test",
+    )
+
+    npmrc(
+        name = "npmrc",
     )
     ```
 
@@ -47,4 +58,13 @@ def ts_setup(name):
 
     pnpm_lock_test(
         name = "pnpm_lock_test",
+    )
+
+    package_json(
+        name = "package_json",
+        visibility = ["//:__subpackages__"],
+    )
+
+    npmrc(
+        name = "npmrc",
     )

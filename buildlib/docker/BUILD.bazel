@@ -1,0 +1,11 @@
+load("//private:stardoc.bzl", "stardoc")
+
+stardoc(
+    name = "docs_defs",
+    deps = ["//private/docker:bzl"],
+)
+
+stardoc(
+    name = "docs_repositories",
+    deps = ["//repositories:docker_containers"],
+)

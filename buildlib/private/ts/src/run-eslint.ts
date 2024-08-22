@@ -63,7 +63,7 @@ const runLint = async (
   files: string[],
 ): Promise<ESLint.LintResult[]> => {
   const shouldLintFile = async (file: string) =>
-    !file.endsWith(".json") && !(await eslint.isPathIgnored(file));
+    !(await eslint.isPathIgnored(file));
 
   const filesToLint = await asyncFilter(files, shouldLintFile);
 
@@ -117,7 +117,7 @@ const main = async () => {
 
   // load eslint from the project's node_modules (not the one of buildlib).
   const eslintMod: ESLintModule = await import(
-    path.join(process.cwd(), "/node_modules/eslint")
+    path.join(process.cwd(), "/node_modules/eslint/lib/api.js")
   );
 
   const eslint = new eslintMod.ESLint({ fix });
@@ -134,7 +134,4 @@ const main = async () => {
   }
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(2);
-});
+await main();

@@ -7,10 +7,8 @@ def _dc_service_reference_impl(ctx):
 
     dc_info = ctx.attr.dc[DockerComposeInfo]
 
-    # TODO: We should use a fake dc_file here (without real image refs).
-    # This would avoid re-building the entire composition for the mere purpose of
-    # getting the service reference.
-    dc_file = dc_info.file
+    # use fake, so we do not actually need to build the images just to get the service reference.
+    dc_file = dc_info.fake_dc
 
     # TODO: We should add a validate action that verifies the service,
     # port and index are correct.

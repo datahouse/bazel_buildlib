@@ -1,4 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "js_binary", "ts_library")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@dh_buildlib//:defs.bzl", "ts_library")
 
 ts_library(
     name = "src",

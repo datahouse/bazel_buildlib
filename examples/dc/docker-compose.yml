@@ -6,6 +6,15 @@ volumes:
 services:
   proxy:
     bazel-image: //proxy
+    volumes:
+      # TODO(#515): For now we only use nginx to read the blob store.
+      # This is not ideal. Please read the comment on BlobStore.ts why.
+      - blob-store:/blob_store:ro
+
+  proxy-blob-auth:
+    bazel-image: //proxy/blob-auth
+    environment:
+      DATABASE_URL: postgres://api_login:uh0Fahth8nu1ong9phai@db/postgres
 
   frontend:
     bazel-image: //frontend

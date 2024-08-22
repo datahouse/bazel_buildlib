@@ -1,7 +1,7 @@
 import { mock } from "jest-mock-extended";
 
 interface FooProvider {
-  foo(i: number): void;
+  foo: (i: number) => void;
 }
 
 test("allow to expect on MockProxy (no unbound-method lint error) - #475", () => {

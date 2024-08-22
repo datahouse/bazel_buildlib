@@ -3,39 +3,34 @@ import process from "node:process";
 
 import argparse from "argparse";
 
+import { z } from "zod";
+
 // We refer to the path in bazel-bin, so IDE integration works.
-const baseConfigPath = "./bazel-bin/eslintrc.dh-defaults.js";
+const baseConfigPath = "./bazel-bin/eslintrc.dh-defaults.cjs";
 
-const extendsBaseConfig = (eslintrc: object): boolean => {
-  if (!("extends" in eslintrc)) return false;
+const eslintrcSchema = z
+  .object({
+    root: z.boolean(),
+    extends: z.union([z.string(), z.array(z.string())]),
+  })
+  .partial();
 
-  const ext = eslintrc.extends;
+type Eslintrc = z.infer<typeof eslintrcSchema>;
 
-  switch (typeof ext) {
-    case "string":
-      return ext === baseConfigPath;
-    case "object":
-      if (ext instanceof Array) {
-        return ext.includes(baseConfigPath);
-      }
-
-      return false;
-    default:
-      return false;
-  }
+const extendsBaseConfig = (ext: Eslintrc["extends"]): boolean => {
+  if (ext === baseConfigPath) return true;
+  if (ext instanceof Array) return ext.includes(baseConfigPath);
+  return false;
 };
 
-const checkEslintrc = (eslintrc: unknown): string[] => {
-  if (typeof eslintrc !== "object" || eslintrc === null)
-    throw new Error(`expected exlintrc to be an object, got: ${eslintrc}`);
-
+const checkEslintrc = (eslintrc: Eslintrc): string[] => {
   const problems = [];
 
-  if (!extendsBaseConfig(eslintrc))
+  if (!extendsBaseConfig(eslintrc.extends))
     problems.push(`.eslintrc must extend ${baseConfigPath}`);
 
   // See [no-sandbox] at the bottom for why we need this.
-  if (!("root" in eslintrc) || eslintrc.root !== true)
+  if (eslintrc.root !== true)
     problems.push("You must set `root: true` in .eslintrc");
 
   return problems;
@@ -52,7 +47,9 @@ const main = async () => {
 
   const args = parser.parse_args();
 
-  const eslintrc = await import(path.join(process.cwd(), args.eslintrc));
+  const eslintrcMod = await import(path.join(process.cwd(), args.eslintrc));
+  const rawEslintrc = eslintrcMod.default as unknown;
+  const eslintrc = eslintrcSchema.parse(rawEslintrc);
 
   const problems = checkEslintrc(eslintrc);
 
@@ -63,10 +60,7 @@ const main = async () => {
   }
 };
 
-main().catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+await main();
 
 /* [no-sandbox]
  *

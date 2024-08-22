@@ -9,6 +9,15 @@ import { mkdir, unlink } from "node:fs/promises";
 
 /** Naive implementation of a write-once blob store.
  *
+ * TODO(#515): Use nginx to write to the blob store.
+ *
+ * Since we already use nginx to read from the blob store, a better approach
+ * would be to also use it to write to the blob store (via HTTP PUT / WebDAV).
+ * The current solution results in a shared volume which is not nice (and does
+ * not prepare us for multi node deployments or blob stores as a service).
+ *
+ * Using nginx to write would also remove some of the known shortecomings.
+ *
  *  ## (Known) Shortcomings
  *
  *  It does not handle write failures properly (will happily write and leave a

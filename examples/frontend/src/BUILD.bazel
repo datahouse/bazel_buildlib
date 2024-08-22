@@ -1,4 +1,4 @@
-load("@dh_buildlib//:defs.bzl", "gql_client_codegen", "ts_default_srcs", "ts_library")
+load("@dh_buildlib//:defs.bzl", "gql_client_codegen", "ts_library")
 
 gql_client_codegen(
     name = "gql",
@@ -7,7 +7,10 @@ gql_client_codegen(
 
 ts_library(
     name = "src",
-    srcs = ts_default_srcs() + [":gql"],
+    srcs = glob([
+        "**/*.ts",
+        "**/*.tsx",
+    ]) + [":gql"],
     uses_dom = True,
     visibility = [
         "//frontend:__subpackages__",

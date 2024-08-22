@@ -5,7 +5,7 @@
     // Do not automerge major updates in buildlib:
     // They are potentially breaking for downstream.
     {
-      matchPaths: ["buildlib/**"],
+      matchFileNames: ["buildlib/**"],
       matchUpdateTypes: ["major"],
       automerge: false,
     },
@@ -26,8 +26,9 @@
       matchPackageNames: ["prisma", "typegraphql-prisma", "@prisma/client"],
       groupName: "prisma",
     },
+    { matchPackageNames: ["node"], allowedVersions: "<= 20.14.0" },
   ],
   constraints: {
-    pnpm: "8.10.2",
+    pnpm: "9.7.0",
   },
 }

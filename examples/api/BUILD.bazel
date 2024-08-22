@@ -14,7 +14,7 @@ node_binary_image(
 gql_schema(
     name = "schema",
     out = "schema.graphql",
-    schema_import = "./src/schema",
+    schema_import = "./src/schema.js",
     visibility = [
         "//frontend:__subpackages__",
     ],

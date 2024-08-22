@@ -1,0 +1,30 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":buildifier.bzl", "PLATFORMS")
+
+exports_files([
+    "format.sh",
+    "ci-format-test.sh",
+])
+
+toolchain_type(name = "buildifier_toolchain_type")
+
+[
+    toolchain(
+        name = "buildifier_" + platform,
+        exec_compatible_with = info.exec_compatible_with,
+        toolchain = "@dh_buildlib_private_buildifier_{}//:buildifier_toolchain".format(platform),
+        toolchain_type = ":buildifier_toolchain_type",
+    )
+    for platform, info in PLATFORMS.items()
+]
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["**/*.bzl"]),
+    visibility = [
+        "//format:__pkg__",
+    ],
+    deps = [
+        "//private/ts:bzl",
+    ],
+)

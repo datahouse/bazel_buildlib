@@ -4,7 +4,7 @@ This is merely separate from library.bzl for readability purposes.
 """
 
 load("@aspect_bazel_lib//lib:utils.bzl", "to_label")
-load(":js_binary.bzl", "js_binary", "js_test")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_test")
 
 def eslint(name, srcs, deps, testonly = None):
     """Runs eslint on the given sources.

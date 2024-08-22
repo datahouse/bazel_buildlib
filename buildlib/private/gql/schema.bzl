@@ -1,8 +1,7 @@
 """Rule to generate a GraphQL schema file from a GraphQL value (in typescript)."""
 
-load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("//private/ts:js_binary.bzl", "js_binary")
 
 def gql_schema(name, schema_import, out, deps = [], visibility = None, testonly = None):
     """Generate a .graphql file by importing TS code defining a schema.
@@ -14,11 +13,16 @@ def gql_schema(name, schema_import, out, deps = [], visibility = None, testonly 
       schema_import: Path to import the schema generation function from.
           - The function must be the default export of the module.
           - The function must be async and not take any parameters.
+          - The path must have a `.js` extension (to ensure ESM compatibility).
       out: .graphql file to output to (typically schema.graqphl).
       deps: Typescript dependencies so the import works.
       visibility: Visibility of the schema.
       testonly: Testonly flag.
     """
+
+    if not schema_import.endswith(".js"):
+        # Ensure import is ESM compatible.
+        fail("schema_import must have a `.js` extension")
 
     copy_file(
         name = name + ".generator",
@@ -42,7 +46,6 @@ def gql_schema(name, schema_import, out, deps = [], visibility = None, testonly 
         outs = [out],
         args = [schema_import, out],
         chdir = native.package_name(),
-        use_execroot_entry_point = False,  # otherwise transitions don't work correctly.
         tool = name + ".bin",
         visibility = visibility,
         testonly = testonly,

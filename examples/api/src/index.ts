@@ -14,7 +14,7 @@ import {
 
 import express from "express";
 
-import graphqlUploadExpress from "graphql-upload-cjs/graphqlUploadExpress";
+import graphqlUploadExpress from "graphql-upload/graphqlUploadExpress.mjs";
 
 import getSchema from "./schema.js";
 
@@ -87,9 +87,4 @@ const main = async () => {
   console.log(`gql server listening on port ${port}`);
 };
 
-main().catch((err) => {
-  // console.error is OK in server startup code.
-  // eslint-disable-next-line no-console
-  console.error(err);
-  process.exit(1);
-});
+await main();

@@ -1,1 +1,16 @@
-# Root workspace. Here to expose renovate.json5 to the example workspace.
+local_repository(
+    name = "dh_buildlib",
+    path = "buildlib",
+)
+
+load("@dh_buildlib//repositories:setup0.bzl", "dh_buildlib_setup0")
+
+dh_buildlib_setup0()
+
+load("@dh_buildlib//repositories:setup1.bzl", "dh_buildlib_setup1")
+
+dh_buildlib_setup1()
+
+load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
+
+dh_buildlib_setup2()

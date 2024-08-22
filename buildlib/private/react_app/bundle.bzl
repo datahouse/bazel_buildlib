@@ -1,76 +1,23 @@
 """Rules to bundle react apps."""
 
-load("@aspect_bazel_lib//lib:copy_file.bzl", "COPY_FILE_TOOLCHAINS", "copy_file_action")
-load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
-load("@aspect_rules_js//js:providers.bzl", "JsInfo")
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_oci//oci:defs.bzl", "oci_image")
 load("//private/tar:tar.bzl", "tar_auto_mtree")
 load("//private/ts:npm_js_binary.bzl", "npm_js_binary")
-load(":esm_transition.bzl", "esm_transition")
-
-def _bundle_impl(ctx):
-    vite_cfg = ctx.actions.declare_file("vite.config.js")
-    copy_file_action(ctx, ctx.file._vite_config, vite_cfg)
-
-    out_dir = ctx.actions.declare_directory(ctx.label.name)
-
-    inputs = depset(
-        direct = [vite_cfg],
-        transitive = [
-            js_lib_helpers.gather_files_from_js_providers(
-                ctx.attr.deps,
-                include_transitive_sources = True,
-                include_declarations = False,
-                include_npm_linked_packages = True,
-            ),
-        ],
-    )
-
-    ctx.actions.run(
-        inputs = inputs.to_list(),
-        outputs = [out_dir],
-        arguments = ["build", "--outDir", ctx.label.name, ctx.label.package],
-        executable = ctx.executable.vite,
-        progress_message = "Bundling %{label}",
-        env = {
-            "BAZEL_BINDIR": ctx.bin_dir.path,
-        },
-    )
-
-    return [DefaultInfo(files = depset([out_dir]))]
-
-_bundle = rule(
-    implementation = _bundle_impl,
-    attrs = {
-        "deps": attr.label_list(providers = [JsInfo]),
-        "vite": attr.label(
-            executable = True,
-            cfg = "exec",
-        ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
-        "_vite_config": attr.label(
-            allow_single_file = [".js"],
-            default = Label("//private/react_app:vite.config.js"),
-        ),
-    },
-    # Bundling requires (or works better with) ES modules
-    # (rather than CommonJS modules).
-    #
-    # Techincally, this should be an outbound edge transition on `deps`.
-    # However, if we do this, the bindir handling inside the rules becomes more
-    # complicated (since the bindir of the rule is not the same anymore than the
-    # one of the transitioned dependencies).
-    #
-    # Therefore, we transition on the inbound edge. Since this rule itself is not
-    # configurable by the module type, it doesn't matter.
-    cfg = esm_transition,
-    toolchains = COPY_FILE_TOOLCHAINS,
-)
 
 def bundle(name, deps, nginx_image, testonly = None):
+    """
+    Creates the run / cold image for react_app.
+
+    Args:
+      name: Name of the rule.
+      deps: Dependencies.
+      nginx_image: Nginx image to use.
+      testonly: Testonly flag
+    """
+
     npm_js_binary(
         name = name + ".bin",
         node_module = "vite",
@@ -78,26 +25,48 @@ def bundle(name, deps, nginx_image, testonly = None):
         testonly = testonly,
     )
 
-    _bundle(
-        name = name + ".bundle",
+    copy_file(
+        name = name + ".vite.cfg",
+        src = Label(":vite.config.mjs"),
+        out = "vite.config.mjs",
         testonly = testonly,
-        deps = deps + [
+    )
+
+    bundle_name = name + ".bundle"
+
+    js_run_binary(
+        name = bundle_name,
+        args = ["build", "--outDir", bundle_name, native.package_name()],
+        tool = name + ".bin",
+        srcs = deps + [
+            name + ".vite.cfg",
             "//:node_modules/vite",
             "//:node_modules/@vitejs/plugin-react",
         ],
-        vite = name + ".bin",
+        include_transitive_sources = True,
+        include_declarations = False,
+        include_npm_sources = True,
+        silent_on_success = False,  # report bundle sizes
+        out_dirs = [bundle_name],
+        progress_message = "Bundling %{label}",
+        testonly = testonly,
     )
 
     tar_auto_mtree(
         name = name + ".tar",
-        strip_prefix = paths.join(native.package_name(), name + ".bundle"),
+        strip_prefix = paths.join(native.package_name(), bundle_name),
         replace_prefix = "usr/share/nginx/html",
-        srcs = [name + ".bundle"],
+        srcs = [bundle_name],
+        testonly = testonly,
     )
 
     oci_image(
         name = name,
         base = nginx_image,
-        tars = [name + ".tar"],
+        tars = [
+            Label(":nginx-config-tar"),
+            name + ".tar",
+        ],
+        labels = {"ch.datahouse.ops.overlay-diff-allow-template": "nginx"},
         testonly = testonly,
     )

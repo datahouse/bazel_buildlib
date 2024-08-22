@@ -1,7 +1,7 @@
 """Datahouse buildib setup stage 1."""
 
 load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
-load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
+load("@aspect_rules_js//npm:repositories.bzl", "LATEST_PNPM_VERSION", "npm_translate_lock")
 load("@aspect_rules_swc//swc:dependencies.bzl", "rules_swc_dependencies")
 load("@aspect_rules_swc//swc:repositories.bzl", "LATEST_SWC_VERSION", "swc_register_toolchains")
 load("@aspect_rules_ts//ts:repositories.bzl", "rules_ts_dependencies")
@@ -21,7 +21,7 @@ def dh_buildlib_setup1(bins = {}):
     """
 
     nodejs_register_toolchains(
-        use_nvmrc = "//:.nvmrc",
+        node_version_from_nvmrc = "//:.nvmrc",
     )
 
     rules_ts_dependencies(
@@ -51,18 +51,8 @@ def dh_buildlib_setup1(bins = {}):
         npmrc = "//:.npmrc",
         pnpm_lock = "//:pnpm-lock.yaml",
         verify_node_modules_ignored = "//:.bazelignore",
-        lifecycle_hooks = {
-            # disable, unnecesary (and non-hermetic) usability bootstrapping
-            # https://github.com/prisma/prisma/blob/e0273500754e27f2b37ad709dde7dd73db40bd2a/packages/client/package.json#L48
-            # https://github.com/prisma/prisma/blob/e0273500754e27f2b37ad709dde7dd73db40bd2a/packages/client/scripts/postinstall.js#L52-L63
-            "@prisma/client": [],
-            # disable, downloads prisma engines:
-            # https://github.com/prisma/prisma/blob/e0273500754e27f2b37ad709dde7dd73db40bd2a/packages/engines/package.json#L32
-            # https://github.com/prisma/prisma/blob/e0273500754e27f2b37ad709dde7dd73db40bd2a/packages/engines/src/scripts/postinstall.ts
-            "@prisma/engines": [],
-        },
-        # sandbox all lifecycle hooks (the default is no-sandbox, but we'd rather have safety over speed).
-        lifecycle_hooks_execution_requirements = {"*": []},
+        lifecycle_hooks_no_sandbox = False,  # safety over speed.
+        pnpm_version = LATEST_PNPM_VERSION,
         # Well-known bins.
         #
         # TODO: Remove once npm_translate_lock doesn't require the `bins`
@@ -92,6 +82,5 @@ def dh_buildlib_setup1(bins = {}):
         npmrc = Label("//:.npmrc"),
         pnpm_lock = Label("//private:pnpm-lock.yaml"),
         verify_node_modules_ignored = Label("//:.bazelignore"),
-        # sandbox all lifecycle hooks (the default is no-sandbox, but we'd rather have safety over speed).
-        lifecycle_hooks_execution_requirements = {"*": []},
+        lifecycle_hooks_no_sandbox = False,  # safety over speed.
     )

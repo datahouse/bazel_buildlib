@@ -18,7 +18,7 @@ bzl_library(
     name = "bzl",
     srcs = glob(["**/*.bzl"]),
     visibility = [
-        "//docs:__pkg__",
+        "//prisma:__pkg__",
     ],
     deps = [
         "//private/docker:bzl",

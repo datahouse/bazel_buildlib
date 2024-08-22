@@ -5,7 +5,7 @@ import { MockedProvider } from "@apollo/client/testing";
 
 import type { TodoList } from "../src/gql/graphql.js";
 
-import { GET_ACTIVE_TODOS } from "../src/queries.js";
+import { GET_ACTIVE_TODOS, GET_ATTACHMENTS } from "../src/queries.js";
 import { UPLOAD_TODO_ATTACHMENT } from "../src/components/TodoItem.js";
 
 import TodoLists from "../src/TodoLists.js";
@@ -104,41 +104,94 @@ test("renders a list of the todo lists", async () => {
   expect(lists[2]).toHaveTextContent("list 3");
 });
 
-test("collapses lists", async () => {
+test("collapses and expands lists", async () => {
   renderWithData(fakeData());
 
   // Wait until lists are rendered.
   const lists = await screen.findAllByText(/^list.+/);
 
-  // Check no items are present.
-  expect(screen.queryAllByText(/^item.+$/)).toHaveLength(0);
+  // Check first item is present (due to default expansion).
+  expect(screen.getByText("item 1.1")).toBeInTheDocument();
 
-  // Expand the list.
+  // Collapse the first list.
   fireEvent.click(lists[0]);
 
-  // Check the item is there now.
-  await screen.findByText("item 1.1");
+  // Check the item is no longer there.
+  expect(screen.queryByText("item 1.1")).not.toBeInTheDocument();
 
-  // Check list 2 is *not* expanded.
-  expect(screen.queryByText("item 2.1")).toBeNull();
+  // Expand the second list.
+  fireEvent.click(lists[1]);
+
+  // Check the second item is now there.
+  expect(await screen.findByText("item 2.1")).toBeInTheDocument();
+
+  // Check first list is still collapsed.
+  expect(screen.queryByText("item 1.1")).not.toBeInTheDocument();
 });
 
 test("shows attachment count", async () => {
   renderWithData(fakeData());
 
-  // Expand the first list.
-  fireEvent.click(await screen.findByText("list 1"));
-
+  // The first list should be expanded by default
   const badge = await screen.findByLabelText(/2 attachments/);
 
   expect(badge).toBeInTheDocument();
 });
 
-test("upload", async () => {
+test("opens attachments dialog", async () => {
+  const fakeLists = fakeData();
+  const fakeItemId = fakeLists.todoLists[0].items![0]!.id;
+
+  const mocks = [
+    {
+      request: { query: GET_ACTIVE_TODOS },
+      result: { data: fakeData() },
+    },
+    {
+      request: {
+        query: GET_ATTACHMENTS,
+        variables: { itemId: fakeItemId },
+      },
+      result: {
+        data: {
+          todoAttachments: [
+            {
+              id: 7,
+              filename: "file1.txt",
+              uuid: "00000000-0000-0000-0000-000000000000",
+            },
+            {
+              id: 8,
+              filename: "file2.txt",
+              uuid: "11111111-1111-1111-1111-111111111111",
+            },
+          ],
+        },
+      },
+    },
+  ];
+
+  render(
+    <MockedProvider mocks={mocks}>
+      <TodoLists />
+    </MockedProvider>,
+  );
+
+  // The first list should be expanded by default
+  // Click the attachments button.
+  fireEvent.click(await screen.findByLabelText(/2 attachments/));
+
+  // Check that we show the attachment filename.
+  // The dialog itself has a separate test.
+  expect(await screen.findByText("file1.txt")).toBeInTheDocument();
+  expect(await screen.findByText("file2.txt")).toBeInTheDocument();
+});
+
+test("upload (without attachments dialog)", async () => {
   const preUploadData = fakeData();
   const postUploadData = fakeData();
 
-  const itemToUploadFor = postUploadData.todoLists[0].items![0]!;
+  const itemToUploadFor = postUploadData.todoLists[1].items![0]!;
   itemToUploadFor._count!.attachments! += 1;
 
   const fakeFile = new File(["content"], "test.txt", { type: "foo" });
@@ -172,8 +225,8 @@ test("upload", async () => {
     </MockedProvider>,
   );
 
-  // Expand the first list.
-  fireEvent.click(await screen.findByText("list 1"));
+  // Expand the second list (no attachments so we can upload directly).
+  fireEvent.click(await screen.findByText("list 2"));
 
   const uploadContainer = await screen.findByLabelText(/^upload/);
   const upload = uploadContainer.querySelector("[type='file']");
@@ -186,7 +239,103 @@ test("upload", async () => {
   fireEvent.change(upload!, { target: { files: [fakeFile] } });
 
   // Check we update the attachment count.
+  await screen.findByLabelText(/1 attachments/);
+
+  expect(uploadMock).toHaveBeenCalledTimes(1);
+});
+
+test("upload (with attachments dialog)", async () => {
+  const preUploadTodos = fakeData();
+  const postUploadTodos = fakeData();
+
+  const itemToUploadFor = postUploadTodos.todoLists[0].items![0]!;
+  itemToUploadFor._count!.attachments! += 1;
+
+  const preUploadAttachments = [
+    {
+      id: 7,
+      filename: "file1.txt",
+      uuid: "00000000-0000-0000-0000-000000000000",
+    },
+    {
+      id: 8,
+      filename: "file2.txt",
+      uuid: "11111111-1111-1111-1111-111111111111",
+    },
+  ];
+
+  const postUploadAttachments = [
+    ...preUploadAttachments,
+    {
+      id: 9,
+      filename: "test.txt",
+      uuid: "22222222-2222-2222-2222-222222222222",
+    },
+  ];
+
+  const fakeFile = new File(["content"], "test.txt", { type: "foo" });
+
+  const uploadMock = jest.fn();
+  uploadMock.mockReturnValue({
+    data: { uploadTodoAttachment: postUploadAttachments[2].id },
+  });
+
+  const mocks = [
+    {
+      request: { query: GET_ACTIVE_TODOS },
+      result: { data: preUploadTodos },
+    },
+    {
+      request: {
+        query: GET_ATTACHMENTS,
+        variables: { itemId: itemToUploadFor.id },
+      },
+      result: {
+        data: { todoAttachments: preUploadAttachments },
+      },
+    },
+    {
+      request: {
+        query: UPLOAD_TODO_ATTACHMENT,
+        variables: { file: fakeFile, itemId: itemToUploadFor.id },
+      },
+      result: uploadMock,
+    },
+    {
+      request: { query: GET_ACTIVE_TODOS },
+      result: { data: postUploadTodos },
+    },
+    {
+      request: {
+        query: GET_ATTACHMENTS,
+        variables: { itemId: itemToUploadFor.id },
+      },
+      result: {
+        data: { todoAttachments: postUploadAttachments },
+      },
+    },
+  ];
+
+  render(
+    <MockedProvider mocks={mocks}>
+      <TodoLists />
+    </MockedProvider>,
+  );
+
+  // Open the attachments dialog.
+  fireEvent.click(await screen.findByLabelText(/2 attachments/));
+
+  // Upload.
+  const uploadButton = await screen.findByLabelText(/Upload Attachment/, {
+    selector: "input[type='file']",
+  });
+  fireEvent.change(uploadButton, { target: { files: [fakeFile] } });
+
+  // Check we update the attachment count (behind the modal).
   await screen.findByLabelText(/3 attachments/);
+
+  // Check we update the attachment list (in the modal).
+  expect(await screen.findByText("test.txt")).toBeInTheDocument();
 
   expect(uploadMock).toHaveBeenCalledTimes(1);
 });
@@ -223,4 +372,17 @@ test("reports an error", async () => {
   );
 
   expect(await screen.findByText("Error: Boom!")).toBeInTheDocument();
+});
+
+test("expands first list by default", async () => {
+  renderWithData(fakeData());
+
+  // Wait until lists are rendered.
+  await screen.findAllByText(/^list.+/);
+
+  // Check first item is present.
+  expect(screen.getByText("item 1.1")).toBeInTheDocument();
+
+  // Check second item is not present (list should be collapsed).
+  expect(screen.queryByText("item 2.1")).not.toBeInTheDocument();
 });

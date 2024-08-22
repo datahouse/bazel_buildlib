@@ -36,8 +36,12 @@ export default function TodoLists() {
       <Sheet variant="outlined">
         <List size="lg">
           <ListSubheader>Your TODO lists</ListSubheader>
-          {data.todoLists.map((list) => (
-            <TodoList key={list.id} list={list} />
+          {data.todoLists.map((list, index) => (
+            <TodoList
+              key={list.id}
+              list={list}
+              initiallyExpanded={index === 0}
+            />
           ))}
         </List>
       </Sheet>
