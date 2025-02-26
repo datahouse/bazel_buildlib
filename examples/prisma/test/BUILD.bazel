@@ -2,7 +2,7 @@ load("@dh_buildlib//:defs.bzl", "docker_image_for_ts_test", "ts_test")
 
 docker_image_for_ts_test(
     name = "load_postgres_image",
-    image = "@postgres_image",
+    image = "@postgres_image_linux_amd64",
 )
 
 ts_test(
@@ -10,8 +10,11 @@ ts_test(
     data = [
         "//prisma:schema",
         "//prisma/migrations",
-        "@prisma//:cli",
+        "@dh_buildlib//prisma:cli",
     ],
+    env = {
+        "PRISMA_CLI_PATH": "$(rootpath @dh_buildlib//prisma:cli)",
+    },
     tags = [
         "requires-network",  # access to docker socket
     ],

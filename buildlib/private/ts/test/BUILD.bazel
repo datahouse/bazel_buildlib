@@ -1,4 +1,5 @@
-load("//ts:defs.bzl", "json_to_ts", "ts_test")
+load("//private:ts_library.bzl", "ts_test")
+load("//ts:defs.bzl", "json_to_ts")
 
 json_to_ts(
     name = "data",

@@ -1,0 +1,8 @@
+schema: "../../api/schema.graphql"
+documents: ["../src/**/*.tsx", "../src/**/*.ts"]
+emitLegacyCommonJSImports: false
+generates:
+  "./":
+    preset: "client"
+    presetConfig:
+      gqlTagName: "gql"

@@ -2,9 +2,6 @@ load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files([
-    "eslint.dh-defaults.cjs",
-    "test-pnpm-lock.sh",
-    "default.npmrc",
     "babel.config.cjs",
     ".swcrc",
 ])
@@ -14,11 +11,13 @@ bzl_library(
     srcs = glob(["**/*.bzl"]),
     visibility = [
         "//private:__subpackages__",
+        "//setup/defs:__pkg__",
         "//ts:__subpackages__",
     ],
     deps = [
+        "//private:npm_js_binary",
+        "//private:prettier_format",
         "@aspect_bazel_lib//lib:write_source_files",
-        "@aspect_rules_js//js:defs",
         "@aspect_rules_swc//swc:defs",
         "@aspect_rules_ts//ts:defs",
         "@bazel_skylib//rules:common_settings",

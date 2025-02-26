@@ -16,10 +16,10 @@ def eslint(name, srcs, deps, testonly = None):
       testonly: Testonly flag
     """
 
-    entry_point = Label("//private/ts/src:run-eslint.js")
+    entry_point = Label("//private/ts/eslint-runner:run-eslint.js")
 
     data = srcs + deps + [
-        Label("//private/ts/src"),
+        Label("//private/ts/eslint-runner"),
         ":tsconfig",
         "//:eslintrc",
         "//:node_modules/eslint",

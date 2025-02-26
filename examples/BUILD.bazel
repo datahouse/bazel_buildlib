@@ -1,7 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "bazelrc", "dh_docker_images_push", "format", "ts_setup")
-load("@npm//:defs.bzl", "npm_link_all_packages")
-
-npm_link_all_packages(name = "node_modules")
+load("@dh_buildlib//:defs.bzl", "dh_docker_images_push")
+load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
 
 # Package group for visibility of docker images.
 # Remove if you do not build docker images.
@@ -13,15 +11,10 @@ package_group(
     ],
 )
 
-bazelrc(
-    name = "bazelrc",
+buildlib_setup(
+    name = "buildlib_setup",
+    enable_ts = True,
 )
-
-ts_setup(
-    name = "ts_setup",
-)
-
-format(name = "format")
 
 dh_docker_images_push(
     name = "docker-push",

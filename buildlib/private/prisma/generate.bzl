@@ -1,12 +1,13 @@
 """prisma_generate rule."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:select_file.bzl", "select_file")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("//private:npm_js_binary.bzl", "npm_js_binary")
 load("//private/prisma:providers.bzl", "PrismaEnginesInfo", "PrismaSchemaInfo")
-load("//private/ts:npm_js_binary.bzl", "npm_js_binary")
-load(":node_modules_bin_path.bzl", "node_modules_bin_path")
 
 def _prisma_generate_impl(ctx):
     out_dirs = {
@@ -25,17 +26,18 @@ def _prisma_generate_impl(ctx):
             engines.libquery_engine,
             engines.schema_engine,
         ],
-        transitive = [
-            d[JsInfo].transitive_sources
-            for d in ctx.attr.deps
-        ] + [
-            d[JsInfo].npm_sources
-            for d in ctx.attr.deps
-        ],
+        transitive = [js_lib_helpers.gather_files_from_js_infos(
+            ctx.attr.deps,
+            include_sources = True,
+            include_transitive_sources = True,
+            include_npm_sources = True,
+            include_types = False,
+            include_transitive_types = False,
+        )],
     )
 
-    cmd = "&&".join([
-        "$1 generate --schema $2",
+    cmd = "PATH=\"$1:$PATH\" " + "&&".join([
+        "$2 generate --schema $3",
     ] + [
         # Add a `package.json` to define the module type.
         #
@@ -51,6 +53,7 @@ def _prisma_generate_impl(ctx):
     ctx.actions.run_shell(
         command = cmd,
         arguments = [
+            ":".join(ctx.attr.exec_paths),
             ctx.executable.prisma.path,
             schema.short_path,
         ],
@@ -60,9 +63,6 @@ def _prisma_generate_impl(ctx):
         # buildifier: disable=unsorted-dict-items
         env = {
             "BAZEL_BINDIR": ctx.bin_dir.path,
-
-            # Add node_modules/.bin to the path, so we can find typegraphql-prisma.
-            "PATH": node_modules_bin_path("."),
 
             # do not install @prisma/client
             "PRISMA_GENERATE_SKIP_AUTOINSTALL": "True",
@@ -84,6 +84,7 @@ _prisma_generate = rule(
     implementation = _prisma_generate_impl,
     attrs = {
         "deps": attr.label_list(providers = [JsInfo]),
+        "exec_paths": attr.string_list(),
         "out_dirs": attr.string_dict(
             doc = "Dictionary from directory name to module type",
         ),
@@ -96,7 +97,7 @@ _prisma_generate = rule(
         ),
         "_prisma_engines": attr.label(
             providers = [PrismaEnginesInfo],
-            default = Label("//private/prisma:engines"),
+            default = Label("@prisma//:engines"),
         ),
     },
 )
@@ -117,7 +118,7 @@ def _provider_prisma_client_js():
     https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/generating-prisma-client
     """
 
-    def _build(name, input, visibility, testonly):
+    def _macro(name, input, visibility, testonly):
         js_library(
             name = name,
             srcs = [input],
@@ -128,13 +129,15 @@ def _provider_prisma_client_js():
             testonly = testonly,
         )
 
-    return struct(
-        generate_deps = [
-            "//:node_modules/@prisma/client",
-        ],
-        module_type = "commonjs",
-        build_fun = _build,
-    )
+        return struct(
+            generate_deps = [
+                "//:node_modules/@prisma/client",
+            ],
+            module_type = "commonjs",
+            exec_paths = [],
+        )
+
+    return _macro
 
 def _provider_typegraphql_prisma(prisma_client):
     """Typegraphql Prisma provider.
@@ -155,7 +158,25 @@ def _provider_typegraphql_prisma(prisma_client):
       prisma_client: Label (name) of the / a generator with prisma_client_js provider.
     """
 
-    def _build(name, input, visibility, testonly):
+    def _macro(name, input, visibility, testonly):
+        # Write an executable that invokes typegraphql-prisma.
+        # node_modules/.bin would also contain this, but rules_js does not support it:
+        # https://github.com/pnpm/pnpm/issues/5131#issuecomment-1824819472
+        write_file(
+            name = name + ".bin",
+            out = name + ".bin/typegraphql-prisma",
+            is_executable = True,
+            content = [
+                "#! /bin/sh",
+                "node node_modules/typegraphql-prisma/lib/generator.js",
+            ],
+        )
+
+        js_library(
+            name = name + ".genlib",
+            srcs = [name + ".bin"],
+        )
+
         js_library(
             name = name,
             srcs = [input],
@@ -175,14 +196,17 @@ def _provider_typegraphql_prisma(prisma_client):
             testonly = testonly,
         )
 
-    return struct(
-        generate_deps = [
-            "//:node_modules/typegraphql-prisma",
-            "//:node_modules/type-graphql",
-        ],
-        module_type = "commonjs",
-        build_fun = _build,
-    )
+        return struct(
+            generate_deps = [
+                "//:node_modules/typegraphql-prisma",
+                "//:node_modules/type-graphql",
+                name + ".genlib",
+            ],
+            module_type = "commonjs",
+            exec_paths = [paths.join(native.package_name(), name + ".bin")],
+        )
+
+    return _macro
 
 prisma_providers = struct(
     prisma_client_js = _provider_prisma_client_js,
@@ -241,20 +265,9 @@ def prisma_generate(name, schema, generators = None, visibility = None, testonly
         testonly = testonly,
     )
 
-    _prisma_generate(
-        name = name,
-        schema = schema,
-        out_dirs = {
-            name: gen.module_type
-            for name, gen in generators.items()
-        },
-        deps = [
-            dep
-            for gen in generators.values()
-            for dep in gen.generate_deps
-        ],
-        prisma = name + ".bin",
-    )
+    gen_out_dirs = {}
+    gen_deps = []
+    gen_exec_paths = []
 
     for gen_name, gen in generators.items():
         select_file(
@@ -264,9 +277,22 @@ def prisma_generate(name, schema, generators = None, visibility = None, testonly
             testonly = testonly,
         )
 
-        gen.build_fun(
+        info = gen(
             name = gen_name,
             input = gen_name + "-dir",
             visibility = visibility,
             testonly = testonly,
         )
+
+        gen_out_dirs[gen_name] = info.module_type
+        gen_deps.extend(info.generate_deps)
+        gen_exec_paths.extend(info.exec_paths)
+
+    _prisma_generate(
+        name = name,
+        schema = schema,
+        out_dirs = gen_out_dirs,
+        deps = gen_deps,
+        exec_paths = gen_exec_paths,
+        prisma = name + ".bin",
+    )

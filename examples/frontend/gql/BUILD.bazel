@@ -1,0 +1,35 @@
+load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@npm//:@graphql-codegen/cli/package_json.bzl", _gql_codegen = "bin")
+
+_gql_codegen.graphql_codegen(
+    name = "codegen",
+    srcs = [
+        ":gql-codegen.yml",
+        "//:node_modules/@graphql-codegen/client-preset",
+        "//api:schema",
+        "//frontend/src:ts_srcs",
+    ],
+    outs = [
+        "fragment-masking.ts",
+        "gql.ts",
+        "graphql.ts",
+        "index.ts",
+    ],
+    args = [
+        "--config",
+        "gql-codegen.yml",
+    ],
+    chdir = package_name(),
+)
+
+ts_library(
+    name = "gql",
+    srcs = [":codegen"],
+    visibility = [
+        "//frontend:__subpackages__",
+    ],
+    deps = [
+        "//:node_modules/@graphql-typed-document-node/core",
+        "//:node_modules/graphql",
+    ],
+)

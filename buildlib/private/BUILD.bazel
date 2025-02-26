@@ -1,8 +1,25 @@
-load("@dh_buildlib_private_npm//:defs.bzl", "npm_link_all_packages")
-load("//:defs.bzl", "pnpm_lock_test")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-npm_link_all_packages(name = "node_modules")
+bzl_library(
+    name = "npm_js_binary",
+    srcs = ["npm_js_binary.bzl"],
+    visibility = [
+        "//private:__subpackages__",
+    ],
+    deps = [
+        "@aspect_bazel_lib//lib:directory_path",
+        "@aspect_rules_js//js:defs",
+        "@aspect_rules_js//js:providers",
+    ],
+)
 
-pnpm_lock_test(
-    name = "pnpm_lock_test",
+bzl_library(
+    name = "prettier_format",
+    srcs = ["prettier_format.bzl"],
+    visibility = [
+        "//private:__subpackages__",
+    ],
+    deps = [
+        ":npm_js_binary",
+    ],
 )

@@ -48,8 +48,8 @@ def react_app(
         name,
         srcs = [],
         deps = [],
-        nginx_image = "@nginx_image",
-        node_image = "@node_image",
+        nginx_image = "@nginx_image_linux_amd64",
+        node_image = "@node_image_linux_amd64",
         node_image_platform = Label("//private/docker:node_default_platform"),
         visibility = None,
         testonly = None):

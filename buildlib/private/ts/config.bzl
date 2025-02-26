@@ -1,10 +1,11 @@
 """tsconfig rules"""
 
 load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@aspect_rules_ts//ts:defs.bzl", "TsConfigInfo", "ts_config")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//private:prettier_format.bzl", "prettier_format")
 load(":providers.bzl", "TsLibraryInfo")
-load(":write_source_file_prettier.bzl", "write_source_file_prettier")
 
 def _tsconfig_includes(ctx):
     project_dir = paths.dirname(ctx.build_file_path)
@@ -93,56 +94,6 @@ _gen_tsconfig = rule(
     implementation = _gen_tsconfig_impl,
 )
 
-def _gen_tsconfig_base_impl(ctx):
-    # See [evil-bazel-hackery] for why this is not predeclared in the attrs.
-    out = ctx.actions.declare_file("tsconfig-base.json")
-
-    cfg = {
-        "compilerOptions": {
-            "composite": True,
-            "emitDecoratorMetadata": True,
-            "esModuleInterop": True,
-            "experimentalDecorators": True,
-            "forceConsistentCasingInFileNames": True,
-            "isolatedModules": True,
-            "jsx": "react-jsx",
-            "lib": ["es2021"],
-            # Module and module resolution:
-            # We want to transpile to ESM and have strict module resolution (node16).
-            # TSC does not allow us to specify `module` explicitly (i.e. es2022)
-            # while having `moduleResolution` set to `node16`.
-            # Therefore, we use package_json to force `"type": "module"` in
-            # `package.json` which configures both Node.js and TSC to emit ESM.
-            #
-            # Also see https://www.typescriptlang.org/docs/handbook/modules/reference.html#node16-nodenext
-            "module": "node16",
-            "moduleResolution": "node16",
-            "outDir": "dist",
-            "rootDir": ".",
-            "rootDirs": [".", "bazel-bin"],
-            "skipLibCheck": True,
-            "sourceMap": True,
-            "strict": True,
-            "target": "es2018",
-        },
-        # Work around
-        # https://github.com/aspect-build/rules_ts/issues/644
-        # https://github.com/microsoft/TypeScript/issues/59036
-        "exclude": [],
-    }
-
-    ctx.actions.write(
-        content = json.encode(cfg),
-        output = out,
-    )
-
-    return DefaultInfo(files = depset([out]))
-
-_gen_tsconfig_base = rule(
-    attrs = {},
-    implementation = _gen_tsconfig_base_impl,
-)
-
 def tsconfig(name, srcs, deps, uses_dom, testonly = None):
     """tsconfig.json generation for a single ts_library (buildlib internal).
 
@@ -176,46 +127,18 @@ def tsconfig(name, srcs, deps, uses_dom, testonly = None):
         testonly = testonly,
     )
 
-    write_source_file_prettier(
-        name = "tsconfig",
-        in_file = "tsconfig.gen",
-        out_file = "tsconfig.json",
+    prettier_format(
+        name = "tsconfig.format",
+        src = "tsconfig.gen",
+        out = "tsconfig.fmt.json",
         testonly = testonly,
     )
 
-def tsconfig_base(name, visibility = None):
-    """Base tsconfig for repository root.
-
-    - must be in the root package
-    - name must be tsconfig-base
-
-    Example: See [`ts_setup`](#ts_setup)
-
-    Args:
-      name: Name of the rule (must be "tsconfig-base").
-      visibility: Visibility of the tsconfig rule.
-    """
-
-    if name != "tsconfig-base":
-        fail("name must be tsconfig-base, got %s" % name)
-
-    if native.package_name() != "":
-        fail("tsconfig-base must be in the root package")
-
-    _gen_tsconfig_base(
-        name = "tsconfig-base.gen",
-    )
-
-    ts_config(
-        name = "tsconfig-base",
-        src = ":tsconfig-base.gen",
-        visibility = visibility,
-    )
-
-    write_source_file_prettier(
-        name = "tsconfig-base",
-        in_file = "tsconfig-base.gen",
-        out_file = "tsconfig-base.json",
+    write_source_file(
+        name = "tsconfig.write",
+        in_file = "tsconfig.fmt.json",
+        out_file = "tsconfig.json",
+        testonly = testonly,
     )
 
 # [evil-bazel-hackery]

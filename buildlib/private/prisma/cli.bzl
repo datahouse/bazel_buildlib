@@ -6,7 +6,7 @@ Attention: This cannot be used for cross building (the engines always match the 
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@npm//:prisma/package_json.bzl", _prisma = "bin")
+load("//private:npm_js_binary.bzl", "npm_js_binary")
 load("//private/prisma:providers.bzl", "PrismaEnginesInfo")
 
 def _prisma_cli_impl(ctx):
@@ -49,7 +49,7 @@ _prisma_cli = rule(
         ),
         "_prisma_engines": attr.label(
             providers = [PrismaEnginesInfo],
-            default = Label("//private/prisma:engines"),
+            default = Label("@prisma//:engines"),
             cfg = "exec",
         ),
     },
@@ -60,8 +60,11 @@ _prisma_cli = rule(
 def prisma_cli(name, visibility = None, testonly = None):
     """Prisma CLI with engines (for running the CLI in the same config than the engines)."""
 
-    _prisma.prisma_binary(
+    npm_js_binary(
         name = name + ".bin",
+        node_module = "prisma",
+        entry_point = "build/index.js",
+        from_root_workspace = True,
         testonly = testonly,
     )
 

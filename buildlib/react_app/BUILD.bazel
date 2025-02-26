@@ -1,6 +1,6 @@
-load("//private:stardoc.bzl", "stardoc")
+load("//private:bzl_lib_for_docs.bzl", "bzl_lib_for_docs")
 
-stardoc(
-    name = "docs_defs",
+bzl_lib_for_docs(
+    name = "defs",
     deps = ["//private/react_app:bzl"],
 )

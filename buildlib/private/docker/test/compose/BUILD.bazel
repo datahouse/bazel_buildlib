@@ -1,0 +1,24 @@
+load("@dh_buildlib//:defs.bzl", "docker_compose")
+
+docker_compose(
+    name = "dc",
+    src = "docker-compose.yml",
+    project = "it-bazel-buildlib-test",
+    deps = ["@node_image_linux_amd64"],
+)
+
+# Attention: This test is not isolated from the host docker daemon on drone.
+# Because it is very simple, this is acceptable.
+# TODO(#1094): Run dind in it-drone-bazel, then this would be properly isolated.
+sh_test(
+    name = "dc_up_test",
+    srcs = ["dc_up_test.sh"],
+    data = [
+        ":dc",
+        "@docker_compose//file",
+    ],
+    env = {
+        "DH_DC_BIN": "$(rootpath :dc)",
+        "DOCKER_COMPOSE_BIN": "$(rootpath @docker_compose//file)",
+    },
+)

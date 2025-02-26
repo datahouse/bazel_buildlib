@@ -20,13 +20,10 @@ build --nolegacy_external_runfiles
 startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
 
 # Configure skipLibCheck for rules_ts
-common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+common --@dh_buildlib//ts:skipLibCheck=honor_tsconfig
 
 # Display test output if something fails
 test --test_output=errors
-
-# Don't stop early on failure, build / test as much as possible.
-build --keep_going
 
 # Import for project specific bazelrc
 # If you use this, please check (with an it-bazel issue), whether

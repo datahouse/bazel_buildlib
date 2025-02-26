@@ -2,8 +2,8 @@
 
 load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("//private:npm_js_binary.bzl", "npm_js_test")
 load(":library.bzl", "ts_library")
-load(":npm_js_binary.bzl", "npm_js_test")
 
 def _jest_config_impl(ctx):
     dom = ctx.attr.uses_dom
@@ -64,7 +64,15 @@ _jest_config = rule(
     },
 )
 
-def ts_test(name, srcs = None, deps = [], data = [], uses_dom = False, tags = None):
+def ts_test(
+        name,
+        srcs = None,
+        deps = [],
+        data = [],
+        uses_dom = False,
+        env = None,
+        tags = None,
+        tsc_repository = "@npm_typescript"):
     """Typescript test (run with jest)
 
     Example: [`@examples//shared-lib/test`](../../examples/shared-lib/test/BUILD.bazel#:~:text=name%20%3D%20%22test%22%2C)
@@ -75,18 +83,22 @@ def ts_test(name, srcs = None, deps = [], data = [], uses_dom = False, tags = No
       deps: dependencies (other ts_library or npm dependencies)
       data: required runtime data (e.g. csv files)
       uses_dom: Whether the tests (or the code under test) requires a DOM.
+      env: Additional environment variables to be made available in the test
+        (subject to `$(location)` and make variable expansion).
       tags: tags (propagated to the test rule)
+      tsc_repository: which typescript bazel repository to use
+        (most likely you will not need this option).
     """
 
     ts_library(
         name = name + ".compiled",
         srcs = srcs,
-        data = data,
         uses_dom = uses_dom,
         deps = [
             "//:node_modules/@types/jest",
         ] + deps,
         testonly = True,
+        tsc_repository = tsc_repository,
     )
 
     _config_name = name + ".jest.config.json"
@@ -116,21 +128,21 @@ def ts_test(name, srcs = None, deps = [], data = [], uses_dom = False, tags = No
     else:
         env_deps = []
 
-    # A note about output module configuration when uses_dom is true:
-    #
-    # It seems that create react app feeds CommonJS (not ES modules) to jest,
-    # we replicate this behavior for now.
     npm_js_test(
         name = name,
         node_module = "jest",
         entry_point = "bin/jest.js",
+        # Conceputally it might make more sense to pass `data` to the `ts_library` above.
+        # However, that will make location expansion in `env` fail.
+        # Therefore, we only pass it here.
         data = [
             name + ".compiled",
             _config_name,
             name + ".babel.config.cjs",
             "//:node_modules/@babel/plugin-transform-modules-commonjs",
-        ] + env_deps,
+        ] + env_deps + data,
         tags = tags,
+        env = env,
         args = [
             "--no-cache",
             "--no-watchman",

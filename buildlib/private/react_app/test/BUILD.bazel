@@ -1,10 +1,11 @@
-load("//:defs.bzl", "docker_image_for_ts_test", "ts_test")
+load("//:defs.bzl", "docker_image_for_ts_test")
+load("//private:ts_library.bzl", "ts_test")
 load("//private/react_app:hot_reload_base.bzl", "hot_reload_base")
 load("//private/react_app:react_app.bzl", "react_app")
 
 hot_reload_base(
     name = "hot-base-test-image",
-    node_image = "@node_image",
+    node_image = "@node_image_linux_amd64",
     node_image_platform = "//private/docker:node_default_platform",
     deps = [],
 )
@@ -31,5 +32,5 @@ react_app(
     srcs = ["index.html"],
     # pass a bogus image as nginx_image so we do not need to depend on an nginx image.
     # we just want to check bundling runs, so the base image doesn't matter.
-    nginx_image = "@node_image",
+    nginx_image = "@node_image_linux_amd64",
 )

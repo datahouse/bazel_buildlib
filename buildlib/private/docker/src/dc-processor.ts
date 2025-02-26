@@ -3,26 +3,16 @@ import argparse from "argparse";
 import YAML from "js-yaml";
 
 import { ImageInfo, readImageInfos } from "./ImageInfos.js";
+import {
+  type DockerCompose,
+  type ImageInfos,
+  patchDcServices,
+  patchDcServicesFake,
+} from "./patchDcServices.js";
 
 import { OCIImage } from "./OCIImage.js";
 
-type InfoWithReference = ImageInfo & { reference: string };
-
-interface Service {
-  "bazel-image"?: string;
-  image?: string;
-  volumes?: string[];
-}
-
-interface DockerCompose {
-  services: {
-    [name: string]: Service;
-  };
-}
-
-const loadImageReference = async (
-  info: ImageInfo,
-): Promise<InfoWithReference> => {
+const loadImageReference = async (info: ImageInfo) => {
   const image = await OCIImage.load(info.ociDir);
 
   const shaPrefix = "sha256:";
@@ -37,43 +27,10 @@ const loadImageReference = async (
   return { reference, ...info };
 };
 
-const loadImageInfos = async (
-  infoFile: string,
-): Promise<Map<string, InfoWithReference>> => {
+const loadImageInfos = async (infoFile: string): Promise<ImageInfos> => {
   const infos = await readImageInfos(infoFile);
   const withRef = await Promise.all(infos.map(loadImageReference));
   return new Map(withRef.flatMap((info) => info.keys.map((k) => [k, info])));
-};
-
-const patchService = (
-  imageInfos: Map<string, InfoWithReference>,
-  name: string,
-  service: Service,
-): void => {
-  const label = service["bazel-image"];
-
-  if (!label) return; // not a bazel managed image.
-
-  if (service.image)
-    throw new Error(`got both bazel-image and image for service ${name}`);
-
-  const info = imageInfos.get(label);
-  if (!info) {
-    throw new Error(
-      `couldn't find label ${label} for service ${name}. Did you declare the label it in deps?`,
-    );
-  }
-
-  delete service["bazel-image"];
-  service.image = info.reference;
-
-  if (!("hotReload" in info) || !info.hotReload) return;
-
-  const { hostHomePath, containerPath } = info.hotReload;
-
-  if (!service.volumes) service.volumes = [];
-
-  service.volumes.push(`$HOME/${hostHomePath}:${containerPath}:ro`);
 };
 
 const parseArgs = () => {
@@ -106,19 +63,15 @@ const main = async () => {
   const dc = YAML.load(await readFile(input, "utf8")) as DockerCompose;
 
   if (fake) {
-    Object.values(dc.services).forEach((service) => {
-      if ("bazel-image" in service) {
-        service.image = "fake";
-        delete service["bazel-image"];
-      }
-    });
+    patchDcServicesFake(dc);
   } else {
     const imageInfos = await loadImageInfos(imageInfo);
+    const problemLines = patchDcServices(imageInfos, dc);
 
-    // Replace images that have bazel labels (mutably in dc).
-    Object.entries(dc.services).forEach(([name, service]) =>
-      patchService(imageInfos, name, service),
-    );
+    if (problemLines.length > 0) {
+      problemLines.forEach((l) => console.error(l));
+      process.exit(1);
+    }
   }
 
   await writeFile(output, YAML.dump(dc));

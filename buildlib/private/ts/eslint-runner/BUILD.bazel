@@ -1,0 +1,19 @@
+load("//private:ts_library.bzl", "ts_library")
+
+# `eslint-runner` package deviates from standard `src` structure to prevent Bazel dependency conflicts.
+# Previously, `run-eslint.ts`, `check-package-json.ts`, and `check-eslintrc.ts` were in `//private/ts/src`
+# Old structure caused duplicate label errors in `ts_test` targets because `private/ts/src` was depended on by every `ts_library` macro
+# Isolating `run_eslint.ts` in `eslint-runner` package (see #833 for details):
+#   - Avoids duplicate label errors
+#   - Allows unit tests for new `checkers` package
+
+ts_library(
+    name = "eslint-runner",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@types/argparse",
+        "//:node_modules/@types/eslint",
+        "//:node_modules/@types/node",
+        "//:node_modules/argparse",
+    ],
+)

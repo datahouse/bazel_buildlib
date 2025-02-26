@@ -1,16 +1,17 @@
-load("@dh_buildlib//:defs.bzl", "tar_auto_mtree")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@rules_oci//oci:defs.bzl", "oci_image")
 
-tar_auto_mtree(
+tar(
     name = "tar",
     srcs = ["default.conf"],
-    replace_prefix = "etc/nginx/conf.d/",
-    strip_prefix = package_name(),
+    mtree = [
+        "etc/nginx/conf.d/default.conf uid=0 gid=0 mode=0655 time=0 type=file content=$(location default.conf)",
+    ],
 )
 
 oci_image(
     name = "proxy",
-    base = "@nginx_image",
+    base = "@nginx_image_linux_amd64",
     tars = ["tar"],
     visibility = [
         "//:docker-image-users",

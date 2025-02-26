@@ -1,12 +1,6 @@
 {
   "compilerOptions": { "lib": ["dom", "dom.iterable", "es2018"] },
   "extends": "../../tsconfig-base.json",
-  "include": [
-    "**/*",
-    "../../bazel-bin/frontend/src/gql/fragment-masking.ts",
-    "../../bazel-bin/frontend/src/gql/gql.ts",
-    "../../bazel-bin/frontend/src/gql/graphql.ts",
-    "../../bazel-bin/frontend/src/gql/index.ts"
-  ],
-  "references": [{ "path": "../../shared-fe-lib/src" }]
+  "include": ["**/*"],
+  "references": [{ "path": "../gql" }, { "path": "../../shared-fe-lib/src" }]
 }

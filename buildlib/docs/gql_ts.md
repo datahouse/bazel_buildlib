@@ -5,34 +5,7 @@ GraphQL related rules.
 
 ## Functions
 
-- [gql_client_codegen](#gql_client_codegen)
 - [gql_schema](#gql_schema)
-
-
-<a id="gql_client_codegen"></a>
-
-## gql_client_codegen
-
-<pre>
-load("@dh_buildlib//gql/ts:defs.bzl", "gql_client_codegen")
-
-gql_client_codegen(<a href="#gql_client_codegen-name">name</a>, <a href="#gql_client_codegen-gql_schema">gql_schema</a>, <a href="#gql_client_codegen-srcs">srcs</a>, <a href="#gql_client_codegen-testonly">testonly</a>)
-</pre>
-
-Generates a typed graphql client.
-
-Example: [`@examples//frontend/src:gql`](../../examples/frontend/src/BUILD.bazel#:~:text=name%20%3D%20%22gql%22%2C)
-
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="gql_client_codegen-name"></a>name |  Name of the rule. The generated client will be available for import from a directory with the same name.   |  none |
-| <a id="gql_client_codegen-gql_schema"></a>gql_schema |  GraphQL schema to work off of.   |  none |
-| <a id="gql_client_codegen-srcs"></a>srcs |  Source files containing GraphQL queries.   |  `None` |
-| <a id="gql_client_codegen-testonly"></a>testonly |  Testonly flag.   |  `None` |
 
 
 <a id="gql_schema"></a>

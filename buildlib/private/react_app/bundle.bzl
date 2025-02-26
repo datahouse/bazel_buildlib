@@ -1,11 +1,11 @@
 """Rules to bundle react apps."""
 
+load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_oci//oci:defs.bzl", "oci_image")
-load("//private/tar:tar.bzl", "tar_auto_mtree")
-load("//private/ts:npm_js_binary.bzl", "npm_js_binary")
+load("//private:npm_js_binary.bzl", "npm_js_binary")
 
 def bundle(name, deps, nginx_image, testonly = None):
     """
@@ -52,10 +52,23 @@ def bundle(name, deps, nginx_image, testonly = None):
         testonly = testonly,
     )
 
-    tar_auto_mtree(
-        name = name + ".tar",
+    mtree_spec(
+        name = name + ".mtree.base",
+        srcs = [bundle_name],
+        testonly = testonly,
+    )
+
+    mtree_mutate(
+        name = name + ".mtree.moved",
+        mtree = name + ".mtree.base",
         strip_prefix = paths.join(native.package_name(), bundle_name),
-        replace_prefix = "usr/share/nginx/html",
+        package_dir = "usr/share/nginx/html",
+        testonly = testonly,
+    )
+
+    tar(
+        name = name + ".tar",
+        mtree = name + ".mtree.moved",
         srcs = [bundle_name],
         testonly = testonly,
     )

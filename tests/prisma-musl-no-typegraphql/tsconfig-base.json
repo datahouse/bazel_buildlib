@@ -7,16 +7,14 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "lib": ["es2021"],
+    "lib": ["es2022"],
     "module": "node16",
     "moduleResolution": "node16",
-    "outDir": "dist",
     "rootDir": ".",
     "rootDirs": [".", "bazel-bin"],
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "es2018"
-  },
-  "exclude": []
+  }
 }

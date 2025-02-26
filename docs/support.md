@@ -43,3 +43,7 @@ version bump is required for such changes.
 
   Rationale: Artifact of not having moved to bzlmod
   (https://git.datahouse.ch/datahouse/it-bazel/issues/5), will become a non-issue.
+
+- Changes to functionality marked as EXPERIMENTAL.
+
+  Rationale: functionality is still under development.

@@ -1,0 +1,24 @@
+load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@npm//:openapi-typescript/package_json.bzl", _openapi_typescript = "bin")
+
+# Gravatar OpenAPI is from:
+# https://api.gravatar.com/v3/openapi
+_openapi_typescript.openapi_typescript(
+    name = "gravatar_schema",
+    srcs = ["gravatar.json"],
+    outs = ["gravatar-schema.ts"],
+    args = [
+        "gravatar.json",
+        "-o",
+        "gravatar-schema.ts",
+    ],
+    chdir = package_name(),
+)
+
+ts_library(
+    name = "clients",
+    srcs = ["gravatar-schema.ts"],
+    visibility = [
+        "//api:__subpackages__",
+    ],
+)

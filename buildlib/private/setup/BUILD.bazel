@@ -1,0 +1,31 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files([
+    "default.bazelrc",
+])
+
+bzl_library(
+    name = "buildlib_setup_no_npm",
+    srcs = [
+        "buildlib_setup_no_npm.bzl",
+        "core_setup.bzl",
+    ],
+    visibility = ["//setup/defs:__pkg__"],
+    deps = [
+        ":write_setup_source_file",
+        "//private/format:bzl",
+        "//private/setup/npm:bzl",
+        "//private/setup/renovate:bzl",
+        "//private/setup/ts:bzl",
+        "@aspect_bazel_lib//lib:write_source_files",
+    ],
+)
+
+bzl_library(
+    name = "write_setup_source_file",
+    srcs = ["write_setup_source_file.bzl"],
+    visibility = ["//private/setup:__subpackages__"],
+    deps = [
+        "@aspect_bazel_lib//lib:write_source_files",
+    ],
+)

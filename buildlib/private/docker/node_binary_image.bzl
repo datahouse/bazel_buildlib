@@ -11,7 +11,7 @@ load("//private/docker:js_image_layers.bzl", "js_image_layers")
 load(":empty_dir_layer.bzl", "empty_dir_layer")
 
 def _node_cmd_impl(ctx):
-    cmd = "node,%s" % paths.join("/app", ctx.file.entry_point.short_path)
+    cmd = "node\n%s" % paths.join("/app", ctx.file.entry_point.short_path)
 
     ctx.actions.write(ctx.outputs.out, cmd)
 
@@ -32,7 +32,7 @@ def node_binary_image(
         name,
         entry_point,
         data,
-        base = "@node_image",
+        base = "@node_image_linux_amd64",
         user = "node",
         ports = [],
         volumes = [],
@@ -109,7 +109,7 @@ def node_binary_image(
         cmd = name + ".cmd.txt",
         user = user,
         workdir = "/app",
-        # TODO: Set volumes here, once rules_oci supports it.
+        volumes = volumes,
         exposed_ports = ports,
         visibility = visibility,
         testonly = testonly,

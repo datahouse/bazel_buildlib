@@ -6,7 +6,7 @@ import { AttachFileOutlined, FileUploadOutlined } from "@mui/icons-material";
 
 import { useMutation, MutationResult } from "@apollo/client";
 
-import { FragmentType, gql, useFragment } from "../gql/index.js";
+import { FragmentType, gql, useFragment } from "../../gql/index.js";
 
 import { GET_ACTIVE_TODOS, GET_ATTACHMENTS } from "../queries.js";
 

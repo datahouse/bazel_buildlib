@@ -4,7 +4,7 @@ import { List, ListItem, ListItemButton, styled } from "@mui/joy";
 
 import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
 
-import { FragmentType, gql, useFragment } from "../gql/index.js";
+import { FragmentType, gql, useFragment } from "../../gql/index.js";
 
 import TodoItem from "./TodoItem.js";
 
@@ -24,10 +24,10 @@ const NestedList = styled(List)`
 
 export interface Props {
   list: FragmentType<typeof TODO_LIST_FIELDS_FRAGMENT>;
-  initiallyExpanded: boolean;
+  initiallyExpanded?: boolean;
 }
 
-export default function TodoList({ list, initiallyExpanded }: Props) {
+export default function TodoList({ list, initiallyExpanded = false }: Props) {
   const { name, items } = useFragment(TODO_LIST_FIELDS_FRAGMENT, list);
 
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);

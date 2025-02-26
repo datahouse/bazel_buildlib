@@ -1,6 +1,6 @@
 import { mockDeep, DeepMockProxy } from "jest-mock-extended";
 
-import { FileUpload } from "graphql-upload/Upload.mjs";
+import { FileUpload } from "graphql-upload/processRequest.mjs";
 
 import { PrismaClient } from "../../../prisma/rls/index.js";
 

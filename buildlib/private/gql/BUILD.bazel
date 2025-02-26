@@ -7,8 +7,9 @@ bzl_library(
         "//gql:__subpackages__",
     ],
     deps = [
-        "//private/ts:bzl",
+        "//private:npm_js_binary",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_ts//ts:defs",
+        "@bazel_skylib//rules:copy_file",
     ],
 )

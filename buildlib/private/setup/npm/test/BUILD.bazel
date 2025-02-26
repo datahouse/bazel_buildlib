@@ -1,0 +1,9 @@
+load("//private:ts_library.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    deps = [
+        "//:node_modules/jest-extended",
+        "//private/setup/npm/src",
+    ],
+)

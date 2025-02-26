@@ -1,0 +1,9 @@
+load("//private:bzl_lib_for_docs.bzl", "bzl_lib_for_docs")
+
+bzl_lib_for_docs(
+    name = "buildlib_setup",
+    deps = [
+        "//private/setup:buildlib_setup_no_npm",
+        "@npm//:defs.bzl",
+    ],
+)

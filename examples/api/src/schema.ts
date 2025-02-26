@@ -5,10 +5,11 @@ import { buildSchema } from "type-graphql";
 import { resolvers } from "../../prisma/typegraphql-prisma/index.js";
 
 import AttachmentResolver from "./resolvers/Attachment.js";
+import { GravatarResolver } from "./resolvers/Gravatar.js";
 
 export default function schema(): Promise<GraphQLSchema> {
   return buildSchema({
-    resolvers: [...resolvers, AttachmentResolver],
+    resolvers: [...resolvers, AttachmentResolver, GravatarResolver],
     validate: false,
   });
 }

@@ -3,7 +3,7 @@ import "reflect-metadata";
 import { Arg, Ctx, Mutation, Resolver, Int } from "type-graphql";
 
 import GraphQLUpload from "graphql-upload/GraphQLUpload.mjs";
-import type { FileUpload } from "graphql-upload/Upload.mjs";
+import type { FileUpload } from "graphql-upload/processRequest.mjs";
 
 import type Context from "../Context.js";
 

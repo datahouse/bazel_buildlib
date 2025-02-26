@@ -1,16 +1,13 @@
-load("@dh_buildlib//:defs.bzl", "bazelrc", "format", "node_binary_image", "ts_setup")
-load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@dh_buildlib//:defs.bzl", "node_binary_image")
+load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
 
-npm_link_all_packages(name = "node_modules")
-
-bazelrc(name = "bazelrc")
+buildlib_setup(
+    name = "buildlib_setup",
+    enable_ts = True,
+)
 
 node_binary_image(
     name = "test",
     data = ["//src"],
     entry_point = "//src:index.js",
 )
-
-ts_setup(name = "ts_setup")
-
-format(name = "format")

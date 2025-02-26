@@ -1,0 +1,10 @@
+load("//private:ts_library.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    deps = [
+        "//:node_modules/jest-extended",
+        "//:node_modules/json5",
+        "//private/setup/renovate/src",
+    ],
+)

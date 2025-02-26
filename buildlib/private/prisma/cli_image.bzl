@@ -1,15 +1,13 @@
 """prisma_cli_image macro."""
 
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_oci//oci:defs.bzl", "oci_image")
 load("//private/docker:js_image_layers.bzl", "js_image_layers")
-load(":node_modules_bin_path.bzl", "node_modules_bin_path")
 
 def prisma_cli_image(
         name,
         schema,
-        base = "@node_image",
+        base = "@node_image_linux_amd64",
         platform = Label("//private/docker:node_default_platform"),
         visibility = None,
         testonly = None):
@@ -37,12 +35,16 @@ def prisma_cli_image(
         testonly = testonly,
     )
 
+    launcher = Label(":image-cli-launcher.sh")
+
     tar(
         name = name + ".schema",
-        srcs = [schema],
+        srcs = [schema, launcher],
+        mtree = [
+            "app/schema.prisma    uid=0 gid=0 time=0 mode=0644 type=file content=$(location %s)" % schema,
+            "usr/local/bin/prisma uid=0 gid=0 time=0 mode=0755 type=file content=$(location %s)" % launcher,
+        ],
     )
-
-    workdir = paths.join("/app", native.package_name())
 
     oci_image(
         name = name,
@@ -52,9 +54,8 @@ def prisma_cli_image(
             name + ".app.tar.gz",
             name + ".schema",
         ],
-        env = {"PATH": node_modules_bin_path("/app")},
         cmd = ["prisma"],
-        workdir = workdir,
+        workdir = "/app",
         testonly = testonly,
         visibility = visibility,
     )

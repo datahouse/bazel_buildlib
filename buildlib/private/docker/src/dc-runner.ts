@@ -33,9 +33,12 @@ const main = async () => {
     ]),
   );
 
+  // TODO(#1090): Always inject compose bin managed by bazel.
+  const executable = process.env.DOCKER_COMPOSE_BIN;
+
   await spawnInheritIO(
-    "docker",
-    "compose",
+    executable ?? "docker",
+    ...(executable ? [] : ["compose"]),
     "--project-name",
     composeProject,
     "--file",

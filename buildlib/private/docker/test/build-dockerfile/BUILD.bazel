@@ -4,7 +4,7 @@ load("//private/docker:build_dockerfile.bzl", "build_dockerfile")
 build_dockerfile(
     name = "build_base",
     src = "Dockerfile",
-    base = "@node_image",
+    base = "@node_image_linux_amd64",
 )
 
 # Load the image as a smoke test.

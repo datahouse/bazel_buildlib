@@ -1,15 +1,14 @@
+load("@dh_buildlib_private_npm//:defs.bzl", "npm_link_all_packages")
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
-load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@prisma_host_constraints//:constraints.bzl", "PRISMA_HOST_CONSTRAINTS")
-load(":defs.bzl", "bazelrc", "format", "ts_setup")
+load("//private/setup:buildlib_setup_no_npm.bzl", "buildlib_setup_no_npm")
 
 npm_link_all_packages(name = "node_modules")
 
-format(name = "format")
-
-ts_setup(name = "ts_setup")
-
-bazelrc(name = "bazelrc")
+buildlib_setup_no_npm(
+    name = "buildlib_setup",
+    enable_ts = True,
+)
 
 platform(
     name = "host_platform",

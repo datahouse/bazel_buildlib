@@ -1,6 +1,13 @@
-load("//private:stardoc.bzl", "stardoc")
+load("//private:bzl_lib_for_docs.bzl", "bzl_lib_for_docs")
 
-stardoc(
-    name = "docs_defs",
+bzl_lib_for_docs(
+    name = "defs",
     deps = ["//private/ts:bzl"],
+)
+
+alias(
+    # Alias so we do not need to refer @aspect_rules_ts in user .bazelrc.
+    name = "skipLibCheck",
+    actual = "@aspect_rules_ts//ts:skipLibCheck",
+    visibility = ["//visibility:public"],
 )

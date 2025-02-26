@@ -21,21 +21,14 @@ describe("buildDockerfile", () => {
       RUN false`,
       );
 
-      const logMock = jest.fn();
-
       await expect(
-        buildDockerfile(
-          dockerfilePath,
-          await loadNodeImage(),
-          new Docker(),
-          logMock,
+        buildDockerfile(dockerfilePath, await loadNodeImage(), new Docker()),
+      ).resolves.toEqual({
+        ok: false,
+        error: expect.stringMatching(
+          /^Docker build failed:\n\n.*RUN false.*\n$/s,
         ),
-      ).rejects.toThrow(/Docker build failed:.*false/);
-
-      expect(logMock).toHaveBeenCalledTimes(1);
-      expect(logMock).toHaveBeenCalledWith(
-        expect.stringContaining("RUN false"),
-      );
+      });
     },
     2 * 60 * 1000 /* 2mins: loading image can take time */,
   );

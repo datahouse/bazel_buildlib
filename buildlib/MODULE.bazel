@@ -1,0 +1,138 @@
+# Note: bzlmod is not ready (#5)
+
+module(
+    name = "dh_buildlib",
+    bazel_compatibility = [
+        ">=7.4.0",  # for override_repo
+    ],
+)
+
+# Non-Dev Dependencies
+
+bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "aspect_bazel_lib", version = "2.13.0")
+bazel_dep(name = "rules_nodejs", version = "6.3.3")
+bazel_dep(name = "aspect_rules_js", version = "2.1.3")
+bazel_dep(name = "aspect_rules_ts", version = "3.5.0")
+bazel_dep(name = "aspect_rules_swc", version = "2.3.0")
+bazel_dep(name = "rules_oci", version = "2.2.2")
+bazel_dep(name = "buildifier_prebuilt", version = "8.0.1")
+
+# Internal non-dev repositories / extensions.
+
+prisma_host_constraints = use_repo_rule("//private/prisma:repositories.bzl", "prisma_host_constraints")
+
+prisma_host_constraints(name = "prisma_host_constraints")
+
+ibazel_info = use_repo_rule("//private/docker:ibazel_info.bzl", "ibazel_info")
+
+ibazel_info(name = "dh_buildlib_private_ibazel_info")
+
+# Configure Node.js version: always take it from the root/main repository.
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version_from_nvmrc = "@@//:.nvmrc")
+
+# npm / node_modules for buildlib itself.
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "dh_buildlib_private_npm",
+    lifecycle_hooks_no_sandbox = False,
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+use_repo(npm, "dh_buildlib_private_npm")
+
+# npm / node_modules for the using repository.
+# A basic npm setup is always required because we need at least prettier.
+# It does not make sense to make notably .md formatting optional.
+#
+# In case we are building buildlib itself, this duplicates the
+# `dh_buildlib_private_npm` repository as `npm` (which is not a problem).
+
+npm.npm_translate_lock(
+    name = "npm",
+    lifecycle_hooks_no_sandbox = False,
+    npmrc = "@@//:.npmrc",
+    pnpm_lock = "@@//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "@@//:.bazelignore",
+)
+
+# use the repo for setup/defs/buildlib_setup.bzl
+use_repo(npm, "npm")
+
+# when buildlib is the root module, inject a fake npm repository.
+# see the comment on setup/defs/buildlib_setup.bzl for more.
+fake_npm_repository = use_repo_rule("//private/setup:fake_npm_repository.bzl", "fake_npm_repository")
+
+fake_npm_repository(name = "fake_npm_repository")
+
+override_repo(
+    npm,
+    npm = "fake_npm_repository",
+)
+
+# typescript for buildlib itself.
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(
+    name = "dh_buildlib_private_typescript",
+    ts_version_from = "@dh_buildlib_private_npm//:typescript/resolved.json",
+)
+use_repo(rules_ts_ext, "dh_buildlib_private_typescript")
+
+# yq toolchain for the prisma extension.
+
+bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
+use_repo(bazel_lib_toolchains, "yq_darwin_amd64")
+use_repo(bazel_lib_toolchains, "yq_darwin_arm64")
+use_repo(bazel_lib_toolchains, "yq_linux_amd64")
+use_repo(bazel_lib_toolchains, "yq_linux_arm64")
+use_repo(bazel_lib_toolchains, "yq_linux_ppc64le")
+use_repo(bazel_lib_toolchains, "yq_linux_s390x")
+use_repo(bazel_lib_toolchains, "yq_windows_amd64")
+
+# prisma extension
+#
+# The extension is private, relevant bits are exposed via aliases
+# (`//prisma:cli`) or rule attribute default values.
+#
+# The extension auto-detects the version from the root module's pnpm-lock.yaml.
+#
+# It generates a different repository (which always fails) in case there is no
+# dependency on prisma. This is why we need an extension and not simply a use_repository.
+prisma = use_extension("@dh_buildlib//private/prisma:prisma_extension.bzl", "prisma")
+use_repo(prisma, "prisma")
+
+# Dev dependencies
+
+bazel_dep(name = "stardoc", version = "0.7.0", dev_dependency = True)
+
+pnpm = use_extension("@dh_buildlib//private/setup/npm/extensions:pnpm.bzl", "pnpm")
+use_repo(pnpm, "pnpm")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci", dev_dependency = True)
+oci.pull(
+    name = "node_image",
+    digest = "sha256:a3816e038e05ea70d2640c845c285f49e416bdae2481a7ff94fde96647a10607",
+    image = "index.docker.io/library/node",
+    platforms = ["linux/amd64"],
+    tag = "22.3.0",  # ignored, doc only
+)
+use_repo(oci, "node_image", "node_image_linux_amd64")
+
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "docker_compose",
+    dev_dependency = True,
+    executable = True,
+    # TODO(#1090)
+    # - Write an extension for this.
+    # - Upgrade via Renovate.
+    integrity = "sha256-bvSOS/Jfvx8a1QxDt5fMJOEuTN4pdlB2tBReCeNfVxM=",
+    url = "https://github.com/docker/compose/releases/download/v2.32.3/docker-compose-linux-x86_64",
+)

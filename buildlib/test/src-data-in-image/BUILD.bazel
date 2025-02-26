@@ -1,7 +1,8 @@
 """Regression test for #351"""
 
 load("@rules_oci//oci:defs.bzl", "oci_image")
-load("//:defs.bzl", "node_binary_image", "ts_library")
+load("//:defs.bzl", "node_binary_image")
+load("//private:ts_library.bzl", "ts_library")
 
 ts_library(
     name = "src",

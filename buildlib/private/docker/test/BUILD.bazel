@@ -1,8 +1,9 @@
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@rules_oci//oci:defs.bzl", "oci_image")
-load("//:defs.bzl", "docker_image_for_ts_test", "ts_test")
-load("//private/tar:tar.bzl", "tar_auto_mtree")
+load("//:defs.bzl", "docker_image_for_ts_test")
+load("//private:ts_library.bzl", "ts_test")
 
-tar_auto_mtree(
+tar(
     name = "test-image-tar",
     srcs = ["file-in-image.txt"],
 )
@@ -21,7 +22,7 @@ docker_image_for_ts_test(
 
 docker_image_for_ts_test(
     name = "load_node_image",
-    image = "@node_image",
+    image = "@node_image_linux_amd64",
 )
 
 ts_test(

@@ -1,6 +1,0 @@
-load("//private:stardoc.bzl", "stardoc")
-
-stardoc(
-    name = "docs_defs",
-    deps = ["//private/renovate:bzl"],
-)

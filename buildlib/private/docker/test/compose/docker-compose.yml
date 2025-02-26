@@ -1,0 +1,3 @@
+services:
+  test:
+    bazel-image: "@node_image_linux_amd64"

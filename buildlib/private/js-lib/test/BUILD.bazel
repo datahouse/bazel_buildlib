@@ -1,4 +1,4 @@
-load("//:defs.bzl", "ts_test")
+load("//private:ts_library.bzl", "ts_test")
 
 ts_test(
     name = "test",

@@ -15,14 +15,12 @@ load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
 
 dh_buildlib_setup2(enable_prisma = True)
 
-load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
+load("@rules_oci//oci:pull.bzl", "oci_pull")
 
-container_pull(
+oci_pull(
     name = "node_alpine_image",
-    architecture = "amd64",
-    digest = "sha256:415f3219943ef82fa45988acdaa7df05a0b52cabd3502095c59d34cbe28c1bc1",
-    os = "linux",
-    registry = "index.docker.io",
-    repository = "node",
-    tag = "22.3.0-alpine",  # ignored, doc only
+    digest = "sha256:0a29d8a047149079bf48dab598f287815e39867d547e8f3935cfdece0a4379cc",
+    image = "index.docker.io/library/node",
+    platforms = ["linux/amd64"],
+    tag = "23.8.0-alpine",  # ignored, doc only
 )

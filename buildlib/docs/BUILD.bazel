@@ -1,19 +1,33 @@
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@stardoc//stardoc:stardoc.bzl", "stardoc")
+
+docs = {
+    "buildlib_setup.md": ("//setup/defs:buildlib_setup", False),
+    "docker.md": ("//docker:defs", True),
+    "gql_ts.md": ("//gql/ts:defs", True),
+    "prisma.md": ("//prisma:defs", True),
+    "react_app.md": ("//react_app:defs", False),
+    "ts.md": ("//ts:defs", True),
+    "ts_docker.md": ("//ts/docker:defs", True),
+}
+
+toc_tpl = "@stardoc//stardoc:templates/markdown_tables/table_of_contents.vm"
+
+[
+    stardoc(
+        name = fname + ".gen",
+        out = fname + ".gen.md",
+        input = src_lbl + ".bzl",
+        table_of_contents_template = toc_tpl if toc else None,
+        deps = [src_lbl],
+    )
+    for fname, (src_lbl, toc) in docs.items()
+]
 
 write_source_files(
     name = "docs",
     files = {
-        "bazelrc.md": "//bazelrc:docs_defs",
-        "docker.md": "//docker:docs_defs",
-        "docker_repositories.md": "//docker:docs_repositories",
-        "format.md": "//format:docs_defs",
-        "gql_ts.md": "//gql/ts:docs_defs",
-        "prisma.md": "//prisma:docs_defs",
-        "react_app.md": "//react_app:docs_defs",
-        "renovate.md": "//renovate:docs_defs",
-        "tar.md": "//tar:docs_defs",
-        "ts.md": "//ts:docs_defs",
-        "ts_docker.md": "//ts/docker:docs_defs",
-        "ts_setup.md": "//ts/setup:docs_defs",
+        fname: fname + ".gen"
+        for fname in docs.keys()
     },
 )

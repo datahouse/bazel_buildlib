@@ -1,0 +1,41 @@
+bazel_dep(name = "aspect_bazel_lib", version = "2.13.0")
+bazel_dep(name = "aspect_rules_js", version = "2.1.3")
+bazel_dep(name = "aspect_rules_ts", version = "3.5.0")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_oci", version = "2.2.2")
+bazel_dep(name = "dh_buildlib", version = "0.0.0")
+local_path_override(
+    module_name = "dh_buildlib",
+    path = "../buildlib",
+)
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+use_repo(npm, "npm")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(ts_version_from = "@npm//:typescript/resolved.json")
+use_repo(rules_ts_ext, "npm_typescript")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "nginx_image",
+    digest = "sha256:287ff321f9e3cde74b600cc26197424404157a72043226cbbf07ee8304a2c720",
+    image = "index.docker.io/library/nginx",
+    platforms = ["linux/amd64"],
+    tag = "1.27.1",  # ignored, doc only
+)
+oci.pull(
+    name = "node_image",
+    digest = "sha256:a3816e038e05ea70d2640c845c285f49e416bdae2481a7ff94fde96647a10607",
+    image = "index.docker.io/library/node",
+    platforms = ["linux/amd64"],
+    tag = "22.3.0",  # ignored, doc only
+)
+oci.pull(
+    name = "postgres_image",
+    digest = "sha256:4ec37d2a07a0067f176fdcc9d4bb633a5724d2cc4f892c7a2046d054bb6939e5",
+    image = "index.docker.io/library/postgres",
+    platforms = ["linux/amd64"],
+    tag = "16.4",  # ignored, doc only
+)
+use_repo(oci, "nginx_image", "nginx_image_linux_amd64", "node_image", "node_image_linux_amd64", "postgres_image", "postgres_image_linux_amd64")

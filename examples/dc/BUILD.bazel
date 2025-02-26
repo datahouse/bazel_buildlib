@@ -10,7 +10,7 @@ docker_compose(
         "//proxy",
         "//proxy/blob-auth",
         "//rest-api",
-        "@postgres_image",
+        "@postgres_image_linux_amd64",
     ],
 )
 

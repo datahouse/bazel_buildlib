@@ -2,6 +2,7 @@ import argparse from "argparse";
 import tar from "tar-stream";
 import Docker from "dockerode";
 
+import process from "node:process";
 import path from "node:path";
 import { createWriteStream } from "node:fs";
 import { mkdir } from "node:fs/promises";
@@ -68,13 +69,14 @@ const main = async () => {
   const docker = new Docker();
 
   const baseImageID = await loadImageDirToDocker(baseImage);
-  const imageID = await buildDockerfile(
-    dockerfile,
-    baseImageID,
-    docker,
-    console.log,
-  );
-  await storeImageToDir(imageID, outputDir, docker);
+  const buildResult = await buildDockerfile(dockerfile, baseImageID, docker);
+
+  if (!buildResult.ok) {
+    console.log(buildResult.error);
+    process.exit(1);
+  }
+
+  await storeImageToDir(buildResult.id, outputDir, docker);
 };
 
 await main();

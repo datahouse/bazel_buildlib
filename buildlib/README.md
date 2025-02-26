@@ -9,20 +9,16 @@ It is designed to work together with the
 
 Starlark APIs provided by dh_buildlib.
 
+- Setup
+  - [buildlib_setup.md](./docs/buildlib_setup.md): one-stop buildlib setup rule (required).
 - Typescript
   - [ts.md](./docs/ts.md): rules for core Typescript (compiling, testing, linting)
   - [ts_docker.md](./docs/ts_docker.md): rules for Typescript in/on Docker
-  - [ts_setup.md](./docs/ts_setup.md): rules to set up the JavaScript / Typescript base system
 - [docker.md](./docs/docker.md): Docker and docker compose related rules
 - GraphQL
   - [gql_ts.md](./docs/ts_gql.md): GQL integration for Typescript (client and server)
 - [prisma.md](./docs/prisma.md): Prisma related rules
 - [react_app.md](./docs/react_app.md): rule to create React apps
-- Tooling
-  - [format.md](./docs/format.md): rules for formatting
-  - [bazelrc.md](./docs/bazelrc.md): rules for bazelrc management
-  - [renovate.md](./docs/renovate.md): rules to help with Renovate configuration
-  - [tar.md](./docs/tar.md): convenience rules for tars
 
 ## Build Targets
 
@@ -38,7 +34,15 @@ Build targets providing access to the build's version (when building a tag).
 - `@dh_buildlib//my-version:json`: A json file containing the version (as a sole string).
 - `@dh_buildlib//my-version:ts`: A TypeScript file with a single default export: the version as string.
 
-### Prisma Contraints
+### Prisma
+
+#### CLI
+
+- `@dh_buildlib//prisma:cli`: The prisma CLI (with correct prisma engines resolution).
+
+  Requires the `prisma` npm package to be installed as a dev dependency.
+
+#### Constraints
 
 Bazel constraint packages for relevant platform parameters to resolve the Prisma engine.
 

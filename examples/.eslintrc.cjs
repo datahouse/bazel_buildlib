@@ -7,7 +7,9 @@ module.exports = {
   // useful, for example, for extrenally provided files that we track in our
   // repositories (in case they follow different code standards).
   ignorePatterns: [
-    "frontend/src/gql/**", // generated
+    // generated
+    "api/clients/gravatar-schema.ts",
+    "frontend/gql/**",
   ],
 
   // Project specific linter settings go here.

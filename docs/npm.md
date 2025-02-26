@@ -5,13 +5,13 @@
 The bazel setup uses pnpm (an npm alternative). To add / remove packages use the bazel provided pnpm like so:
 
 ```sh
-bazelisk run -- @pnpm --dir $PWD <command>
+bazelisk run -- //:pnpm <command>
 ```
 
 For example, to install `my-npm-package`:
 
 ```sh
-bazelisk run -- @pnpm --dir $PWD install my-npm-package
+bazelisk run -- //:pnpm install my-npm-package
 ```
 
 Further, please note:
@@ -27,7 +27,7 @@ default, bazel does not put them there.
 To install all packages, simply run:
 
 ```sh
-bazelisk run -- @pnpm --dir $PWD install
+bazelisk run -- //:pnpm install
 ```
 
 This is **not** necessary to build or run the project.

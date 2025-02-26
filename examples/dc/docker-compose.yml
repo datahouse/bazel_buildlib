@@ -1,5 +1,3 @@
-version: "3.5"
-
 volumes:
   blob-store:
 
@@ -28,18 +26,12 @@ services:
       - blob-store:/blob_store
 
   rest-api:
-    # bazel-image can be set to:
-    #
-    # - the verbatim label in `deps` (like in the examples above),
-    # - the canonical bazel label (like here for rest-api).
-    #
-    # The latter is discouraged due to its verbosity.
-    bazel-image: "@//rest-api:rest-api"
+    bazel-image: //rest-api
     environment:
       DATABASE_URL: postgres://api_login:uh0Fahth8nu1ong9phai@db/postgres
 
   db:
-    bazel-image: "@postgres_image"
+    bazel-image: "@postgres_image_linux_amd64"
     ports:
       - 5432 # for prisma.
     environment:

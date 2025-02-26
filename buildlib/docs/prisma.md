@@ -66,7 +66,7 @@ Example: [`@examples//prisma:cli`](../../examples/prisma/BUILD.bazel#:~:text=nam
 | :------------- | :------------- | :------------- |
 | <a id="prisma_cli_image-name"></a>name |  name of the rule.   |  none |
 | <a id="prisma_cli_image-schema"></a>schema |  prisma schema to use.   |  none |
-| <a id="prisma_cli_image-base"></a>base |  base image to use   |  `"@node_image"` |
+| <a id="prisma_cli_image-base"></a>base |  base image to use   |  `"@node_image_linux_amd64"` |
 | <a id="prisma_cli_image-platform"></a>platform |  Platform of the base image.   |  `Label("@dh_buildlib//private/docker:node_default_platform")` |
 | <a id="prisma_cli_image-visibility"></a>visibility |  visibility of the rule   |  `None` |
 | <a id="prisma_cli_image-testonly"></a>testonly |  testonly flag for all targets.   |  `None` |

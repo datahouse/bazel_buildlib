@@ -1,13 +1,10 @@
-load("@dh_buildlib//:defs.bzl", "bazelrc", "format", "node_binary_image", "ts_setup")
-load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@dh_buildlib//:defs.bzl", "node_binary_image")
+load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
 
-npm_link_all_packages(name = "node_modules")
-
-bazelrc(name = "bazelrc")
-
-ts_setup(name = "ts_setup")
-
-format(name = "format")
+buildlib_setup(
+    name = "buildlib_setup",
+    enable_ts = True,
+)
 
 platform(
     name = "node_alpine_platform",
@@ -21,7 +18,7 @@ platform(
 
 node_binary_image(
     name = "musl_image",
-    base = "@node_alpine_image",
+    base = "@node_alpine_image_linux_amd64",
     data = ["//src"],
     entry_point = "//src:index.js",
     platform = ":node_alpine_platform",

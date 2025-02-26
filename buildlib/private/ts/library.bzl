@@ -2,32 +2,38 @@
 
 load("@aspect_rules_js//js:libs.bzl", "js_library_lib")
 load("@aspect_rules_swc//swc:defs.bzl", "swc")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_ts//ts:defs.bzl", "TsConfigInfo", "ts_project")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load(":config.bzl", "tsconfig")
 load(":eslint.bzl", "eslint")
 load(":providers.bzl", "TsLibraryInfo")
 
+_ts_library_base_providers = js_library_lib.provides + [TsConfigInfo]
+
 def _ts_library_impl(ctx):
     base = [
         ctx.attr.base[provider]
-        for provider in js_library_lib.provides
+        for provider in _ts_library_base_providers
     ]
 
     return base + [
         TsLibraryInfo(uses_dom = ctx.attr.uses_dom),
     ]
 
+# TODO: This rule is a hack.
+# It requires us to manually list all (relevant) providers returned by ts_project.
+# This is brittle and fails whenever rules_ts makes internal changes (e.g. #1121).
+# We should replace this rule with something more principled (tracked as #1124).
 _ts_library = rule(
     doc = "Glue rule to attach relevant providers",
     implementation = _ts_library_impl,
     attrs = {
         "base": attr.label(
-            providers = [js_library_lib.provides],
+            providers = [_ts_library_base_providers],
         ),
         "uses_dom": attr.bool(),
     },
-    provides = [TsLibraryInfo] + js_library_lib.provides,
+    provides = [TsLibraryInfo] + _ts_library_base_providers,
 )
 
 def ts_library(
@@ -37,6 +43,7 @@ def ts_library(
         data = None,
         assets = [],
         uses_dom = False,
+        tsc_repository = "@npm_typescript",
         visibility = None,
         testonly = None):
     """Typescript library.
@@ -53,6 +60,8 @@ def ts_library(
       data: required runtime data (e.g. csv files)
       uses_dom: Whether this library uses the DOM.
         Forces uses_dom transitively on dependencies.
+      tsc_repository: which typescript bazel repository to use
+        (most likely you will not need this option).
       visibility: rule visibility
       testonly: whether this is for tests only (default: false)
     """
@@ -72,6 +81,9 @@ def ts_library(
         name = name + ".tsc",
         srcs = srcs,
         data = data,
+        tsc = "%s//:tsc" % tsc_repository,
+        tsc_worker = "%s//:tsc_worker" % tsc_repository,
+        validator = "%s//:validator" % tsc_repository,
         visibility = visibility,
         testonly = testonly,
         composite = True,

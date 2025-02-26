@@ -92,8 +92,8 @@ const dockerLoadImage = async (
   if ("error" in loadResult) return loadResult;
 
   // Check the digest matches the OCIImage manifest.
-  const ociDigest = `sha256:${loadResult.digest}`;
-  const dockerDigest = input.image.manifest.config.digest;
+  const ociDigest = input.image.manifest.config.digest;
+  const dockerDigest = `sha256:${loadResult.digest}`;
 
   if (ociDigest !== dockerDigest) {
     throw new Error(

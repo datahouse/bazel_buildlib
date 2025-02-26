@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "22.13.4",
+    "prettier": "3.5.1",
+    "prisma": "5.22.0"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": []
+  }
+}

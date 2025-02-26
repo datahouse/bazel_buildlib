@@ -14,7 +14,11 @@ import {
 
 import express from "express";
 
+import { createPathBasedClient } from "openapi-fetch";
+
 import graphqlUploadExpress from "graphql-upload/graphqlUploadExpress.mjs";
+
+import type { paths as GravatarPaths } from "../clients/gravatar-schema.js";
 
 import getSchema from "./schema.js";
 
@@ -33,6 +37,9 @@ const main = async () => {
 
   const blobStore = new BlobStore("/blob_store");
   const priviledgedPrisma = new PrismaClient();
+  const gravatar = createPathBasedClient<GravatarPaths>({
+    baseUrl: "https://api.gravatar.com/v3",
+  });
 
   const server = new ApolloServer({
     schema: await getSchema(),
@@ -46,7 +53,7 @@ const main = async () => {
       // TODO: Take subject from JWT token on the request.
       const sub = "alice@example.com";
       const { prisma, elevatedPrisma } = enableRLS(priviledgedPrisma, sub);
-      return { prisma, elevatedPrisma, blobStore } satisfies Context;
+      return { prisma, elevatedPrisma, blobStore, gravatar } satisfies Context;
     },
     // Required for uploads to be secure.
     //

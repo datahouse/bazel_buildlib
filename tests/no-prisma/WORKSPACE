@@ -15,14 +15,12 @@ load("@dh_buildlib//repositories:setup2.bzl", "dh_buildlib_setup2")
 
 dh_buildlib_setup2()
 
-load("@dh_buildlib//repositories:docker_containers.bzl", "container_pull")
+load("@rules_oci//oci:pull.bzl", "oci_pull")
 
-container_pull(
+oci_pull(
     name = "node_image",
-    architecture = "amd64",
-    digest = "sha256:a3816e038e05ea70d2640c845c285f49e416bdae2481a7ff94fde96647a10607",
-    os = "linux",
-    registry = "index.docker.io",
-    repository = "node",
-    tag = "22.3.0",  # ignored, doc only
+    digest = "sha256:ac6abe7d72fe2a535b331d862bf01e064abfd65c7b085c3ca6a51869014474a0",
+    image = "index.docker.io/library/node",
+    platforms = ["linux/amd64"],
+    tag = "23.3.0",  # ignored, doc only
 )

@@ -1,0 +1,3 @@
+# Typescript-less setup is only supported in bzlmod.
+# Enable bzlmod in the project specific bazlrc for now.
+common --enable_bzlmod

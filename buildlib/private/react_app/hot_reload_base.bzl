@@ -22,7 +22,8 @@ def hot_reload_base(name, deps, node_image, node_image_platform, testonly = None
         name = name,
         base = node_image,
         cmd = [
-            "/app/node_modules/.bin/vite",
+            "node",
+            "/app/node_modules/vite/bin/vite.js",
             "--host",
             "--config",
             "/app/vite.config.mjs",

@@ -1,17 +1,7 @@
 """Rules to run formatters / test formatting."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
-load("//private/ts:npm_js_binary.bzl", "npm_js_binary")
-
-def _buildifier_impl(ctx):
-    buildifier = ctx.toolchains[":buildifier_toolchain_type"].buildifierinfo.bin
-    return DefaultInfo(files = depset([buildifier]))
-
-_buildifier = rule(
-    doc = "helper rule to retrieve the bulidifier toolchain",
-    implementation = _buildifier_impl,
-    toolchains = [":buildifier_toolchain_type"],
-)
+load("//private:npm_js_binary.bzl", "npm_js_binary")
 
 def format(name):
     """Rule to format code.
@@ -52,35 +42,33 @@ def format(name):
         node_module = "prettier",
     )
 
-    _buildifier(
-        name = name + ".buildifier",
-    )
+    # Resolve label in the defining workspace (not the calling workspace).
+    buildifier = Label("@buildifier_prebuilt//:buildifier")
 
     js_binary(
         name = name,
         data = [
             Label("//private/format/src"),
             name + ".prettier",
-            name + ".buildifier",
+            buildifier,
         ],
         copy_data_to_bin = False,
         entry_point = Label("//private/format/src:format.js"),
         env = {
             "BAZEL_BINDIR": ".",
-            "BUILDIFIER_BIN": "$(rootpath format.buildifier)",
+            "BUILDIFIER_BIN": "$(rootpath %s)" % buildifier,
             "PRETTIER_BIN": "$(rootpath format.prettier)",
         },
     )
 
-    # To test this rule locally, do:
-    #
-    #     DH_BUILDLIB_FORMAT_CHECK_DIR=$PWD bazel test //:format.ci_test
-    #
     native.sh_test(
-        name = name + ".ci_test",
-        srcs = [Label(":ci-format-test.sh")],
-        data = [name],
-        env_inherit = ["DH_BUILDLIB_FORMAT_CHECK_DIR"],
-        env = {"DH_FORMAT_SCRIPT": "$(rootpath %s)" % name},
+        name = name + ".test",
+        srcs = [Label(":format-test.sh")],
+        data = [name, "//:.bazelrc"],
+        env = {
+            "DH_FORMAT_SCRIPT": "$(rootpath %s)" % name,
+            # Pass any file in the workspace root to determine its locaiton.
+            "FILE_IN_WORKSPACE": "$(location //:.bazelrc)",
+        },
         tags = ["local", "external"],
     )

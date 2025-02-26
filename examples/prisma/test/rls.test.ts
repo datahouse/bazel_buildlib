@@ -16,7 +16,7 @@ const pushSchema = (url: string) =>
   // Invoke prisma CLI. No programmatic access for now.
   // https://github.com/prisma/prisma/issues/13549
   promisify(execFile)(
-    "../prisma/cli.prisma.sh",
+    process.env.PRISMA_CLI_PATH!,
     ["migrate", "deploy", "--schema", "prisma/schema.prisma"],
     { env: { ...process.env, DATABASE_URL: url } },
   );

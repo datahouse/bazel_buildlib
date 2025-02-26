@@ -49,8 +49,5 @@ def prisma_engines_store(name, platform):
         schema_engine = ":schema-engine",
         query_engine = ":query-engine",
         libquery_engine = ":libquery-engine",
-        visibility = [
-            "@dh_buildlib//private/prisma:__pkg__",
-            "//private/prisma:__pkg__",
-        ],
+        visibility = ["@prisma//:__pkg__"],
     )
