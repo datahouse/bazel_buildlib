@@ -1,5 +1,3 @@
-# Note: bzlmod is not ready (#5)
-
 module(
     name = "dh_buildlib",
     bazel_compatibility = [
@@ -11,9 +9,9 @@ module(
 
 bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "aspect_bazel_lib", version = "2.13.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.14.0")
 bazel_dep(name = "rules_nodejs", version = "6.3.3")
-bazel_dep(name = "aspect_rules_js", version = "2.1.3")
+bazel_dep(name = "aspect_rules_js", version = "2.2.0")
 bazel_dep(name = "aspect_rules_ts", version = "3.5.0")
 bazel_dep(name = "aspect_rules_swc", version = "2.3.0")
 bazel_dep(name = "rules_oci", version = "2.2.2")
@@ -84,7 +82,7 @@ rules_ts_ext.deps(
 )
 use_repo(rules_ts_ext, "dh_buildlib_private_typescript")
 
-# yq toolchain for the prisma extension.
+# yq toolchain for the prisma engines repository.
 
 bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
 use_repo(bazel_lib_toolchains, "yq_darwin_amd64")
@@ -95,34 +93,49 @@ use_repo(bazel_lib_toolchains, "yq_linux_ppc64le")
 use_repo(bazel_lib_toolchains, "yq_linux_s390x")
 use_repo(bazel_lib_toolchains, "yq_windows_amd64")
 
+prisma_engines_version = use_repo_rule("//private/prisma:engines_version.bzl", "engines_version")
+
+prisma_engines_version(
+    name = "prisma_engines_version",
+    pnpm_lock = "@@//:pnpm-lock.yaml",  # always from root module
+)
+
 # prisma extension
 #
 # The extension is private, relevant bits are exposed via aliases
 # (`//prisma:cli`) or rule attribute default values.
 #
-# The extension auto-detects the version from the root module's pnpm-lock.yaml.
+# - It pins prisma engines using the bazel lockfile.
+# - It generates a different repository (which always fails) in case there is no
+#   dependency on prisma.
 #
-# It generates a different repository (which always fails) in case there is no
-# dependency on prisma. This is why we need an extension and not simply a use_repository.
+# This is why we need an extension and not simply a use_repository.
 prisma = use_extension("@dh_buildlib//private/prisma:prisma_extension.bzl", "prisma")
 use_repo(prisma, "prisma")
 
 # Dev dependencies
 
-bazel_dep(name = "stardoc", version = "0.7.0", dev_dependency = True)
-
-pnpm = use_extension("@dh_buildlib//private/setup/npm/extensions:pnpm.bzl", "pnpm")
-use_repo(pnpm, "pnpm")
+bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci", dev_dependency = True)
 oci.pull(
     name = "node_image",
-    digest = "sha256:a3816e038e05ea70d2640c845c285f49e416bdae2481a7ff94fde96647a10607",
+    digest = "sha256:c29271c7f2b4788fe9b90a7506d790dc8f2ff46132e1b70e71bf0c0679c8451c",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "22.3.0",  # ignored, doc only
+    tag = "23.9.0",  # ignored, doc only
 )
 use_repo(oci, "node_image", "node_image_linux_amd64")
+
+# Pull in rules_python to set ignore_root_user_error = True.
+# Workaround for https://git.datahouse.ch/datahouse/it-drone-bazel/issues/49
+bazel_dep(name = "rules_python", version = "1.2.0", dev_dependency = True)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
+python.toolchain(
+    ignore_root_user_error = True,
+    python_version = "3.11",
+)
 
 http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 

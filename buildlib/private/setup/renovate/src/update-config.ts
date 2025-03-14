@@ -19,7 +19,7 @@ const parseArgs = () => {
     required: true,
   });
 
-  parser.add_argument("--pnpmVersion", {
+  parser.add_argument("--pnpmVersionFile", {
     help: "bazel's pnpm version",
     required: true,
   });
@@ -32,13 +32,17 @@ const parseArgs = () => {
   return parser.parse_args() as {
     input: string;
     output: string;
-    pnpmVersion: string;
+    pnpmVersionFile: string;
     latestNodeVersion: string;
   };
 };
 
 const main = async () => {
-  const { input, output, pnpmVersion, latestNodeVersion } = parseArgs();
+  const { input, output, pnpmVersionFile, latestNodeVersion } = parseArgs();
+
+  const pnpmVersion = JSON.parse(
+    await readFile(pnpmVersionFile, "utf8"),
+  ).version;
 
   const curConfig = await readFile(input, "utf8");
   const newConfig = updateConfig(curConfig, { pnpmVersion, latestNodeVersion });

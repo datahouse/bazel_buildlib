@@ -25,7 +25,7 @@ def npm_setup(update_targets):
         entry_point = Label("//private/setup/npm/src:check-package-json.js"),
     )
 
-    pnpm = Label("@pnpm")
+    pnpm = Label(":pnpm_raw")
     native.sh_test(
         name = "pnpm_lock_test",
         srcs = [Label(":test-pnpm-lock.sh")],

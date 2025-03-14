@@ -15,17 +15,17 @@ load("@dh_buildlib_private_ibazel_info//:is_ibazel.bzl", "is_ibazel")
 load(":oci_util.bzl", "get_oci_dir")
 load(":providers.bzl", "DockerComposeInfo", "HotReloadableInfo")
 
-def _build_built_image_info(keys, oci_dir, builder):
+def _build_built_image_info(image_key, oci_dir, builder):
     builder.oci_images.append(oci_dir)
 
     return {
-        "keys": keys,
+        "imageKey": image_key,
         "ociDir": oci_dir.path,
         "ociDirShort": oci_dir.short_path,
     }
 
-def _build_hot_reload_info(ctx, keys, image_label, hot_reload_info, builder):
-    image_info = _build_built_image_info(keys, hot_reload_info.oci_image, builder)
+def _build_hot_reload_info(ctx, image_key, image_label, hot_reload_info, builder):
+    image_info = _build_built_image_info(image_key, hot_reload_info.oci_image, builder)
 
     builder.hot_reload_files.append(hot_reload_info.files)
 
@@ -38,15 +38,10 @@ def _build_hot_reload_info(ctx, keys, image_label, hot_reload_info, builder):
     return image_info
 
 def _build_image_info(ctx, image_target, image_key, builder):
-    keys = [
-        image_key,
-        str(image_target.label),  # backwards compatibility
-    ]
-
     if is_ibazel and HotReloadableInfo in image_target:
-        return _build_hot_reload_info(ctx, keys, image_target.label, image_target[HotReloadableInfo], builder)
+        return _build_hot_reload_info(ctx, image_key, image_target.label, image_target[HotReloadableInfo], builder)
 
-    return _build_built_image_info(keys, get_oci_dir(image_target), builder)
+    return _build_built_image_info(image_key, get_oci_dir(image_target), builder)
 
 def _write_image_info(ctx):
     builder = struct(

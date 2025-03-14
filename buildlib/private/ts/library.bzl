@@ -67,7 +67,7 @@ def ts_library(
     """
 
     if srcs == None:
-        srcs = native.glob(["**/*.ts", "**/*.tsx"])
+        srcs = native.glob(["**/*.ts", "**/*.tsx"], allow_empty = True)
 
     tsconfig(
         name = "tsconfig",

@@ -30,7 +30,7 @@ const loadImageReference = async (info: ImageInfo) => {
 const loadImageInfos = async (infoFile: string): Promise<ImageInfos> => {
   const infos = await readImageInfos(infoFile);
   const withRef = await Promise.all(infos.map(loadImageReference));
-  return new Map(withRef.flatMap((info) => info.keys.map((k) => [k, info])));
+  return new Map(withRef.map((info) => [info.imageKey, info]));
 };
 
 const parseArgs = () => {

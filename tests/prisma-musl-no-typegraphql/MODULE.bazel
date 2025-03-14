@@ -1,3 +1,4 @@
+bazel_dep(name = "platforms", version = "0.0.11")
 bazel_dep(name = "aspect_rules_js", version = "2.2.0")
 bazel_dep(name = "aspect_rules_ts", version = "3.5.0")
 bazel_dep(name = "rules_oci", version = "2.2.2")
@@ -16,10 +17,10 @@ use_repo(rules_ts_ext, "npm_typescript")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
-    name = "node_image",
-    digest = "sha256:c29271c7f2b4788fe9b90a7506d790dc8f2ff46132e1b70e71bf0c0679c8451c",
+    name = "node_alpine_image",
+    digest = "sha256:dc4d20572e425f9d4c68a6f9c382fbcfec3fa2f8ef0b12cb1d96feabdb479a48",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "23.9.0",  # ignored, doc only
+    tag = "23.9.0-alpine",
 )
-use_repo(oci, "node_image", "node_image_linux_amd64")
+use_repo(oci, "node_alpine_image", "node_alpine_image_linux_amd64")

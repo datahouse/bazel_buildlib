@@ -1,6 +1,3 @@
-# Explicitly disable bzlmod to support Bazel 6 & 7.
-common --noenable_bzlmod
-
 # Configure remote cache (read only)
 build --remote_upload_local_results=false
 build --remote_cache=https://developer:fe5Haino9uonahtah5tohMahbaiShu@bazel-cache.datahouse.ch/

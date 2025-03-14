@@ -7,7 +7,7 @@ export interface HotReloadInfo {
 }
 
 export interface ImageInfo {
-  keys: string[];
+  imageKey: string;
   ociDir: string;
   ociDirShort: string;
   hotReload?: HotReloadInfo;

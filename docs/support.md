@@ -39,11 +39,6 @@ version bump is required for such changes.
 
   Rationale: It's very easy to fix downstream.
 
-- Removal of transitive bazel dependencies.
-
-  Rationale: Artifact of not having moved to bzlmod
-  (https://git.datahouse.ch/datahouse/it-bazel/issues/5), will become a non-issue.
-
 - Changes to functionality marked as EXPERIMENTAL.
 
   Rationale: functionality is still under development.

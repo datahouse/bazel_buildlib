@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@dh_buildlib_private_npm//:pnpm/package_json.bzl", _pnpm = "bin")
 
 exports_files([
     "test-pnpm-lock.sh",
@@ -17,15 +18,18 @@ bzl_library(
     ],
 )
 
-# Tiny wrapper around @pnpm:
-# - Injects `--dir="$BUILD_WORKSPACE_DIRECTORY"`
-# - Allows us to hide the @pnpm repository (and the extension).
+_pnpm.pnpm_binary(
+    name = "pnpm_raw",
+    visibility = ["//visibility:public"],
+)
+
+# Tiny wrapper around pnpm: injects `--dir="$BUILD_WORKSPACE_DIRECTORY"`
 sh_binary(
     name = "pnpm",
     srcs = [":pnpm.sh"],
-    data = ["@pnpm"],
+    data = [":pnpm_raw"],
     env = {
-        "PNPM_BIN": "$(rootpath @pnpm)",
+        "PNPM_BIN": "$(rootpath :pnpm_raw)",
     },
     visibility = ["//visibility:public"],
 )

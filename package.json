@@ -1,9 +1,8 @@
 {
   "type": "module",
   "devDependencies": {
-    "prettier": "3.5.1",
-    "renovate": "39.156.1",
-    "typescript": "5.7.3"
+    "prettier": "3.5.3",
+    "renovate": "39.185.7"
   },
   "pnpm": {
     "onlyBuiltDependencies": []

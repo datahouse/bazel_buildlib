@@ -2,7 +2,6 @@
 
 load("@aspect_bazel_lib//lib:utils.bzl", "utils")
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
-load("@aspect_rules_js//npm:repositories.bzl", "LATEST_PNPM_VERSION")
 load("@rules_nodejs//nodejs:repositories.bzl", "LATEST_KNOWN_NODE_VERSION")
 load("//private:npm_js_binary.bzl", "npm_js_test")
 load("//private:prettier_format.bzl", "prettier_format")
@@ -31,17 +30,25 @@ def renovate_setup(update_targets):
     updated_filename = "renovate.updated.%s" % ext
     formatted_filename = "renovate.fmt.%s" % ext
 
+    pnpm_version_file = Label("@dh_buildlib_private_npm//:pnpm/resolved.json")
     js_run_binary(
         name = "renovate.updated",
         tool = Label("//private/setup/renovate/src:update-config"),
-        srcs = [src],
+        srcs = [
+            src,
+            pnpm_version_file,
+        ],
+        # Do not execute in the bindir, work like a "normal" bazel build step.
+        copy_srcs_to_bin = False,
+        env = {"BAZEL_BINDIR": "."},
+        use_execroot_entry_point = False,
         args = [
             "--input",
             "$(location %s)" % src,
             "--output",
-            updated_filename,
-            "--pnpmVersion",
-            LATEST_PNPM_VERSION,
+            "$@",
+            "--pnpmVersionFile",
+            "$(execpath %s)" % pnpm_version_file,
             "--latestNodeVersion",
             LATEST_KNOWN_NODE_VERSION,
         ],

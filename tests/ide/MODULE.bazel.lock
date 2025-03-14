@@ -529,6 +529,208 @@
         ]
       }
     },
+    "@@dh_buildlib~//private/prisma:prisma_extension.bzl%prisma": {
+      "general": {
+        "bzlTransitiveDigest": "y2p7Zd5/wDhNXlBQN5VI3Bvopn11HczrsgBDy+rw/Yw=",
+        "usagesDigest": "BCedb0OK6XxKGcBtkkHz6xudbVo8LsE8imNKzzqgC0U=",
+        "recordedFileInputs": {
+          "@@dh_buildlib~~_repo_rules~prisma_engines_version//version.txt": "0592cb83ad0990edc9218fcecaf6121658fea8be4f02e8c3660aaaf3e8afd67c"
+        },
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "prisma_engines_darwin": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "darwin",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-5lYevdGC2U0uAtXuY9Po8IrpL6e+HxBsCm8sM1UJ+JE=",
+                "libquery-engine": "sha256-FN6i3LT/QDYGkmV6WnQeef2YvAkpFBSE1BdxdaMYdE4=",
+                "schema-engine": "sha256-EAXX/kRvO0kvLA0t9z3HP9Zj3uh9ruOr7dyPG57e92s="
+              }
+            }
+          },
+          "prisma_engines_darwin-arm64": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "darwin-arm64",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-beP0vY6ecfFLfBPpgtT2nf5Uv/ts5gb6lDvH3RPEKBQ=",
+                "libquery-engine": "sha256-RW24qqgRAv1aVu7B0eUIV9jz5kfS31CUwVMprylXFFc=",
+                "schema-engine": "sha256-uxd2HxEoAX8y7SDKIXPMF1s22yYHNJd4ynysGmMOozI="
+              }
+            }
+          },
+          "prisma_engines_debian-openssl-1.0.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "debian-openssl-1.0.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-7zQNa9eW7H0vknaK2/l/8N7V8x+at70XPgB3FOI+Mhk=",
+                "libquery-engine": "sha256-lLxd3S5w/QYbgMoQUNKN1EoDfgAn1/B0Gbb5GKBLu1Y=",
+                "schema-engine": "sha256-7nLyFJ9fbva9F824/eagCDJ1nMVlMXoU4fqZtXuHJDk="
+              }
+            }
+          },
+          "prisma_engines_debian-openssl-1.1.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "debian-openssl-1.1.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-bbl+6xfGKs1Rb/AcZuZl0RnkgXhfhSy3NHGeO5aCQ6Q=",
+                "libquery-engine": "sha256-mczEeqEftA7H25essvSB/GMjzQxEMSc8600a6JpRBec=",
+                "schema-engine": "sha256-/lntulqJ/K3O5kETr7HBrD2AdhUdzIicR8TZ4XalFpM="
+              }
+            }
+          },
+          "prisma_engines_debian-openssl-3.0.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "debian-openssl-3.0.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-Pl/YpYu326qqpbVfczM5RxB8iWXZlewG9vToqzSPIQo=",
+                "libquery-engine": "sha256-ETwMIJMjMgZmjH6QGD7GVwYYlyx9mo2ydEeunFViCjQ=",
+                "schema-engine": "sha256-rzzzPHOpUM3GJvkhU08lQ7rNspdq3RKxMRRW9YZtvhU="
+              }
+            }
+          },
+          "prisma_engines_linux-arm64-openssl-1.0.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "linux-arm64-openssl-1.0.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-WTijcATm3ySc8NbAryOT1klzNN1sA4axqRefxGdhy1c=",
+                "libquery-engine": "sha256-HMmhJZSGwlP1rT+fKX7CVcUm1iPUzFM+6m58c9wRrwk=",
+                "schema-engine": "sha256-+RCD40bVE2SeOuS2/JLvfbhxAh4BwoPflDUkdlNB/8U="
+              }
+            }
+          },
+          "prisma_engines_linux-arm64-openssl-1.1.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "linux-arm64-openssl-1.1.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-JBxc5hiiZlIIBGBmlDIE3XHY/tKiIndUzYo+CIOBhH0=",
+                "libquery-engine": "sha256-meDU17qXRJvqxQPHpu62eQP0JqV7lgWbsQMnybqpQ1w=",
+                "schema-engine": "sha256-mYt13q1W0hkcuWljsSeG4KcZfPE5qCQzv4x1lMBj7c8="
+              }
+            }
+          },
+          "prisma_engines_linux-arm64-openssl-3.0.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "linux-arm64-openssl-3.0.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-OM7xVE6X7Pet3i/zBiyhsFQm7OhWK4leKuAAwwqFfEk=",
+                "libquery-engine": "sha256-JcUbhq35Xrw0QiInxA+vTBHuKXBdnmB1i0d9W0OizrI=",
+                "schema-engine": "sha256-nwY82T7XiwcxzDglox1lUSpm5AGwHZ52tgiAdKNr5nA="
+              }
+            }
+          },
+          "prisma_engines_linux-musl": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "linux-musl",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-QR6/SnC7F/cOyeHcpRNYh/JJCOLIKzhmtu9IKpa1LZo=",
+                "libquery-engine": "sha256-H7mVaOo+c/3HjQyLwT7Tx0wFBb01Kyf7vtcd7efD7L4=",
+                "schema-engine": "sha256-6qKEhaN8UQuTV/FXPLwtPfvYzRGKGXSYmEXK9ktWPbM="
+              }
+            }
+          },
+          "prisma_engines_linux-musl-arm64-openssl-1.1.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "linux-musl-arm64-openssl-1.1.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-UYx4qjbZh9HJi/OP7EGnoHrhaZMPmL3iDNv2s/DV/3w=",
+                "libquery-engine": "sha256-1gqiHZdJ8g6z0g4/9Wv48pkTmGR/TjhX4EZbIHfALPU=",
+                "schema-engine": "sha256-d59Zey/QdgbvKA+/If3xXInQ/l/D0rUkq/pRh7KiyYc="
+              }
+            }
+          },
+          "prisma_engines_linux-musl-arm64-openssl-3.0.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "linux-musl-arm64-openssl-3.0.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-rWTARs4S+Dg/RS8tJUSyjFLl4xpzE5utTRYURBnhc6A=",
+                "libquery-engine": "sha256-zdrHhQJ/DNRXJcXq3J4dCXpb4Tikhdt4de0cOJZfLB4=",
+                "schema-engine": "sha256-fUwyG22RnjYMoFrNIN2Zx6ldoR6dnThx4wclFi8rWNE="
+              }
+            }
+          },
+          "prisma_engines_linux-musl-openssl-3.0.x": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "linux-musl-openssl-3.0.x",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-SnsnhjMaAz0QRNoheETwn42NBelXASaeXUs+ZiYchTg=",
+                "libquery-engine": "sha256-AyRxJS2v8UIIPXQetF46elXbrqogKr0rtqUXegFkvis=",
+                "schema-engine": "sha256-ph0FhFN+EbhZ5a/zK8y0jUq/mpyxaQewWz+YdravxPw="
+              }
+            }
+          },
+          "prisma_engines_windows": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_engines_store_repository",
+            "attributes": {
+              "platform": "windows",
+              "version": "605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+              "integrity": {
+                "query-engine": "sha256-e95HObaWqrqh2MTxn2UanwzAk0TGACC7bLjggyG2gBc=",
+                "libquery-engine": "sha256-tycyiX9/sdJOqdJsslS3ixDUJX6usn8E2fuC0grdxdU=",
+                "schema-engine": "sha256-z9zONfFR6o5Xdy8H/ZCbYRg4kRm3blGrEQXvhvlVBIs="
+              }
+            }
+          },
+          "prisma": {
+            "bzlFile": "@@dh_buildlib~//private/prisma:prisma_extension.bzl",
+            "ruleClassName": "_prisma_repository",
+            "attributes": {}
+          }
+        },
+        "moduleExtensionMetadata": {
+          "explicitRootModuleDirectDeps": [
+            "prisma"
+          ],
+          "explicitRootModuleDirectDevDeps": [],
+          "useAllRepos": "NO",
+          "reproducible": false
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "dh_buildlib~",
+            "prisma_engines_version",
+            "dh_buildlib~~_repo_rules~prisma_engines_version"
+          ]
+        ]
+      }
+    },
     "@@rules_jvm_external~//:extensions.bzl%maven": {
       "general": {
         "bzlTransitiveDigest": "ZZwUwwzxkACVpF3u5nup1ClQKp1WEF5TLy//fGjPiKU=",
@@ -1905,40 +2107,11 @@
     "@@rules_oci~//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "X5vWABw9jNfrjyV10zZf544VMgNvLLlRfVTe6xVXJkY=",
-        "usagesDigest": "JabjKxcwvMgrR8YcOlgVrMqILl2YaJm+vmkB3fj6jgM=",
+        "usagesDigest": "5qw/cpg4m3R5brhR/EGtGpYfDELx1yrZMAgIyNN2pXI=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
         "generatedRepoSpecs": {
-          "node_image_linux_amd64": {
-            "bzlFile": "@@rules_oci~//oci/private:pull.bzl",
-            "ruleClassName": "oci_pull",
-            "attributes": {
-              "scheme": "https",
-              "registry": "index.docker.io",
-              "repository": "library/node",
-              "identifier": "sha256:c29271c7f2b4788fe9b90a7506d790dc8f2ff46132e1b70e71bf0c0679c8451c",
-              "platform": "linux/amd64",
-              "target_name": "node_image_linux_amd64",
-              "bazel_tags": []
-            }
-          },
-          "node_image": {
-            "bzlFile": "@@rules_oci~//oci/private:pull.bzl",
-            "ruleClassName": "oci_alias",
-            "attributes": {
-              "target_name": "node_image",
-              "scheme": "https",
-              "registry": "index.docker.io",
-              "repository": "library/node",
-              "identifier": "sha256:c29271c7f2b4788fe9b90a7506d790dc8f2ff46132e1b70e71bf0c0679c8451c",
-              "platforms": {
-                "@@platforms//cpu:x86_64": "@node_image_linux_amd64"
-              },
-              "bzlmod_repository": "node_image",
-              "reproducible": true
-            }
-          },
           "bazel_features_version": {
             "bzlFile": "@@bazel_features~//private:version_repo.bzl",
             "ruleClassName": "version_repo",
@@ -2330,10 +2503,7 @@
           }
         },
         "moduleExtensionMetadata": {
-          "explicitRootModuleDirectDeps": [
-            "node_image",
-            "node_image_linux_amd64"
-          ],
+          "explicitRootModuleDirectDeps": [],
           "explicitRootModuleDirectDevDeps": [],
           "useAllRepos": "NO",
           "reproducible": false

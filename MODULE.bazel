@@ -1,5 +1,5 @@
 bazel_dep(name = "dh_buildlib", version = "0.0.0")
 local_path_override(
     module_name = "dh_buildlib",
-    path = "../../buildlib",
+    path = "buildlib",
 )

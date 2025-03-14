@@ -1,6 +1,7 @@
 """tests for prisma"""
 
 load("//:defs.bzl", "docker_image_for_ts_test", "prisma_cli_image", "prisma_schema")
+load("//prisma:defs.bzl", "prisma_deploy_image")
 load("//private:ts_library.bzl", "ts_test")
 load(":parse_distro_tests.bzl", "parse_distro_test_suite")
 load(":parse_libssl_version_tests.bzl", "parse_lib_ssl_version_test_suite")
@@ -28,11 +29,23 @@ docker_image_for_ts_test(
     image = ":cli_image",
 )
 
+prisma_deploy_image(
+    name = "deploy_image",
+    testonly = True,
+    schema = "schema.prisma",
+)
+
+docker_image_for_ts_test(
+    name = "load_deploy_image",
+    image = ":deploy_image",
+)
+
 ts_test(
     name = "test",
     tags = ["requires-network"],  # access to docker socket
     deps = [
         ":load_cli_image",
+        ":load_deploy_image",
         "//:node_modules/testcontainers",
     ],
 )

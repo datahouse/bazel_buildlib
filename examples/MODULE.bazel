@@ -1,9 +1,12 @@
-bazel_dep(name = "aspect_bazel_lib", version = "2.13.0")
-bazel_dep(name = "aspect_rules_js", version = "2.1.3")
+bazel_dep(name = "aspect_bazel_lib", version = "2.14.0")
+bazel_dep(name = "aspect_rules_js", version = "2.2.0")
 bazel_dep(name = "aspect_rules_ts", version = "3.5.0")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_oci", version = "2.2.2")
 bazel_dep(name = "dh_buildlib", version = "0.0.0")
+
+# When setting up in a different repository this should be
+# `git_override` (use it-bazel-new-repo to set it up).
 local_path_override(
     module_name = "dh_buildlib",
     path = "../buildlib",
@@ -16,26 +19,30 @@ rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
 rules_ts_ext.deps(ts_version_from = "@npm//:typescript/resolved.json")
 use_repo(rules_ts_ext, "npm_typescript")
 
+# Docker images your project needs.
+# - `node_image` is required by the base setup.
+# - Remove others if you do not need them.
+
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "nginx_image",
-    digest = "sha256:287ff321f9e3cde74b600cc26197424404157a72043226cbbf07ee8304a2c720",
+    digest = "sha256:9d6b58feebd2dbd3c56ab5853333d627cc6e281011cfd6050fa4bcf2072c9496",
     image = "index.docker.io/library/nginx",
     platforms = ["linux/amd64"],
-    tag = "1.27.1",  # ignored, doc only
+    tag = "1.27.4",  # ignored, doc only
 )
 oci.pull(
     name = "node_image",
-    digest = "sha256:a3816e038e05ea70d2640c845c285f49e416bdae2481a7ff94fde96647a10607",
+    digest = "sha256:c29271c7f2b4788fe9b90a7506d790dc8f2ff46132e1b70e71bf0c0679c8451c",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "22.3.0",  # ignored, doc only
+    tag = "23.9.0",  # ignored, doc only
 )
 oci.pull(
     name = "postgres_image",
-    digest = "sha256:4ec37d2a07a0067f176fdcc9d4bb633a5724d2cc4f892c7a2046d054bb6939e5",
+    digest = "sha256:81f32a88ec561664634637dd446487efd5f9d90996304b96210078e90e5c8b21",
     image = "index.docker.io/library/postgres",
     platforms = ["linux/amd64"],
-    tag = "16.4",  # ignored, doc only
+    tag = "17.4",  # ignored, doc only
 )
 use_repo(oci, "nginx_image", "nginx_image_linux_amd64", "node_image", "node_image_linux_amd64", "postgres_image", "postgres_image_linux_amd64")

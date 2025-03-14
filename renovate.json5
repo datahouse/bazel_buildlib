@@ -13,6 +13,15 @@
       matchUpdateTypes: ["major"],
       automerge: false,
     },
+    // Do not automerge major npm non-dev dependencies in buildlib:
+    // They are potentially breaking for downstream.
+    {
+      matchFileNames: ["buildlib/**"],
+      matchManagers: ["npm"],
+      matchDepTypes: ["!devDependencies"],
+      matchUpdateTypes: ["major"],
+      automerge: false,
+    },
     { matchPackageNames: ["node"], allowedVersions: "<= 22.13.0" },
   ],
   constraints: {

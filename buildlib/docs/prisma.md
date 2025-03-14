@@ -12,6 +12,7 @@ Also see [examples/prisma/BUILD.bazel](../../examples/prisma/BUILD.bazel).
 ## Functions
 
 - [prisma_cli_image](#prisma_cli_image)
+- [prisma_deploy_image](#prisma_deploy_image)
 - [prisma_generate](#prisma_generate)
 - [prisma_providers.prisma_client_js](#prisma_providers.prisma_client_js)
 - [prisma_providers.typegraphql_prisma](#prisma_providers.typegraphql_prisma)
@@ -70,6 +71,34 @@ Example: [`@examples//prisma:cli`](../../examples/prisma/BUILD.bazel#:~:text=nam
 | <a id="prisma_cli_image-platform"></a>platform |  Platform of the base image.   |  `Label("@dh_buildlib//private/docker:node_default_platform")` |
 | <a id="prisma_cli_image-visibility"></a>visibility |  visibility of the rule   |  `None` |
 | <a id="prisma_cli_image-testonly"></a>testonly |  testonly flag for all targets.   |  `None` |
+
+
+<a id="prisma_deploy_image"></a>
+
+## prisma_deploy_image
+
+<pre>
+load("@dh_buildlib//prisma:defs.bzl", "prisma_deploy_image")
+
+prisma_deploy_image(<a href="#prisma_deploy_image-name">name</a>, <a href="#prisma_deploy_image-schema">schema</a>, <a href="#prisma_deploy_image-base">base</a>, <a href="#prisma_deploy_image-platform">platform</a>, <a href="#prisma_deploy_image-visibility">visibility</a>, <a href="#prisma_deploy_image-testonly">testonly</a>)
+</pre>
+
+EXPERIMENTAL: Generates a docker image for managing production databases using the prisma cli.
+
+TODO.
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="prisma_deploy_image-name"></a>name |  name of the rule.   |  none |
+| <a id="prisma_deploy_image-schema"></a>schema |  prisma schema to use.   |  none |
+| <a id="prisma_deploy_image-base"></a>base |  base image to use   |  `"@node_image_linux_amd64"` |
+| <a id="prisma_deploy_image-platform"></a>platform |  Platform of the base image.   |  `Label("@dh_buildlib//private/docker:node_default_platform")` |
+| <a id="prisma_deploy_image-visibility"></a>visibility |  visibility of the rule   |  `None` |
+| <a id="prisma_deploy_image-testonly"></a>testonly |  testonly flag for all targets.   |  `None` |
 
 
 <a id="prisma_generate"></a>

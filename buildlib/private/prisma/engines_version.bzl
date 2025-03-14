@@ -1,4 +1,4 @@
-"""Function to find the prisma engines version from a the pnpm lock."""
+"""Repository rule to store the prisma engines version from a pnpm lock."""
 
 load("@aspect_bazel_lib//lib:repo_utils.bzl", "repo_utils")
 
@@ -9,7 +9,7 @@ def _load_pnpm_lock(ctx):
 
     yq_args = [
         yq_path,
-        str(ctx.path(Label("@@//:pnpm-lock.yaml"))),
+        str(ctx.path(ctx.attr.pnpm_lock)),
         "-o=json",
     ]
 
@@ -89,7 +89,8 @@ def _get_prisma_engines_version(pnpm_lock):
         .get("prisma")
 
     if prisma == None:
-        return None
+        # empty string as sentinel is safe, since we only have 40 char SHAs otherwise
+        return ""
 
     raw_version = _find_transitive_dependency(
         pnpm_lock.get("snapshots", {}),
@@ -107,6 +108,18 @@ def _get_prisma_engines_version(pnpm_lock):
 
     return version
 
-def get_prisma_engines_version(ctx):
+def _engines_version_impl(ctx):
     lock = _load_pnpm_lock(ctx)
-    return _get_prisma_engines_version(lock)
+    version = _get_prisma_engines_version(lock)
+    ctx.file("version.txt", content = version)
+    ctx.file("BUILD", content = """exports_files(["version.txt"])""")
+
+engines_version = repository_rule(
+    implementation = _engines_version_impl,
+    attrs = {
+        "pnpm_lock": attr.label(
+            mandatory = True,
+            allow_single_file = [".yaml"],
+        ),
+    },
+)
