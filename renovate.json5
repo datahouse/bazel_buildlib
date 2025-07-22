@@ -9,7 +9,7 @@
     // They are potentially breaking for downstream.
     {
       matchFileNames: ["buildlib/**"],
-      matchManagers: ["bazel", "bazel-module"],
+      matchManagers: ["bazel-module"],
       matchUpdateTypes: ["major"],
       automerge: false,
     },
@@ -22,9 +22,42 @@
       matchUpdateTypes: ["major"],
       automerge: false,
     },
-    { matchPackageNames: ["node"], allowedVersions: "<= 22.13.0" },
+    // Trigger buildlib boilerplate write if we update pnpm.
+    //
+    // We need to do this to update the renovate config.
+    //
+    // Repositories using dh_buildlib do this when they upgrade dh_buildlib.
+    // However, inside dh_buildlib, we need to do it right when we upgrade pnpm;
+    // otherwise tests fail.
+    {
+      matchManagers: ["npm"],
+      matchPackageNames: ["pnpm"],
+      postUpgradeTasks: {
+        commands: ["/renovate-commands/dh_buildlib_setup.write.sh"],
+        executionMode: "branch",
+      },
+    },
+    // Trigger buildlib boilerplate write if we update rules_nodjes
+    //
+    // We need to do this to update the renovate config.
+    //
+    // Repositories using dh_buildlib do this when they upgrade dh_buildlib.
+    // However, inside dh_buildlib, we need to do it right when we upgrade
+    // rules_nodejs; otherwise tests fail.
+    {
+      matchManagers: ["bazel-module"],
+      matchPackageNames: ["rules_nodejs"],
+      postUpgradeTasks: {
+        commands: [
+          "/renovate-commands/update-bzlmod-lock.sh",
+          "/renovate-commands/dh_buildlib_setup.write.sh",
+        ],
+        executionMode: "branch",
+      },
+    },
+    { matchPackageNames: ["node"], allowedVersions: "<= 22.15.1" },
   ],
   constraints: {
-    pnpm: "9.15.2",
+    pnpm: "10.13.1",
   },
 }

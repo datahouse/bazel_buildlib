@@ -1,0 +1,34 @@
+bazel_dep(name = "rules_java", version = "8.14.0")
+bazel_dep(name = "rules_jvm_external", version = "6.8")
+bazel_dep(name = "dh_buildlib", version = "0.0.0")
+local_path_override(
+    module_name = "dh_buildlib",
+    path = "../../buildlib",
+)
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    artifacts = [
+        # TODO(#1374): How do IDEs find this version?
+        # Use toml files?
+        # https://github.com/bazel-contrib/rules_jvm_external/blob/master/docs/bzlmod.md#declaring-dependencies-in-files
+        "com.google.googlejavaformat:google-java-format:1.27.0",
+    ],
+    fail_if_repin_required = True,
+    lock_file = "//:maven_install.json",
+    # TODO(#1375): maven seems to be necessary here to resolve google java format.
+    # Without it fails to resolve com_google_errorprone_error_prone_type_annotations.
+    # Why?
+    resolver = "maven",
+)
+use_repo(maven, "maven")
+
+# Pull in rules_python to set ignore_root_user_error = True.
+# Workaround for https://git.datahouse.ch/datahouse/it-drone-bazel/issues/49
+bazel_dep(name = "rules_python", version = "1.5.1")
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    ignore_root_user_error = True,
+    python_version = "3.11",
+)

@@ -8,9 +8,12 @@ Docker and docker compose related rules.
 - [build_dockerfile](#build_dockerfile)
 - [dc_service_reference](#dc_service_reference)
 
-## Functions
+## Macros
 
 - [dh_docker_images_push](#dh_docker_images_push)
+
+## Functions
+
 - [docker_compose](#docker_compose)
 
 
@@ -84,31 +87,6 @@ Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%2
 | <a id="dc_service_reference-service_name"></a>service_name |  Docker compose service name   | String | required |  |
 
 
-<a id="dh_docker_images_push"></a>
-
-## dh_docker_images_push
-
-<pre>
-load("@dh_buildlib//docker:defs.bzl", "dh_docker_images_push")
-
-dh_docker_images_push(<a href="#dh_docker_images_push-name">name</a>, <a href="#dh_docker_images_push-images">images</a>, <a href="#dh_docker_images_push-repository_prefix">repository_prefix</a>)
-</pre>
-
-Labels (stamps) and pushes image_names to docker.datarepo.ch
-
-Example: [`@examples//:docker-push`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22docker%2Dpush%22%2C)
-
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="dh_docker_images_push-name"></a>name |  Name of this rule. By convention, must be "docker-push". The name argument merely exists for consistency and to avoid breaking bazel tools.   |  none |
-| <a id="dh_docker_images_push-images"></a>images |  Dictionary from registry image name to build target.   |  none |
-| <a id="dh_docker_images_push-repository_prefix"></a>repository_prefix |  Prefix of the images on docker.datarepo.ch. Typically "project-tla".   |  none |
-
-
 <a id="docker_compose"></a>
 
 ## docker_compose
@@ -135,5 +113,32 @@ Example: [`@examples//dc`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%20%2
 | <a id="docker_compose-deps"></a>deps |  Container images required by this docker compose file.   |  none |
 | <a id="docker_compose-visibility"></a>visibility |  Visibility specifier.   |  `None` |
 | <a id="docker_compose-testonly"></a>testonly |  Testonly flag.   |  `None` |
+
+
+<a id="dh_docker_images_push"></a>
+
+## dh_docker_images_push
+
+<pre>
+load("@dh_buildlib//docker:defs.bzl", "dh_docker_images_push")
+
+dh_docker_images_push(*, <a href="#dh_docker_images_push-name">name</a>, <a href="#dh_docker_images_push-images">images</a>, <a href="#dh_docker_images_push-visibility">visibility</a>)
+</pre>
+
+Labels (stamps) and pushes image_names to docker.datarepo.ch
+
+Note: This macro should only be used in the top-level package and called "docker-push".
+Otherwise, it-drone-bazel will not push the images correctly.
+
+Example: [`@examples//:docker-push`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22docker%2Dpush%22%2C)
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="dh_docker_images_push-name"></a>name |  A unique name for this macro instance. Normally, this is also the name for the macro's main or only target. The names of any other targets that this macro might create will be this name with a string suffix.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="dh_docker_images_push-images"></a>images |  Dictionary from registry image name to build target.   | Dictionary: String -> Label; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
+| <a id="dh_docker_images_push-visibility"></a>visibility |  The visibility to be passed to this macro's exported targets. It always implicitly includes the location where this macro is instantiated, so this attribute only needs to be explicitly set if you want the macro's targets to be additionally visible somewhere else.   | <a href="https://bazel.build/concepts/labels">List of labels</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  |
 
 

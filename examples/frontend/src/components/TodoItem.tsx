@@ -4,9 +4,15 @@ import { ListItem, Checkbox, IconButton, Snackbar, Badge } from "@mui/joy";
 
 import { AttachFileOutlined, FileUploadOutlined } from "@mui/icons-material";
 
-import { useMutation, MutationResult } from "@apollo/client";
+import {
+  useMutation,
+  MutationResult,
+  FragmentType,
+  useSuspenseFragment,
+} from "@apollo/client";
 
-import { FragmentType, gql, useFragment } from "../../gql/index.js";
+import { gql } from "../../gql/index.js";
+import { TodoItemFieldsFragment } from "../../gql/graphql.js";
 
 import { GET_ACTIVE_TODOS, GET_ATTACHMENTS } from "../queries.js";
 
@@ -33,7 +39,7 @@ export const UPLOAD_TODO_ATTACHMENT = gql(`
 `);
 
 export interface Props {
-  item: FragmentType<typeof TODO_ITEM_FIELDS_FRAGMENT>;
+  item: FragmentType<TodoItemFieldsFragment>;
 }
 
 interface UploadSnackbarProps {
@@ -93,7 +99,10 @@ function AttachmentsButton({
 }
 
 export default function TodoItem({ item: itemFragment }: Props) {
-  const item = useFragment(TODO_ITEM_FIELDS_FRAGMENT, itemFragment);
+  const { data: item } = useSuspenseFragment({
+    fragment: TODO_ITEM_FIELDS_FRAGMENT,
+    from: itemFragment,
+  });
 
   const [upload, uploadResult] = useMutation(UPLOAD_TODO_ATTACHMENT, {
     refetchQueries: [GET_ACTIVE_TODOS, GET_ATTACHMENTS],

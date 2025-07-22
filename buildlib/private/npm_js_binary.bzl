@@ -97,10 +97,8 @@ def npm_js_test(
         name,
         node_module,
         entry_point,
-        args = [],
         data = [],
-        env = None,
-        tags = None):
+        **kwargs):
     dep_lbl, entry_point_lbl = _select_entrypoint(
         name,
         node_module,
@@ -112,9 +110,7 @@ def npm_js_test(
     js_test(
         name = name,
         entry_point = entry_point_lbl,
-        args = args,
         data = [dep_lbl] + data,
-        tags = tags,
-        env = env,
         testonly = True,
+        **kwargs
     )

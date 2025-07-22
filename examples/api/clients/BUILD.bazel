@@ -1,4 +1,4 @@
-load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@dh_buildlib//ts:defs.bzl", "ts_library")
 load("@npm//:openapi-typescript/package_json.bzl", _openapi_typescript = "bin")
 
 # Gravatar OpenAPI is from:

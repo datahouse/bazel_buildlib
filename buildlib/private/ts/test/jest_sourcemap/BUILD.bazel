@@ -1,0 +1,31 @@
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//private:ts_library.bzl", "ts_test")
+
+ts_test(
+    name = "failing_test",
+    srcs = ["failing.test.ts"],
+    tags = ["manual"],  # expected to fail
+)
+
+js_run_binary(
+    name = "test_output",
+    testonly = True,
+    args = ["--no-color"],
+    exit_code_out = "test.code.txt",
+    stderr = "test.stderr.txt",
+    stdout = "test.stdout.txt",
+    tool = ":failing_test",
+)
+
+# sh_test instead of a ts_test:
+# - Don't rely on the thing we're testing to test it.
+# - For a ts_test, we'd need another package: each package can only have a
+#   single ts_library/ts_test (as ts_library/ts_test creates a unique tsconfig
+#   target in each package).
+sh_test(
+    name = "check_output",
+    srcs = ["check_output.sh"],
+    args = ["$(rootpath test.stderr.txt)"],
+    data = ["test.stderr.txt"],
+)

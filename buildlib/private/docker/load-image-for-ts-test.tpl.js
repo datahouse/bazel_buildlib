@@ -1,2 +1,4 @@
-const { loadImageDirToDocker } = require("./{{ LIB }}");
-module.exports = () => loadImageDirToDocker("{{ IMAGE }}");
+import { loadImageDirToDocker } from "{{ LIB }}";
+
+const load = () => loadImageDirToDocker("{{ IMAGE }}");
+export default load;

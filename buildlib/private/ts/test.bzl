@@ -1,77 +1,77 @@
 """Datahouse specific rules for typescript code."""
 
-load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@aspect_rules_js//js:providers.bzl", "JsInfo")
 load("//private:npm_js_binary.bzl", "npm_js_test")
 load(":library.bzl", "ts_library")
 
-def _jest_config_impl(ctx):
-    dom = ctx.attr.uses_dom
+def _jest_test_impl(name, data, deps, env, tags, ts_sources, uses_dom, visibility):
+    if uses_dom:
+        env_deps = [
+            "//:node_modules/react-app-polyfill",
+            "//:node_modules/jest-environment-jsdom",
+            "//:node_modules/identity-obj-proxy",
+        ]
+    else:
+        env_deps = []
 
-    cfg_path = ctx.outputs.out.short_path
+    jest_config = Label("//private/ts/jest-config:config")
 
-    transform = {
-        # Invoke babel-jest for all JS sources.
-        # We need this for:
-        # - ESM support: Jest does not support ESM yet, so we transpile the
-        #   sources on the fly (we inject a custom babel config for this).
-        #   We should remove this, once Jest supports ESM:
-        #   https://jestjs.io/docs/ecmascript-modules
-        # - Module mocks, see #247
-        #   https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
-        "\\.[mc]?[jt]sx?$": "babel-jest",
-    }
-    module_name_mapper = {}
+    # Clone env so we can safely modify it (so we can configure the config 🤯).
+    env = dict(env)
+    env.update(
+        DH_BUILDLIB_TS_TEST_ENABLE_DOM = str(int(uses_dom)),
+        DH_BUILDLIB_TS_TEST_JEST_CONFIG_PATH = "$(rootpath %s)" % jest_config,
+    )
 
-    if dom:
-        # Transform imports of assets (svg, etc.)
-        # The patterns are copied from ejected CRA config.
-        transform["^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)"] = relative_file(ctx.file.file_transform.short_path, cfg_path)
-
-        # Mock imported CSS.
-        # https://jestjs.io/docs/webpack#mocking-css-modules
-        module_name_mapper["\\.css$"] = "identity-obj-proxy"
-
-    cfg = {
-        "haste": {"enableSymlinks": True},
-        "moduleNameMapper": module_name_mapper,
-        # Polyfills for jsdom. Technically only for react (not all DOM) but in
-        # practice the distinction unlikely matters.
-        "setupFiles": ["react-app-polyfill/jsdom"] if dom else [],
-        "testEnvironment": "jsdom" if dom else "node",
-        "transform": transform,
-        # Selectively CJS transform known node modules that publish only for ESM.
-        #
-        # We use a negative lookahead regex for this as suggested in the doc:
-        # https://jestjs.io/docs/configuration#transformignorepatterns-arraystring
-        #
-        # Note that the selectivity is crucial: At the time of writing,
-        # transforming all node modules on //frontend/test
-        # increases the test runtime from 10s to 70s.
-        "transformIgnorePatterns": [
-            "node_modules/\\.aspect_rules_js/(?!graphql-upload@)",
+    npm_js_test(
+        name = name,
+        node_module = "jest",
+        entry_point = "bin/jest.js",
+        # We pass srcs to js_test as well so it can resolve source maps and show error context.
+        # The customized testRegex ensures jest will not try to execute them as test.
+        data = [
+            "//:node_modules/@babel/plugin-transform-modules-commonjs",
+            Label("//private/ts/jest-config:deps"),
+            jest_config,
+        ] + deps + env_deps + data + ts_sources,
+        tags = tags,
+        env = env,
+        # node_fs patching seems to badly interact with how jest loads dependencies.
+        # the jest 30.x upgrade surfaced this (see #1316).
+        patch_node_fs = False,
+        fixed_args = [
+            "--no-cache",
+            "--ci",
+            "--colors",
+            "--config",
+            "$(rootpath %s)" % jest_config,
         ],
-    }
+        visibility = visibility,
+    )
 
-    ctx.actions.write(ctx.outputs.out, json.encode(cfg))
-
-_jest_config = rule(
-    implementation = _jest_config_impl,
+_jest_test = macro(
+    implementation = _jest_test_impl,
     attrs = {
-        "file_transform": attr.label(allow_single_file = [".cjs"]),
-        "out": attr.output(),
-        "uses_dom": attr.bool(),
+        "data": attr.label_list(),
+        "deps": attr.label_list(providers = [JsInfo]),
+        "env": attr.string_dict(
+            default = {},
+            configurable = False,
+        ),
+        "tags": attr.string_list(configurable = False),
+        "ts_sources": attr.label_list(allow_files = True),
+        "uses_dom": attr.bool(configurable = False),
     },
 )
 
 def ts_test(
         name,
-        srcs = None,
+        srcs,
         deps = [],
         data = [],
         uses_dom = False,
         env = None,
-        tags = None,
+        tags = [],
         tsc_repository = "@npm_typescript"):
     """Typescript test (run with jest)
 
@@ -79,13 +79,13 @@ def ts_test(
 
     Args:
       name: name of the rule
-      srcs: tests to compile and run. Defaults to `ts_default_srcs()`.
+      srcs: tests to compile and run. Typically a glob: `glob(["**/*.ts", "**/*.tsx"])`.
       deps: dependencies (other ts_library or npm dependencies)
       data: required runtime data (e.g. csv files)
       uses_dom: Whether the tests (or the code under test) requires a DOM.
       env: Additional environment variables to be made available in the test
         (subject to `$(location)` and make variable expansion).
-      tags: tags (propagated to the test rule)
+      tags: tags, propagated to all targets
       tsc_repository: which typescript bazel repository to use
         (most likely you will not need this option).
     """
@@ -98,57 +98,19 @@ def ts_test(
             "//:node_modules/@types/jest",
         ] + deps,
         testonly = True,
+        tags = tags,
         tsc_repository = tsc_repository,
     )
 
-    _config_name = name + ".jest.config.json"
-
-    _jest_config(
-        name = name + ".jest.config",
-        uses_dom = uses_dom,
-        out = _config_name,
-        file_transform = Label("//private/ts:file_transform"),
-        testonly = True,
-    )
-
-    # Babel config (implicitly read by `babel-jest`).
-    copy_file(
-        name = name + ".babel.config.cjs",
-        src = Label(":babel.config.cjs"),
-        out = "babel.config.cjs",
-    )
-
-    if uses_dom:
-        env_deps = [
-            "//:node_modules/react-app-polyfill",
-            "//:node_modules/jest-environment-jsdom",
-            "//:node_modules/identity-obj-proxy",
-            Label("//private/ts:file_transform"),
-        ]
-    else:
-        env_deps = []
-
-    npm_js_test(
+    _jest_test(
         name = name,
-        node_module = "jest",
-        entry_point = "bin/jest.js",
+        ts_sources = srcs,
+        deps = [name + ".compiled"],
+        uses_dom = uses_dom,
         # Conceputally it might make more sense to pass `data` to the `ts_library` above.
         # However, that will make location expansion in `env` fail.
         # Therefore, we only pass it here.
-        data = [
-            name + ".compiled",
-            _config_name,
-            name + ".babel.config.cjs",
-            "//:node_modules/@babel/plugin-transform-modules-commonjs",
-        ] + env_deps + data,
+        data = data,
         tags = tags,
         env = env,
-        args = [
-            "--no-cache",
-            "--no-watchman",
-            "--ci",
-            "--colors",
-            "--config",
-            "$(rootpath %s)" % _config_name,
-        ],
     )

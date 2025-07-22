@@ -1,0 +1,10 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Data {
+  id       Int    @id @default(autoincrement())
+  value    String
+  newField String // this field is **not** in the migrations.
+}

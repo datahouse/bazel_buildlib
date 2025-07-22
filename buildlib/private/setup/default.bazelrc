@@ -9,15 +9,18 @@ build --host_platform=@dh_buildlib//:host_platform
 build --sandbox_default_allow_network=false
 build --incompatible_strict_action_env
 
-# No legacy runfiles for speed.
-build --nolegacy_external_runfiles
-
 # Look into directories for updates (so if you change a file in them,
 # they are considered "changed").
 startup --host_jvm_args=-DBAZEL_TRACK_SOURCE_DIRECTORIES=1
 
 # Configure skipLibCheck for rules_ts
 common --@dh_buildlib//ts:skipLibCheck=honor_tsconfig
+
+# Configure java version
+build --java_language_version=21
+build --java_runtime_version=remotejdk_21
+build --tool_java_language_version=21
+build --tool_java_runtime_version=remotejdk_21
 
 # Display test output if something fails
 test --test_output=errors

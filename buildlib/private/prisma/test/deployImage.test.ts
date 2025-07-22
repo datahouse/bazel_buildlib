@@ -1,41 +1,33 @@
-import { GenericContainer, Wait } from "testcontainers";
 import { text } from "node:stream/consumers";
+import { GenericContainer, Network, Wait } from "testcontainers";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
 
-import loadPrismaDeployImage from "./load_deploy_image.js";
+import loadPrismaDeployDefaultImage from "./load_deploy_image_default.js";
+import loadPrismaDeployAlpineImage from "./load_deploy_image_alpine.js";
+import loadPostgresImage from "./load_postgres_image.js";
 
-const runCommand = async (...cmd: string[]) => {
-  const testImage = await loadPrismaDeployImage();
-
-  const container = await new GenericContainer(testImage)
+const runContainerOneShot = async (
+  container: GenericContainer,
+): Promise<string> => {
+  const startedContainer = await container
     .withWaitStrategy(Wait.forOneShotStartup())
-    .withCommand(cmd)
     .start();
 
-  return text(await container.logs());
+  return text(await startedContainer.logs());
 };
 
 describe("prisma deploy image", () => {
-  // running without argument just runs prisma and prints the help output
-  it(
-    "default container behaviour runs prisma without arguments",
-    async () => {
-      const output = await runCommand();
-      // this is the contained in the output for prisma 5.22.0
-      //     Usage
-      //
-      //       $ prisma [command]
-      expect(output).toMatch(/Usage\s*\$\sprisma\s\[command\]/);
-    },
-    5 * 60 * 1000,
-  );
-
   // this runs prisma version; it ensures that arguments are being passed to
   // the prisma cli and the resulting output is a json object which contains a
   // prisma field which matches a version regex
   it(
     "can run prisma cli with version passed as argument",
     async () => {
-      const output = await runCommand("prisma", "version", "--json");
+      const container = new GenericContainer(
+        await loadPrismaDeployDefaultImage(),
+      ).withCommand(["prisma", "version", "--json"]);
+
+      const output = await runContainerOneShot(container);
       const parsedOutput = JSON.parse(output);
       expect(parsedOutput).toHaveProperty(
         "prisma",
@@ -45,13 +37,44 @@ describe("prisma deploy image", () => {
     5 * 60 * 1000,
   );
 
-  // this runs format on the schema.prisma inside the container
-  it(
-    "can find schema.prisma and format it using prisma cli",
-    async () => {
-      const output = await runCommand("prisma", "format");
-      // more output is generated but it contains this
-      expect(output).toMatch("Formatted schema.prisma");
+  // this spins up a new network and postgres container dedicated for this
+  // test; it performs a migration based on the content which is add to the test
+  // deploy image.
+  it.each<[string, () => Promise<string>]>([
+    ["default image", loadPrismaDeployDefaultImage],
+    ["alpine image", loadPrismaDeployAlpineImage],
+  ])(
+    "can run the default container behaviour performing prisma migrate deploy",
+    async (_, loadImageFunction) => {
+      const network = await new Network().start();
+      try {
+        const postgresImage = await loadPostgresImage();
+        const psqlContainer = await new PostgreSqlContainer(postgresImage)
+          .withNetwork(network)
+          .start();
+        try {
+          const databaseUrl = new URL(psqlContainer.getConnectionUri());
+          databaseUrl.hostname = psqlContainer.getHostname(); // docker container hostname
+          databaseUrl.port = "5432";
+
+          const container = new GenericContainer(await loadImageFunction())
+            .withEnvironment({ DATABASE_URL: databaseUrl.toString() })
+            .withNetwork(network);
+
+          const output = await runContainerOneShot(container);
+          expect(output).toMatch(/1 migration found in prisma\/migrations/);
+          expect(output).toMatch(
+            /Applying migration `20250404145926_database_initialization/,
+          );
+          expect(output).toMatch(
+            /All migrations have been successfully applied./,
+          );
+        } finally {
+          await psqlContainer.stop();
+        }
+      } finally {
+        await network.stop();
+      }
     },
     5 * 60 * 1000,
   );

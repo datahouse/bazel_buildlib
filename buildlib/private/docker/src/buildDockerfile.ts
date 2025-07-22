@@ -10,17 +10,12 @@ import { z } from "zod";
 
 // See
 // https://github.com/moby/moby/blob/796da163f92ad486a4f0118b4008d9bd17b27c2e/pkg/jsonmessage/jsonmessage.go#L145-L158
-const sha256Prefix = "sha256:";
-
 const dockerMsgSchema = z.union([
   z.object({ stream: z.string() }),
   z.object({ error: z.string() }),
   z.object({
     aux: z.object({
-      ID: z
-        .string()
-        .startsWith(sha256Prefix)
-        .transform((s) => s.slice(sha256Prefix.length)),
+      ID: z.string().startsWith("sha256:"),
     }),
   }),
 ]);

@@ -1,6 +1,7 @@
 """Unit tests for parse_distro in lib.bzl."""
 
-load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
+load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
+load("//private:assert_failure_test.bzl", "assert_failure_test")
 load("//private/prisma:lib.bzl", "parse_distro")
 
 #######################################################################
@@ -32,19 +33,6 @@ _parse_distro_rule = rule(
     },
 )
 
-def _assert_failure_test_impl(ctx):
-    env = analysistest.begin(ctx)
-    asserts.expect_failure(env, ctx.attr.expected_failure)
-    return analysistest.end(env)
-
-_assert_failure_test = analysistest.make(
-    _assert_failure_test_impl,
-    expect_failure = True,
-    attrs = {
-        "expected_failure": attr.string(),
-    },
-)
-
 def _parse_distro_fail_test(name, os_releases, expected_failure):
     _parse_distro_rule(
         name = name + ".parse",
@@ -52,7 +40,7 @@ def _parse_distro_fail_test(name, os_releases, expected_failure):
         tags = ["manual"],
     )
 
-    _assert_failure_test(
+    assert_failure_test(
         name = name,
         expected_failure = expected_failure,
         target_under_test = name + ".parse",

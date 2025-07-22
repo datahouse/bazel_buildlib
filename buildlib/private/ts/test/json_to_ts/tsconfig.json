@@ -1,0 +1,9 @@
+{
+  "extends": "../../../../tsconfig-base.json",
+  "include": [
+    "**/*",
+    "../../../../bazel-bin/private/ts/test/json_to_ts/data.ts",
+    "../../../../bazel-bin/private/ts/test/json_to_ts/untyped_data.ts"
+  ],
+  "references": []
+}

@@ -1,4 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "docker_image_for_ts_test", "ts_test")
+load("@dh_buildlib//ts:defs.bzl", "ts_test")
+load("@dh_buildlib//ts/docker:defs.bzl", "docker_image_for_ts_test")
 load("@rules_oci//oci:defs.bzl", "oci_image")
 
 # An empty docker image for testing.
@@ -15,5 +16,6 @@ docker_image_for_ts_test(
 
 ts_test(
     name = "test",
+    srcs = glob(["**/*.ts"]),
     deps = [":load_my_image"],
 )

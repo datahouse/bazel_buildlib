@@ -1,15 +1,24 @@
 import "@testing-library/jest-dom";
 
-import { render, screen } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
+import { render as rawRender, act, screen } from "@testing-library/react";
+import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 
 import AttachmentsModal from "../../src/components/AttachmentsModal.js";
 
 import { GET_ATTACHMENTS } from "../../src/queries.js";
 
-// General note: Uploads are tested in TodoLists.test.tsx
+const render = (mocks: MockedResponse[]) => {
+  // General note: Uploads are tested in TodoLists.test.tsx
+  const ignore = () => {};
 
-const ignore = () => {};
+  return act(() =>
+    rawRender(
+      <MockedProvider mocks={mocks}>
+        <AttachmentsModal open itemId={10} upload={ignore} onClose={ignore} />
+      </MockedProvider>,
+    ),
+  );
+};
 
 test("renders a list of attachments", async () => {
   const mocks = [
@@ -37,11 +46,7 @@ test("renders a list of attachments", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <AttachmentsModal open itemId={10} upload={ignore} onClose={ignore} />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   const files = await screen.findAllByText(/^file.+/);
 
@@ -69,11 +74,7 @@ test("reports loading", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <AttachmentsModal open itemId={10} upload={ignore} onClose={ignore} />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   expect(
     await screen.findByText("Loading the attachments..."),
@@ -91,11 +92,7 @@ test("reports errors", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <AttachmentsModal open itemId={10} upload={ignore} onClose={ignore} />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   expect(await screen.findByText("Error: Boom!")).toBeInTheDocument();
 });

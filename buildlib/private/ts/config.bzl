@@ -5,7 +5,49 @@ load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@aspect_rules_ts//ts:defs.bzl", "TsConfigInfo", "ts_config")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//private:prettier_format.bzl", "prettier_format")
-load(":providers.bzl", "TsLibraryInfo")
+
+_GenTsConfigInfo = provider(
+    doc = """Provider for gen_tsconfig (buidlib internal).
+
+    Serves primarily as a marker, but also forwards info.
+    """,
+    fields = {
+        "uses_dom": "Whether the tsconfig enables the DOM.",
+    },
+)
+
+_TsLibraryInfo = provider(
+    doc = """Provider for buildlib ts_library targets (buildlib internal).
+
+    The provider gets attached to ts_project targets created by buildlib via
+    _ts_library_info_aspect.
+    """,
+    fields = {
+        "uses_dom": "Whether the library uses the DOM.",
+    },
+)
+
+def _ts_library_info_aspect_impl(_target, ctx):
+    if hasattr(ctx.rule.attr, "src") and _GenTsConfigInfo in ctx.rule.attr.src:
+        # This is a ts_config target which depends on a gen_tsconfig target.
+        # Therefore, the ts_config target created by buildlib --> propagate info.
+        info = ctx.rule.attr.src[_GenTsConfigInfo]
+        return [
+            _TsLibraryInfo(uses_dom = info.uses_dom),
+        ]
+
+    if hasattr(ctx.rule.attr, "tsconfig") and _TsLibraryInfo in ctx.rule.attr.tsconfig:
+        # This is a ts_project target which depends on a ts_config target created by bulidlib.
+        # Therefore, the ts_project target was created by buildlib --> propagate info.
+        return [ctx.rule.attr.tsconfig[_TsLibraryInfo]]
+
+    # If we get here, our target is not created by buildlib --> do not return info.
+    return []
+
+_ts_library_info_aspect = aspect(
+    implementation = _ts_library_info_aspect_impl,
+    attr_aspects = ["deps", "tsconfig"],
+)
 
 def _tsconfig_includes(ctx):
     project_dir = paths.dirname(ctx.build_file_path)
@@ -34,14 +76,14 @@ def _tsconfig_references(ctx):
     ts_library_deps = [
         dep
         for dep in ctx.attr.deps
-        if TsLibraryInfo in dep
+        if _TsLibraryInfo in dep
     ]
 
     if not ctx.attr.uses_dom:
         dom_deps = [
             "- {}\n".format(dep.label)
             for dep in ts_library_deps
-            if dep[TsLibraryInfo].uses_dom
+            if dep[_TsLibraryInfo].uses_dom
         ]
 
         if dom_deps:
@@ -77,11 +119,16 @@ def _gen_tsconfig_impl(ctx):
         output = out,
     )
 
-    return DefaultInfo(files = depset([out]))
+    return [
+        DefaultInfo(files = depset([out])),
+        _GenTsConfigInfo(uses_dom = ctx.attr.uses_dom),
+    ]
 
 _gen_tsconfig = rule(
     attrs = {
-        "deps": attr.label_list(),
+        "deps": attr.label_list(
+            aspects = [_ts_library_info_aspect],
+        ),
         "extends": attr.label(
             allow_single_file = True,
             providers = [TsConfigInfo],
@@ -94,7 +141,7 @@ _gen_tsconfig = rule(
     implementation = _gen_tsconfig_impl,
 )
 
-def tsconfig(name, srcs, deps, uses_dom, testonly = None):
+def tsconfig(name, srcs, deps, uses_dom, tags = [], testonly = None):
     """tsconfig.json generation for a single ts_library (buildlib internal).
 
     - Will implicitly depend on `//:tsconfig-base`.
@@ -105,6 +152,7 @@ def tsconfig(name, srcs, deps, uses_dom, testonly = None):
       srcs: source files.
       deps: dependencies.
       uses_dom: Whether the DOM library should be enabled.
+      tags: tags, propagated to all targets.
       testonly: testonly flag.
     """
 
@@ -117,6 +165,7 @@ def tsconfig(name, srcs, deps, uses_dom, testonly = None):
         deps = deps,
         uses_dom = uses_dom,
         extends = "//:tsconfig-base",
+        tags = tags,
         testonly = testonly,
     )
 
@@ -124,6 +173,7 @@ def tsconfig(name, srcs, deps, uses_dom, testonly = None):
         name = "tsconfig",
         src = ":tsconfig.gen",
         deps = ["//:tsconfig-base"],
+        tags = tags,
         testonly = testonly,
     )
 
@@ -131,6 +181,7 @@ def tsconfig(name, srcs, deps, uses_dom, testonly = None):
         name = "tsconfig.format",
         src = "tsconfig.gen",
         out = "tsconfig.fmt.json",
+        tags = tags,
         testonly = testonly,
     )
 
@@ -138,6 +189,7 @@ def tsconfig(name, srcs, deps, uses_dom, testonly = None):
         name = "tsconfig.write",
         in_file = "tsconfig.fmt.json",
         out_file = "tsconfig.json",
+        tags = tags,
         testonly = testonly,
     )
 

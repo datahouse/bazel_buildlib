@@ -2,8 +2,13 @@ import "@testing-library/jest-dom";
 
 import { Unmasked } from "@apollo/client";
 
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MockedProvider } from "@apollo/client/testing";
+import {
+  render as rawRender,
+  act,
+  screen,
+  fireEvent,
+} from "@testing-library/react";
+import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 
 import type { DocumentType } from "../gql/index.js";
 
@@ -65,23 +70,28 @@ const fakeData = (): GetActiveTodosData => ({
   ],
 });
 
-const renderWithData = (data: GetActiveTodosData) => {
+const render = (mocks: MockedResponse[]) =>
+  act(() =>
+    rawRender(
+      <MockedProvider mocks={mocks}>
+        <TodoLists />
+      </MockedProvider>,
+    ),
+  );
+
+const renderWithFakeData = () => {
   const mocks = [
     {
       request: { query: GET_ACTIVE_TODOS },
-      result: { data },
+      result: { data: fakeData() },
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks}>
-      <TodoLists />
-    </MockedProvider>,
-  );
+  return render(mocks);
 };
 
 test("renders a list of the todo lists", async () => {
-  renderWithData(fakeData());
+  await renderWithFakeData();
 
   const lists = await screen.findAllByText(/^list.+/);
 
@@ -92,7 +102,7 @@ test("renders a list of the todo lists", async () => {
 });
 
 test("collapses and expands lists", async () => {
-  renderWithData(fakeData());
+  await renderWithFakeData();
 
   // Wait until lists are rendered.
   const lists = await screen.findAllByText(/^list.+/);
@@ -117,7 +127,7 @@ test("collapses and expands lists", async () => {
 });
 
 test("shows attachment count", async () => {
-  renderWithData(fakeData());
+  await renderWithFakeData();
 
   // The first list should be expanded by default
   const badge = await screen.findByLabelText(/2 attachments/);
@@ -158,11 +168,7 @@ test("opens attachments dialog", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks}>
-      <TodoLists />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   // The first list should be expanded by default
   // Click the attachments button.
@@ -206,11 +212,7 @@ test("upload (without attachments dialog)", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks}>
-      <TodoLists />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   // Expand the second list (no attachments so we can upload directly).
   fireEvent.click(await screen.findByText("list 2"));
@@ -303,11 +305,7 @@ test("upload (with attachments dialog)", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks}>
-      <TodoLists />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   // Open the attachments dialog.
   fireEvent.click(await screen.findByLabelText(/2 attachments/));
@@ -335,11 +333,7 @@ test("reports loading", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <TodoLists />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   expect(await screen.findByText("Loading your TODOs...")).toBeInTheDocument();
 });
@@ -352,17 +346,13 @@ test("reports an error", async () => {
     },
   ];
 
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <TodoLists />
-    </MockedProvider>,
-  );
+  await render(mocks);
 
   expect(await screen.findByText("Error: Boom!")).toBeInTheDocument();
 });
 
 test("expands first list by default", async () => {
-  renderWithData(fakeData());
+  await renderWithFakeData();
 
   // Wait until lists are rendered.
   await screen.findAllByText(/^list.+/);

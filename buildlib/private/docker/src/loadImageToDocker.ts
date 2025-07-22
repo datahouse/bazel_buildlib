@@ -47,7 +47,7 @@ const streamLoadTar = async (
   pack.finalize();
 };
 
-const loadedRE = /^Loaded image ID: sha256:([0-9a-f]{64})\n$/;
+const loadedRE = /^Loaded image ID: (sha256:[0-9a-f]{64})\n$/;
 
 type DockerLoadResult = { error: string } | { digest: string };
 
@@ -93,7 +93,7 @@ const dockerLoadImage = async (
 
   // Check the digest matches the OCIImage manifest.
   const ociDigest = input.image.manifest.config.digest;
-  const dockerDigest = `sha256:${loadResult.digest}`;
+  const dockerDigest = loadResult.digest;
 
   if (ociDigest !== dockerDigest) {
     throw new Error(

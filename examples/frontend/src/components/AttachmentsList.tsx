@@ -1,8 +1,8 @@
-import { Alert, List, ListItem, IconButton, ListItemButton } from "@mui/joy";
+import { List, ListItem, IconButton, ListItemButton } from "@mui/joy";
 
 import { Delete } from "@mui/icons-material";
 
-import { useQuery } from "@apollo/client";
+import { useSuspenseQuery } from "@apollo/client";
 
 import { GET_ATTACHMENTS } from "../queries.js";
 
@@ -37,25 +37,9 @@ export interface Props {
 }
 
 export default function AttachmentsList({ itemId }: Props) {
-  const { loading, error, data } = useQuery(GET_ATTACHMENTS, {
+  const { data } = useSuspenseQuery(GET_ATTACHMENTS, {
     variables: { itemId },
   });
-
-  if (error) {
-    return (
-      <Alert color="danger" variant="soft">
-        Error: {error.message}
-      </Alert>
-    );
-  }
-
-  if (loading || data === undefined) {
-    return (
-      <Alert color="warning" variant="soft">
-        Loading the attachments...
-      </Alert>
-    );
-  }
 
   return (
     <List>

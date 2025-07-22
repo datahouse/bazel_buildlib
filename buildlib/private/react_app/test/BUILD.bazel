@@ -1,7 +1,7 @@
-load("//:defs.bzl", "docker_image_for_ts_test")
 load("//private:ts_library.bzl", "ts_test")
 load("//private/react_app:hot_reload_base.bzl", "hot_reload_base")
 load("//private/react_app:react_app.bzl", "react_app")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test")
 
 hot_reload_base(
     name = "hot-base-test-image",
@@ -17,6 +17,7 @@ docker_image_for_ts_test(
 
 ts_test(
     name = "test",
+    srcs = glob(["**/*.ts"]),
     tags = ["requires-network"],  # access to docker socket
     deps = [
         ":load_hot_base_test_image",

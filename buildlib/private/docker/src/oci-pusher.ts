@@ -1,8 +1,12 @@
 import { readFile } from "node:fs/promises";
 
+import process from "node:process";
+
 import argparse from "argparse";
 
 import spawnInheritIO from "./spawnInheritIO.js";
+
+import { inferRepositoryPrefix } from "./repoPrefix.js";
 
 const parseArgs = () => {
   const parser = new argparse.ArgumentParser({
@@ -21,21 +25,22 @@ const parseArgs = () => {
     help: "File with tag to push",
     required: true,
   });
-  parser.add_argument("--repositoryPrefix", {
-    help: "Prefix of repository to push to",
-    required: true,
-  });
   parser.add_argument("--imageInfoFile", {
     help: "File with info about images to push",
     required: true,
+  });
+  parser.add_argument("--dry-run", {
+    help: "Only show commands, don't run",
+    action: argparse.BooleanOptionalAction,
+    default: false,
   });
 
   return parser.parse_args() as {
     cranePath: string;
     stamp: string;
     tagFile: string;
-    repositoryPrefix: string;
     imageInfoFile: string;
+    dry_run: boolean;
   };
 };
 
@@ -50,13 +55,20 @@ const loadTag = async (tagFile: string) => {
 };
 
 const main = async () => {
-  const { cranePath, stamp, tagFile, repositoryPrefix, imageInfoFile } =
-    parseArgs();
+  const {
+    cranePath,
+    stamp,
+    tagFile,
+    imageInfoFile,
+    dry_run: dryRun,
+  } = parseArgs();
 
   if (stamp !== "true")
     throw new Error(
       "Refusing to push an unstamped build. Did you forget to set --stamp?",
     );
+
+  const repositoryPrefix = inferRepositoryPrefix(process.env);
 
   const tag = await loadTag(tagFile);
 
@@ -64,16 +76,17 @@ const main = async () => {
     await readFile(imageInfoFile, "utf8"),
   ) as Record<string, string>;
 
-  await Promise.all(
-    Object.entries(imageInfos).map(([repository, ociDir]) =>
-      spawnInheritIO(
-        cranePath,
-        "push",
-        ociDir,
-        `${repositoryPrefix}/${repository}:${tag}`,
-      ),
-    ),
-  );
+  const commands = Object.entries(imageInfos).map(([repository, ociDir]) => [
+    "push",
+    ociDir,
+    `${repositoryPrefix}/${repository}:${tag}`,
+  ]);
+
+  if (dryRun) {
+    console.log("dh_docker_images_push would run:", commands);
+  } else {
+    await Promise.all(commands.map((cmd) => spawnInheritIO(cranePath, ...cmd)));
+  }
 };
 
 await main();

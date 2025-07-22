@@ -1,0 +1,6 @@
+load("//private:bzl_lib_for_docs.bzl", "bzl_lib_for_docs")
+
+bzl_lib_for_docs(
+    name = "defs",
+    deps = ["//private/prisma/generators:bzl"],
+)

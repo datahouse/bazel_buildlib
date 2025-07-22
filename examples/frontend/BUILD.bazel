@@ -1,4 +1,4 @@
-load("@dh_buildlib//:defs.bzl", "react_app")
+load("@dh_buildlib//react_app:defs.bzl", "react_app")
 
 react_app(
     name = "frontend",

@@ -15,5 +15,7 @@ bzl_library(
     deps = [
         "//private:npm_js_binary",
         "@aspect_rules_js//js:defs",
+        "@rules_java//java:core_rules",
+        "@rules_shell//shell:rules_bzl",
     ],
 )

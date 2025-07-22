@@ -48,7 +48,7 @@ Example: [`@buildlib//private/ts/test:data`](../private/ts/test/BUILD.bazel#:~:t
 <pre>
 load("@dh_buildlib//ts:defs.bzl", "ts_library")
 
-ts_library(<a href="#ts_library-name">name</a>, <a href="#ts_library-srcs">srcs</a>, <a href="#ts_library-deps">deps</a>, <a href="#ts_library-data">data</a>, <a href="#ts_library-assets">assets</a>, <a href="#ts_library-uses_dom">uses_dom</a>, <a href="#ts_library-tsc_repository">tsc_repository</a>, <a href="#ts_library-visibility">visibility</a>, <a href="#ts_library-testonly">testonly</a>)
+ts_library(<a href="#ts_library-name">name</a>, <a href="#ts_library-srcs">srcs</a>, <a href="#ts_library-deps">deps</a>, <a href="#ts_library-data">data</a>, <a href="#ts_library-assets">assets</a>, <a href="#ts_library-uses_dom">uses_dom</a>, <a href="#ts_library-tsc_repository">tsc_repository</a>, <a href="#ts_library-tags">tags</a>, <a href="#ts_library-visibility">visibility</a>, <a href="#ts_library-testonly">testonly</a>)
 </pre>
 
 Typescript library.
@@ -62,12 +62,13 @@ Example: [`@examples//shared-lib/src`](../../examples/shared-lib/src/BUILD.bazel
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="ts_library-name"></a>name |  name of the rule   |  none |
-| <a id="ts_library-srcs"></a>srcs |  ts, tsx sources to compile. Defaults to `glob(["**/*.ts", "**/*.tsx"])`.   |  `None` |
+| <a id="ts_library-srcs"></a>srcs |  ts, tsx sources to compile. Typically a glob: `glob(["**/*.ts", "**/*.tsx"])`.   |  none |
 | <a id="ts_library-deps"></a>deps |  dependencies (other ts_library or npm dependencies)   |  `[]` |
 | <a id="ts_library-data"></a>data |  required runtime data (e.g. csv files)   |  `None` |
 | <a id="ts_library-assets"></a>assets |  required imported assets (e.g. css files) - Use `assets` for files you `import` (e.g. import './App.css') - Use `data` for files you read programmatically (e.g. `fs.readFile("data.csv")`)   |  `[]` |
 | <a id="ts_library-uses_dom"></a>uses_dom |  Whether this library uses the DOM. Forces uses_dom transitively on dependencies.   |  `False` |
 | <a id="ts_library-tsc_repository"></a>tsc_repository |  which typescript bazel repository to use (most likely you will not need this option).   |  `"@npm_typescript"` |
+| <a id="ts_library-tags"></a>tags |  tags, propagated to all targets   |  `[]` |
 | <a id="ts_library-visibility"></a>visibility |  rule visibility   |  `None` |
 | <a id="ts_library-testonly"></a>testonly |  whether this is for tests only (default: false)   |  `None` |
 
@@ -93,12 +94,12 @@ Example: [`@examples//shared-lib/test`](../../examples/shared-lib/test/BUILD.baz
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="ts_test-name"></a>name |  name of the rule   |  none |
-| <a id="ts_test-srcs"></a>srcs |  tests to compile and run. Defaults to `ts_default_srcs()`.   |  `None` |
+| <a id="ts_test-srcs"></a>srcs |  tests to compile and run. Typically a glob: `glob(["**/*.ts", "**/*.tsx"])`.   |  none |
 | <a id="ts_test-deps"></a>deps |  dependencies (other ts_library or npm dependencies)   |  `[]` |
 | <a id="ts_test-data"></a>data |  required runtime data (e.g. csv files)   |  `[]` |
 | <a id="ts_test-uses_dom"></a>uses_dom |  Whether the tests (or the code under test) requires a DOM.   |  `False` |
 | <a id="ts_test-env"></a>env |  Additional environment variables to be made available in the test (subject to `$(location)` and make variable expansion).   |  `None` |
-| <a id="ts_test-tags"></a>tags |  tags (propagated to the test rule)   |  `None` |
+| <a id="ts_test-tags"></a>tags |  tags, propagated to all targets   |  `[]` |
 | <a id="ts_test-tsc_repository"></a>tsc_repository |  which typescript bazel repository to use (most likely you will not need this option).   |  `"@npm_typescript"` |
 
 

@@ -1,7 +1,8 @@
-load("@dh_buildlib//:defs.bzl", "ts_test")
+load("@dh_buildlib//ts:defs.bzl", "ts_test")
 
 ts_test(
     name = "test",
+    srcs = glob(["**/*.ts"]),
     data = [
         "data-file.txt",
     ],

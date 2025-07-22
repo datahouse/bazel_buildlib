@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import semver from "semver";
 
 const EXACT_VERSION_LINK =
@@ -18,17 +18,20 @@ const disallowPub = (fieldName: string) =>
     "it is only relevant for publishing npm packages which is unsupported.",
   );
 
-const exactDependency = z.string().superRefine((val, ctx) => {
-  const pkg = ctx.path[ctx.path.length - 1];
-  if (!semver.valid(val)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Dependency "${pkg}" does not use an exact version. Current: "${val}". An exact version is necessary. See: ${EXACT_VERSION_LINK}`,
-    });
-  }
-});
-
-const dependencySchema = z.record(exactDependency).optional();
+const dependencySchema = z
+  .record(z.string(), z.string())
+  .check((ctx) => {
+    for (const [pkg, version] of Object.entries(ctx.value)) {
+      if (!semver.valid(version)) {
+        ctx.issues.push({
+          code: "custom",
+          input: version,
+          message: `Dependency "${pkg}" does not use an exact version. Current: "${version}". An exact version is necessary. See: ${EXACT_VERSION_LINK}`,
+        });
+      }
+    }
+  })
+  .optional();
 
 // Rationale: We want a minimal package.json which is used for installing packages.
 // We disallow users to set fields that are not relevant for our use-case.
@@ -87,5 +90,5 @@ export const packageJsonProblems = (pkg: unknown): string[] => {
   if (problems.success) {
     return [];
   }
-  return problems.error.errors.map((issue) => issue.message);
+  return problems.error.issues.map((issue) => issue.message);
 };

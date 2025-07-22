@@ -14,16 +14,7 @@ import { OCIImage } from "./OCIImage.js";
 
 const loadImageReference = async (info: ImageInfo) => {
   const image = await OCIImage.load(info.ociDir);
-
-  const shaPrefix = "sha256:";
-
-  const { config } = image.manifest;
-
-  if (!config.digest.startsWith(shaPrefix))
-    throw new Error("unsupported digest");
-
-  const reference = config.digest.slice(shaPrefix.length);
-
+  const reference = image.manifest.config.digest;
   return { reference, ...info };
 };
 

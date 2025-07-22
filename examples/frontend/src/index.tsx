@@ -6,6 +6,7 @@ import App from "./App.js";
 
 const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
+  dataMasking: true,
   link: createUploadLink({
     uri: "/gql/v1/",
     headers: {

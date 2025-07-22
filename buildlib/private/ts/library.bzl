@@ -1,49 +1,20 @@
 """ts_library macro."""
 
-load("@aspect_rules_js//js:libs.bzl", "js_library_lib")
 load("@aspect_rules_swc//swc:defs.bzl", "swc")
-load("@aspect_rules_ts//ts:defs.bzl", "TsConfigInfo", "ts_project")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load(":config.bzl", "tsconfig")
 load(":eslint.bzl", "eslint")
-load(":providers.bzl", "TsLibraryInfo")
-
-_ts_library_base_providers = js_library_lib.provides + [TsConfigInfo]
-
-def _ts_library_impl(ctx):
-    base = [
-        ctx.attr.base[provider]
-        for provider in _ts_library_base_providers
-    ]
-
-    return base + [
-        TsLibraryInfo(uses_dom = ctx.attr.uses_dom),
-    ]
-
-# TODO: This rule is a hack.
-# It requires us to manually list all (relevant) providers returned by ts_project.
-# This is brittle and fails whenever rules_ts makes internal changes (e.g. #1121).
-# We should replace this rule with something more principled (tracked as #1124).
-_ts_library = rule(
-    doc = "Glue rule to attach relevant providers",
-    implementation = _ts_library_impl,
-    attrs = {
-        "base": attr.label(
-            providers = [_ts_library_base_providers],
-        ),
-        "uses_dom": attr.bool(),
-    },
-    provides = [TsLibraryInfo] + _ts_library_base_providers,
-)
 
 def ts_library(
         name,
-        srcs = None,
+        srcs,
         deps = [],
         data = None,
         assets = [],
         uses_dom = False,
         tsc_repository = "@npm_typescript",
+        tags = [],
         visibility = None,
         testonly = None):
     """Typescript library.
@@ -52,7 +23,7 @@ def ts_library(
 
     Args:
       name: name of the rule
-      srcs: ts, tsx sources to compile. Defaults to `glob(["**/*.ts", "**/*.tsx"])`.
+      srcs: ts, tsx sources to compile. Typically a glob: `glob(["**/*.ts", "**/*.tsx"])`.
       deps: dependencies (other ts_library or npm dependencies)
       assets: required imported assets (e.g. css files)
         - Use `assets` for files you `import` (e.g. import './App.css')
@@ -62,23 +33,22 @@ def ts_library(
         Forces uses_dom transitively on dependencies.
       tsc_repository: which typescript bazel repository to use
         (most likely you will not need this option).
+      tags: tags, propagated to all targets
       visibility: rule visibility
       testonly: whether this is for tests only (default: false)
     """
-
-    if srcs == None:
-        srcs = native.glob(["**/*.ts", "**/*.tsx"], allow_empty = True)
 
     tsconfig(
         name = "tsconfig",
         srcs = srcs,
         deps = deps,
         uses_dom = uses_dom,
+        tags = tags,
         testonly = testonly,
     )
 
     ts_project(
-        name = name + ".tsc",
+        name = name,
         srcs = srcs,
         data = data,
         tsc = "%s//:tsc" % tsc_repository,
@@ -91,6 +61,7 @@ def ts_library(
         transpiler = partial.make(
             swc,
             swcrc = Label(":.swcrc"),
+            source_maps = True,
         ),
         assets = assets,
         tsconfig = ":tsconfig",
@@ -105,19 +76,13 @@ def ts_library(
         # Avoiding this would unnecessarily complicate the file layout
         # (especially while preserving IDE support), so for now, we do not do it.
         deps = deps + ["//:package_json"],
-    )
-
-    _ts_library(
-        name = name,
-        base = name + ".tsc",
-        uses_dom = uses_dom,
-        visibility = visibility,
-        testonly = testonly,
+        tags = tags,
     )
 
     eslint(
         name = name + ".lint",
         srcs = srcs,
         deps = deps,
+        tags = tags,
         testonly = testonly,
     )

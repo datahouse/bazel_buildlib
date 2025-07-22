@@ -9,7 +9,7 @@ tsconfig_base = {
         "forceConsistentCasingInFileNames": True,
         "isolatedModules": True,
         "jsx": "react-jsx",
-        "lib": ["es2022"],
+        "lib": ["esnext"],
         # Module and module resolution:
         # We want to transpile to ESM and have strict module resolution (node16).
         # TSC does not allow us to specify `module` explicitly (i.e. es2022)

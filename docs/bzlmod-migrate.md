@@ -14,7 +14,6 @@ to ensuring dependency versions are sufficiently up to date.
 These should not be done in the migration PR itself.
 
 - Make sure you use new enough versions:
-
   - bazel >= 7.4.0 (check in `.bazelversion`)
   - dh_buildlib >= 14.1.0 (check in `WORKSPACE`)
 
@@ -39,7 +38,6 @@ These should not be done in the migration PR itself.
   instead.
 
   Examples to get you started:
-
   - For a test: https://git.datahouse.ch/datahouse/it-bazel/pulls/886 (only the changes in `examples/`)
   - For a binary: https://git.datahouse.ch/datahouse/pl-projects/pulls/641
   - For a library: https://git.datahouse.ch/datahouse/pl-projects/pulls/642
@@ -114,7 +112,6 @@ Example: https://git.datahouse.ch/datahouse/pl-projects/pulls/643
 1. Empty `WORKSPACE` (https://git.datahouse.ch/datahouse/it-bazel/issues/1168)
 
 1. Complete your `MODULE.bazel` file.
-
    1. Run `bazel mod tidy`
    1. Adjust the versions of dependencies according to warnings (if any).
 

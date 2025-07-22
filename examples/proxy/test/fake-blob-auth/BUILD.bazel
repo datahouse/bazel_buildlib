@@ -1,8 +1,10 @@
-load("@dh_buildlib//:defs.bzl", "node_binary_image", "ts_library")
+load("@dh_buildlib//ts:defs.bzl", "ts_library")
+load("@dh_buildlib//ts/docker:defs.bzl", "node_binary_image")
 
 ts_library(
     name = "src",
     testonly = 1,
+    srcs = glob(["**/*.ts"]),
     visibility = [
         # Allow the test to use this library to access FakePrismaData.ts
         # This is a bit ugly (a separate tiny library would be cleaner), but it

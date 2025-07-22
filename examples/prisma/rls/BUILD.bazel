@@ -1,7 +1,8 @@
-load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@dh_buildlib//ts:defs.bzl", "ts_library")
 
 ts_library(
     name = "rls",
+    srcs = glob(["**/*.ts"]),
     visibility = [
         "//prisma:prisma-users",
         "//prisma/test:__pkg__",

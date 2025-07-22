@@ -2,5 +2,9 @@ load("//private:ts_library.bzl", "ts_library")
 
 ts_library(
     name = "src",
+    srcs = glob(["**/*.ts"]),
     visibility = ["//private:__subpackages__"],
+    deps = [
+        "//:node_modules/@types/node",
+    ],
 )

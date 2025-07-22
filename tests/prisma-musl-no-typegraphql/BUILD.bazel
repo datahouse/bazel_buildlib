@@ -1,5 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "node_binary_image")
 load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
+load("@dh_buildlib//ts/docker:defs.bzl", "node_binary_image")
 
 buildlib_setup(
     name = "buildlib_setup",

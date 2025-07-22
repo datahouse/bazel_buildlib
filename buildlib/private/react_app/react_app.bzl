@@ -44,44 +44,21 @@ _react_app = rule(
     },
 )
 
-def react_app(
+# See buildlib/private/README.md#sym-macro-use-site-label-res
+_node_image_default = "@node_image_linux_amd64"
+_nginx_image_default = "@nginx_image_linux_amd64"
+
+def _react_app_macro_impl(
         name,
-        srcs = [],
-        deps = [],
-        nginx_image = "@nginx_image_linux_amd64",
-        node_image = "@node_image_linux_amd64",
-        node_image_platform = Label("//private/docker:node_default_platform"),
-        visibility = None,
-        testonly = None):
-    """Bundles a react single page app into a hot-reloadable docker image.
-
-    When built normally, the resulting image is simply a static nginx server
-    with the bundled react application (aka run or cold image).
-
-    When used with hot reloading (under ibazel), the resulting image will run a dev
-    server to provide hot reloading to the browser (aka dev or hot image).
-
-    This rule is deliberately opinionated. Notably, it configures both base
-    images provided (and attempts to keep the behavior of the configs consistent,
-    in case it isn't, please file a bug).
-
-    Per consequence, the base image parameters solely exist so different image
-    versions can be used in the same project / workspace. Non-default configuration
-    injected into the base image may be broken in a minor version without prior notice.
-
-    Example: [`@examples//frontend`](../../examples/frontend/BUILD.bazel#:~:text=name%20%3D%20%22frontend%22%2C)
-
-    Args:
-      name: Name of the rule.
-      srcs: Direct sources. Typically `index.html`.
-      deps: Dependencies. Typically a `src` rule with JS code and an (optional)
-          `public` rule with static assets (like favicons).
-      nginx_image: Nginx base image to use for the run / cold image.
-      node_image: Node base image to use for the dev / hot image.
-      node_image_platform: Platform for the node base image (for dev / hot).
-      visibility: Rule visibility.
-      testonly: Testonly flag.
-    """
+        srcs,
+        deps,
+        nginx_image,
+        node_image,
+        node_image_platform,
+        visibility,
+        testonly):
+    nginx_image = nginx_image or _nginx_image_default
+    node_image = node_image or _node_image_default
 
     js_library(
         name = name + ".lib",
@@ -113,3 +90,53 @@ def react_app(
         deps = [name + ".lib"],
         testonly = testonly,
     )
+
+react_app = macro(
+    doc = """Bundles a react single page app into a hot-reloadable docker image.
+
+    When built normally, the resulting image is simply a static nginx server
+    with the bundled react application (aka run or cold image).
+
+    When used with hot reloading (under ibazel), the resulting image will run a dev
+    server to provide hot reloading to the browser (aka dev or hot image).
+
+    This rule is deliberately opinionated. Notably, it configures both base
+    images provided (and attempts to keep the behavior of the configs consistent,
+    in case it isn't, please file a bug).
+
+    Per consequence, the base image parameters solely exist so different image
+    versions can be used in the same project / workspace. Non-default configuration
+    injected into the base image may be broken in a minor version without prior notice.
+
+    Example: [`@examples//frontend`](../../examples/frontend/BUILD.bazel#:~:text=name%20%3D%20%22frontend%22%2C)
+    """,
+    attrs = {
+        "deps": attr.label_list(
+            doc = "Dependencies. Typically a `src` rule with JS code and an (optional) `public` rule with static assets (like favicons).",
+            default = [],
+        ),
+        "nginx_image": attr.label(
+            doc = "Nginx base image to use for the run / cold image. Default: " + _nginx_image_default,
+            # See the comment on _nginx_image_default for why this does not have a default here.
+        ),
+        "node_image": attr.label(
+            doc = "Node base image to use for the dev / hot image. Default: " + _node_image_default,
+            # See the comment on _node_image_default for why this does not have a default here.
+        ),
+        "node_image_platform": attr.label(
+            doc = "Platform for the node base image (for dev / hot).",
+            default = Label("//private/docker:node_default_platform"),
+        ),
+        "srcs": attr.label_list(
+            doc = "Direct sources. Typically `index.html`.",
+            allow_files = True,
+            default = [],
+        ),
+        "testonly": attr.bool(
+            doc = "Testonly flag.",
+            default = False,
+            configurable = False,
+        ),
+    },
+    implementation = _react_app_macro_impl,
+)

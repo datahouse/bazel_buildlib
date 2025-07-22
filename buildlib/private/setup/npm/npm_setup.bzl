@@ -1,6 +1,7 @@
 """npm related setup."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//private/setup:write_setup_source_file.bzl", "write_setup_source_file")
 
 # buildifier: disable=unnamed-macro (private)
@@ -26,7 +27,7 @@ def npm_setup(update_targets):
     )
 
     pnpm = Label(":pnpm_raw")
-    native.sh_test(
+    sh_test(
         name = "pnpm_lock_test",
         srcs = [Label(":test-pnpm-lock.sh")],
         env = {

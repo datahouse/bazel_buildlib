@@ -9,7 +9,7 @@ The core, required setup macro.
 <pre>
 load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
 
-buildlib_setup(<a href="#buildlib_setup-name">name</a>, <a href="#buildlib_setup-enable_ts">enable_ts</a>)
+buildlib_setup(<a href="#buildlib_setup-name">name</a>, <a href="#buildlib_setup-enable_ts">enable_ts</a>, <a href="#buildlib_setup-enable_java">enable_java</a>)
 </pre>
 
 Set-up a dh_buildlib workspace.
@@ -35,5 +35,6 @@ Example: [`@examples//:buildlib_setup`](../../examples/BUILD.bazel#:~:text=name%
 | :------------- | :------------- | :------------- |
 | <a id="buildlib_setup-name"></a>name |  Dummy name argument for tooling. Must be `buildlib_setup`.   |  none |
 | <a id="buildlib_setup-enable_ts"></a>enable_ts |  Whether to enable TypeScript support   |  `False` |
+| <a id="buildlib_setup-enable_java"></a>enable_java |  EXPERIMENTAL Whether to enable Java support.   |  `False` |
 
 

@@ -4,7 +4,10 @@ import { List, ListItem, ListItemButton, styled } from "@mui/joy";
 
 import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
 
-import { FragmentType, gql, useFragment } from "../../gql/index.js";
+import { FragmentType, useSuspenseFragment } from "@apollo/client";
+
+import { gql } from "../../gql/index.js";
+import { TodoListFieldsFragment } from "../../gql/graphql.js";
 
 import TodoItem from "./TodoItem.js";
 
@@ -23,14 +26,20 @@ const NestedList = styled(List)`
 `;
 
 export interface Props {
-  list: FragmentType<typeof TODO_LIST_FIELDS_FRAGMENT>;
+  list: FragmentType<TodoListFieldsFragment>;
   initiallyExpanded?: boolean;
 }
 
 export default function TodoList({ list, initiallyExpanded = false }: Props) {
-  const { name, items } = useFragment(TODO_LIST_FIELDS_FRAGMENT, list);
-
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
+
+  const {
+    data: { items, name },
+  } = useSuspenseFragment({
+    fragment: TODO_LIST_FIELDS_FRAGMENT,
+    fragmentName: "TodoListFields",
+    from: list,
+  });
 
   const itemsSubList = (
     <NestedList>

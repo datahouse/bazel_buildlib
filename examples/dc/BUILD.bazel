@@ -1,4 +1,4 @@
-load("@dh_buildlib//:defs.bzl", "dc_service_reference", "docker_compose")
+load("@dh_buildlib//docker:defs.bzl", "dc_service_reference", "docker_compose")
 
 docker_compose(
     name = "dc",
@@ -7,6 +7,7 @@ docker_compose(
     deps = [
         "//api",
         "//frontend",
+        "//prisma:db-migrate",
         "//proxy",
         "//proxy/blob-auth",
         "//rest-api",

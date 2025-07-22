@@ -13,7 +13,8 @@ load("//private/setup:buildlib_setup_no_npm.bzl", "buildlib_setup_no_npm")
 
 def buildlib_setup(
         name,
-        enable_ts = False):
+        enable_ts = False,
+        enable_java = False):
     """Set-up a dh_buildlib workspace.
 
     - Provides `//:format` / `//:format.test`.
@@ -32,6 +33,7 @@ def buildlib_setup(
     Args:
       name: Dummy name argument for tooling. Must be `buildlib_setup`.
       enable_ts: Whether to enable TypeScript support
+      enable_java: EXPERIMENTAL Whether to enable Java support.
     """
 
     npm_link_all_packages(name = "node_modules")
@@ -39,4 +41,5 @@ def buildlib_setup(
     buildlib_setup_no_npm(
         name = name,
         enable_ts = enable_ts,
+        enable_java = enable_java,
     )

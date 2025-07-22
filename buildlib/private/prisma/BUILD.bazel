@@ -19,6 +19,7 @@ bzl_library(
     srcs = glob(["**/*.bzl"]),
     visibility = [
         "//prisma:__pkg__",
+        "//private/prisma:__subpackages__",
     ],
     deps = [
         "//private:npm_js_binary",

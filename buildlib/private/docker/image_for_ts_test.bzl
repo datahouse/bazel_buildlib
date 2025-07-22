@@ -1,19 +1,16 @@
 """Rule to load a docker image into the local docker daemon from within a TS test."""
 
 load("@aspect_bazel_lib//lib:copy_file.bzl", "COPY_FILE_TOOLCHAINS", "copy_file_action")
+load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
 load("@aspect_rules_js//js:defs.bzl", "js_library")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _loader_impl(ctx):
-    js_dir = paths.dirname(ctx.outputs.js.short_path)
-    workspace_rel_path = paths.join(*[".." for _ in js_dir.split("/")])
-
     ctx.actions.expand_template(
         output = ctx.outputs.js,
         template = ctx.file._js_tpl,
         substitutions = {
             "{{ IMAGE }}": ctx.file.image.short_path,
-            "{{ LIB }}": paths.join(workspace_rel_path, ctx.file._lib.short_path),
+            "{{ LIB }}": relative_file(ctx.file._lib.path, ctx.outputs.js.path),
         },
     )
 
@@ -43,8 +40,27 @@ _loader = rule(
     toolchains = COPY_FILE_TOOLCHAINS,
 )
 
-def docker_image_for_ts_test(name, image, visibility = None):
-    """Prepares a docker image to be loaded in a TS test.
+def _docker_image_for_ts_test_impl(name, image, visibility):
+    _loader(
+        name = name + ".loader",
+        js = name + ".js",
+        decl = name + ".d.ts",
+        image = image,
+        testonly = True,
+    )
+
+    js_library(
+        name = name,
+        srcs = [name + ".js"],
+        types = [name + ".d.ts"],
+        data = [image],
+        deps = [Label("//private/docker/src")],
+        testonly = True,
+        visibility = visibility,
+    )
+
+docker_image_for_ts_test = macro(
+    doc = """Prepares a docker image to be loaded in a TS test.
 
     Typically, this is for use with testcontainers.
 
@@ -80,27 +96,13 @@ def docker_image_for_ts_test(name, image, visibility = None):
     Note: This rule can only be used for tests.
 
     Example: [`@examples//prisma/test:load_postgres_image`](../../examples/prisma/test/BUILD.bazel#:~:text=name%20%3D%20%22load_postgres_image%22%2C)
-
-    Args:
-      name: Name of the rule and the generated JS file.
-      image: The docker image to load.
-      visibility: Visibility specification.
-    """
-
-    _loader(
-        name = name + ".loader",
-        js = name + ".js",
-        decl = name + ".d.ts",
-        image = image,
-        testonly = True,
-    )
-
-    js_library(
-        name = name,
-        srcs = [name + ".js"],
-        types = [name + ".d.ts"],
-        data = [image],
-        deps = [Label("//private/docker/src")],
-        testonly = True,
-        visibility = visibility,
-    )
+    """,
+    attrs = {
+        "image": attr.label(
+            doc = "The docker image to load.",
+            mandatory = True,
+            configurable = False,
+        ),
+    },
+    implementation = _docker_image_for_ts_test_impl,
+)

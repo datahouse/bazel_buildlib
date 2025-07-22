@@ -1,8 +1,13 @@
-schema: "../../api/schema.graphql"
-documents: ["../src/**/*.tsx", "../src/**/*.ts"]
+schema: "api/schema.graphql"
+documents: ["frontend/src/**/*.tsx", "frontend/src/**/*.ts"]
 emitLegacyCommonJSImports: false
 generates:
-  "./":
+  "frontend/gql/":
     preset: "client"
     presetConfig:
       gqlTagName: "gql"
+      fragmentMasking: false
+    config:
+      customDirectives:
+        apolloUnmask: true
+      inlineFragmentTypes: "mask"

@@ -6,6 +6,7 @@ docs = {
     "docker.md": ("//docker:defs", True),
     "gql_ts.md": ("//gql/ts:defs", True),
     "prisma.md": ("//prisma:defs", True),
+    "prisma_generators.md": ("//prisma/generators:defs", True),
     "react_app.md": ("//react_app:defs", False),
     "ts.md": ("//ts:defs", True),
     "ts_docker.md": ("//ts/docker:defs", True),

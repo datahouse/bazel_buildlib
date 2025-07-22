@@ -1,4 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "docker_compose")
+load("@dh_buildlib//docker:defs.bzl", "docker_compose")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 docker_compose(
     name = "dc",

@@ -1,0 +1,39 @@
+"""Test that prisma_migrations detects inconsistent migrations."""
+
+load("//prisma:defs.bzl", "prisma_migrations", "prisma_schema")
+load("//private:ts_library.bzl", "ts_test")
+
+prisma_schema(
+    name = "schema",
+    testonly = True,
+    db_url_env = "DATABASE_URL",
+    schema = "schema.prisma",
+    validate_db_url = "postgres://localhost/",
+)
+
+prisma_migrations(
+    name = "migrations",
+    testonly = True,
+    srcs = glob(["migrations/**"]),
+    schema = ":schema",
+    tags = ["manual"],  # migrations_test should fail
+    validation_db_image = "@postgres_image_linux_amd64",
+)
+
+ts_test(
+    name = "failure_test",
+    srcs = glob(["**/*.ts"]),
+    data = [
+        ":migrations_test",  # defined by prisma_migrations
+    ],
+    env = {
+        "TEST_UNDER_TEST": "$(rootpath :migrations_test)",
+    },
+    tags = [
+        "requires-network",  # test under test requires-network
+    ],
+    deps = [
+        "//:node_modules/@types/node",
+        "//private/js-lib/src",
+    ],
+)

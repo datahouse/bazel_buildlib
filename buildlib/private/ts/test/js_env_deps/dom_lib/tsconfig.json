@@ -1,0 +1,6 @@
+{
+  "compilerOptions": { "lib": ["dom", "dom.iterable", "es2018"] },
+  "extends": "../../../../../tsconfig-base.json",
+  "include": ["**/*"],
+  "references": []
+}

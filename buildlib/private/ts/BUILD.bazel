@@ -1,8 +1,6 @@
-load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files([
-    "babel.config.cjs",
     ".swcrc",
 ])
 
@@ -24,12 +22,4 @@ bzl_library(
         "@bazel_skylib//rules:copy_file",
         "@bazel_skylib//rules:select_file",
     ],
-)
-
-# Not a js_library so we can refer to it as individual file in
-# the jest config.
-copy_to_bin(
-    name = "file_transform",
-    srcs = ["FileTransform.cjs"],
-    visibility = ["//visibility:public"],
 )

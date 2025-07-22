@@ -1,39 +1,37 @@
-load("@aspect_bazel_lib//lib:tar.bzl", "tar")
-load("@rules_oci//oci:defs.bzl", "oci_image")
-load("//:defs.bzl", "docker_image_for_ts_test")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("//private:ts_library.bzl", "ts_test")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test", "node_binary_image")
 
-tar(
-    name = "test-image-tar",
-    srcs = ["file-in-image.txt"],
+# Do not transpile from ts: Otherwise we'd need another package for the ts_project.
+js_library(
+    name = "node_app",
+    testonly = 1,
+    srcs = ["node_app.js"],
 )
 
-oci_image(
-    name = "test-image",
-    architecture = "amd64",
-    os = "linux",
-    tars = ["test-image-tar"],
+node_binary_image(
+    name = "node_test",
+    testonly = 1,
+    data = [":node_app"],
+    entry_point = ":node_app.js",
+    volumes = ["/test_volume"],
 )
 
 docker_image_for_ts_test(
-    name = "load_test_image",
-    image = ":test-image",
-)
-
-docker_image_for_ts_test(
-    name = "load_node_image",
-    image = "@node_image_linux_amd64",
+    name = "load_node_test_image",
+    image = ":node_test",
 )
 
 ts_test(
     name = "test",
+    srcs = glob(["**/*.ts"]),
     tags = [
         "requires-network",  # docker socket
     ],
     deps = [
-        ":load_node_image",
-        ":load_test_image",
+        ":load_node_test_image",
         "//:node_modules/jest-extended",
+        "//:node_modules/testcontainers",
         "//private/docker/src",
     ],
 )

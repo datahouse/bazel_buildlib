@@ -1,5 +1,5 @@
-import loadTestImage from "./load_test_image.js";
+import loadNodeTestImage from "./load_node_test_image.js";
 
 it("should load the docker image", async () => {
-  expect(await loadTestImage()).not.toEqual("");
+  expect(await loadNodeTestImage()).not.toEqual("");
 });

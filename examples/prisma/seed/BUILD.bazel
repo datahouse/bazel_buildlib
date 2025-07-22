@@ -1,8 +1,9 @@
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
-load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@dh_buildlib//ts:defs.bzl", "ts_library")
 
 ts_library(
     name = "src",
+    srcs = glob(["**/*.ts"]),
     deps = [
         "//prisma:prisma-client",
     ],

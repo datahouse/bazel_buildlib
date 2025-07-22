@@ -2,10 +2,17 @@ import "reflect-metadata";
 
 import { Arg, Ctx, Mutation, Resolver, Int } from "type-graphql";
 
+import { ApolloServerErrorCode } from "@apollo/server/errors";
+import { GraphQLError } from "graphql";
+
 import GraphQLUpload from "graphql-upload/GraphQLUpload.mjs";
 import type { FileUpload } from "graphql-upload/processRequest.mjs";
 
+import { allowedMimeTypes } from "../../../shared-lib/src/allowed-mimetypes.js";
+
 import type Context from "../Context.js";
+
+const allowedMimeTypesSet = new Set(allowedMimeTypes);
 
 /** Resolver to add and delete attachments.
  *
@@ -28,19 +35,20 @@ export default class AttachmentResolver {
     @Arg("file", () => GraphQLUpload) file: FileUpload,
     @Ctx() ctx: Context,
   ): Promise<number> {
-    // TODO(#518): In a real application, you should check the mimetype of the
-    // file here (we'll serve it back to browsers so it is somewhat sensitive).
-    // See: https://datatracker.ietf.org/doc/html/rfc2045#section-5.1 for the
-    // specification.
+    // Note: FileUpload also offers `encoding`:
+    // However, this is the transfer encoding (the encoding on the wire). We
+    // do not care about it: Once we have the file, it's irrelevant how we got it.
+    const { filename, mimetype } = file;
+
+    if (!allowedMimeTypesSet.has(mimetype)) {
+      throw new GraphQLError("Disallowed mimetype", {
+        extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
+      });
+    }
 
     // Execute in a transaction: If downloading / storing the file
     // fails, we do not want to add the row.
     return ctx.elevatedPrisma.$transaction(async (tx) => {
-      // Note: FileUpload also offers `encoding`:
-      // However, this is the transfer encoding (the encoding on the wire). We
-      // do not care about it: Once we have the file, it's irrelevant how we got it.
-      const { filename, mimetype } = file;
-
       const { uuid, id } = await tx.todoAttachment.create({
         data: { itemId, filename, mimetype },
         select: { id: true, uuid: true },

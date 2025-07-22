@@ -1,5 +1,8 @@
 import { mockDeep, DeepMockProxy } from "jest-mock-extended";
 
+import { ApolloServerErrorCode } from "@apollo/server/errors";
+import { GraphQLError } from "graphql";
+
 import { FileUpload } from "graphql-upload/processRequest.mjs";
 
 import { PrismaClient } from "../../../prisma/rls/index.js";
@@ -23,12 +26,14 @@ const mockCtx = () => {
   return ctx;
 };
 
-const fakeData = () => {
+const fakeData = (mimetype: string = "text/plain") => {
+  const filename = "fake-filename";
+
   const fakeAttachment = {
     id: 1,
     itemId: 2,
-    filename: "fake-filename",
-    mimetype: "fake-mimetype",
+    filename,
+    mimetype,
     uuid: "fake-uuid",
   };
 
@@ -45,8 +50,6 @@ const fakeData = () => {
   const streamSentinel = {
     streamSentinelForTest: true,
   } as unknown as ReturnType<FileUpload["createReadStream"]>;
-
-  const { filename, mimetype } = fakeAttachment;
 
   const fakeUpload: FileUpload = {
     filename,
@@ -86,6 +89,23 @@ describe("uploadTodoAttachment", () => {
     );
 
     expect(ctx.blobStore.put).toHaveBeenCalledWith(uuid, streamSentinel);
+  });
+
+  it("should reject bad mimetypes", () => {
+    const ctx = mockCtx();
+
+    const { fakeAttachment, fakeUpload } = fakeData("application/octet-stream");
+    const { itemId } = fakeAttachment;
+
+    expect(() =>
+      resolver.uploadTodoAttachment(itemId, fakeUpload, ctx),
+    ).toThrow(
+      new GraphQLError("Disallowed mimetype", {
+        extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
+      }),
+    );
+
+    expect(ctx.blobStore.put).not.toHaveBeenCalled();
   });
 
   it("should not store data if DB refuses", async () => {

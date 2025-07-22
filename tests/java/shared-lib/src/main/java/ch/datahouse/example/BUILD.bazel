@@ -1,0 +1,9 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+java_library(
+    name = "example",
+    srcs = glob(["*.java"]),
+    deps = [
+        "@dh_buildlib//my-version:java",
+    ],
+)

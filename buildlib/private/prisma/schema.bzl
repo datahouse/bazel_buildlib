@@ -52,6 +52,12 @@ def _prisma_schema_impl(ctx):
 
     _format_schema(ctx, schema)
 
+    # Split off schema from url to get db_type.
+    # TODO: We should probably invert this at some point:
+    # Take in the db_type and construct the URL.
+    # Kept like this for backwards compatibility.
+    db_type, _, _ = ctx.attr.validate_db_url.partition(":")
+
     return [
         DefaultInfo(
             files = depset([schema]),
@@ -59,6 +65,7 @@ def _prisma_schema_impl(ctx):
         PrismaSchemaInfo(
             schema = schema,
             db_url_env = ctx.attr.db_url_env,
+            db_type = db_type,
         ),
         OutputGroupInfo(
             _validation = depset([validation_marker]),
@@ -88,21 +95,7 @@ _prisma_schema = rule(
     toolchains = COPY_FILE_TO_BIN_TOOLCHAINS,
 )
 
-def prisma_schema(name, schema, db_url_env, validate_db_url, visibility = None, testonly = None):
-    """Declares a prisma schema, including a validation test.
-
-    Example: [`@examples//prisma:schema`](../../examples/prisma/BUILD.bazel#:~:text=name%20%3D%20%22schema%22%2C)
-
-    Args:
-      name: name of the rule
-      schema: schema file
-      db_url_env: Environment variable name to use for the database URL.
-      validate_db_url: Database URL to use when validating the schema.
-          This URL only needs to be structurally valid (no db needs to run there).
-      visibility: visibility of main schema rule.
-      testonly: testonly flag
-    """
-
+def _prisma_schema_macro_impl(name, schema, db_url_env, validate_db_url, visibility, testonly):
     _prisma_schema(
         name = name,
         schema = schema,
@@ -116,7 +109,41 @@ def prisma_schema(name, schema, db_url_env, validate_db_url, visibility = None, 
     write_source_files(
         name = name + ".format",
         testonly = testonly,
+        # Disable use of glob inside write_source_files.
+        # We do not need a check that the file exists: it is an input to the macro.
+        # So if it doesn't exist, the macro will not even get invoked.
+        check_that_out_file_exists = False,
         files = {
-            schema: name + ".fmt.prisma",
+            schema.name: name + ".fmt.prisma",
         },
     )
+
+prisma_schema = macro(
+    doc = """Declares a prisma schema, including a validation test.
+
+    Example: [`@examples//prisma:schema`](../../examples/prisma/BUILD.bazel#:~:text=name%20%3D%20%22schema%22%2C)
+    """,
+    attrs = {
+        "db_url_env": attr.string(
+            doc = "Environment variable name to use for the database URL.",
+            mandatory = True,
+        ),
+        "schema": attr.label(
+            doc = "schema file",
+            allow_single_file = [".prisma"],
+            mandatory = True,
+            configurable = False,
+        ),
+        "testonly": attr.bool(
+            doc = "Testonly flag",
+            default = False,
+            configurable = False,
+        ),
+        "validate_db_url": attr.string(
+            doc = """Database URL to use when validating the schema.
+            This URL only needs to be structurally valid (no db needs to run there).""",
+            mandatory = True,
+        ),
+    },
+    implementation = _prisma_schema_macro_impl,
+)

@@ -1,4 +1,4 @@
-load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@dh_buildlib//ts:defs.bzl", "ts_library")
 load("@npm//:@graphql-codegen/cli/package_json.bzl", _gql_codegen = "bin")
 
 _gql_codegen.graphql_codegen(
@@ -10,16 +10,14 @@ _gql_codegen.graphql_codegen(
         "//frontend/src:ts_srcs",
     ],
     outs = [
-        "fragment-masking.ts",
         "gql.ts",
         "graphql.ts",
         "index.ts",
     ],
     args = [
         "--config",
-        "gql-codegen.yml",
+        "frontend/gql/gql-codegen.yml",
     ],
-    chdir = package_name(),
 )
 
 ts_library(

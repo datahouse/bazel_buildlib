@@ -1,9 +1,11 @@
 import path from "node:path";
-import util from "node:util";
-import { execFile } from "node:child_process";
 import process from "node:process";
 
+import { opendir } from "node:fs/promises";
+
 import argparse from "argparse";
+
+import { execFileWithCode } from "../../js-lib/src/execFileWithCode.js";
 
 const parseArgs = () => {
   const parser = new argparse.ArgumentParser({
@@ -36,15 +38,25 @@ interface RunConfig {
   check: boolean;
 }
 
-const runTool = (
-  tool: string,
-  args: string[],
-  { workspaceDir, check }: RunConfig,
-): Promise<boolean> => {
+interface RunToolOptions {
+  tool: string;
+  args: string[];
+  mandatory: boolean;
+  explicitFilesPromise?: Promise<string[]>;
+  cfg: RunConfig;
+}
+
+const runTool = async ({
+  tool,
+  args,
+  mandatory,
+  explicitFilesPromise,
+  cfg: { workspaceDir, check },
+}: RunToolOptions): Promise<boolean> => {
   const relBin = process.env[`${tool.toUpperCase()}_BIN`];
 
   if (!relBin) {
-    // So far, all tools are mandatory.
+    if (!mandatory) return true;
     throw new Error(`${tool} not found (this is an it-bazel bug)`);
   }
 
@@ -53,42 +65,94 @@ const runTool = (
 
   console.log(`⏳ ${tool}`);
 
-  return new Promise((res) => {
-    execFile(bin, args, { cwd: workspaceDir }, (err, stdout, stderr) => {
-      if (err === null) {
-        const msg = check ? "format check OK" : "formatting complete";
-        console.log(`✅ ${tool} ${msg}`);
-        res(true);
-      } else {
-        const what = check ? "format check" : "formatting";
-        const msg = stderr || util.inspect(err);
-        console.log(`❌ ${tool} ${what} failed:\n${msg}`);
-        res(false);
-      }
-    });
-  });
+  // Only await files now, so we show that the tool is running.
+  // Note that awaiting undefined conveniently returns undefined.
+  const explicitFiles = await explicitFilesPromise;
+
+  const fullArgs = args.concat(explicitFiles ?? []);
+
+  // Do not run tools that require explicit files if there are no files.
+  const shouldRun = explicitFiles === undefined || explicitFiles.length > 0;
+
+  const { code, stderr } = shouldRun
+    ? await execFileWithCode(bin, fullArgs, { cwd: workspaceDir })
+    : { code: 0, stderr: "" };
+
+  const ok = code === 0;
+
+  if (ok) {
+    const msg = check ? "format check OK" : "formatting complete";
+    console.log(`✅ ${tool} ${msg}`);
+  } else {
+    const what = check ? "format check" : "formatting";
+    console.log(`❌ ${tool} ${what} failed:\n${stderr}`);
+  }
+
+  return ok;
 };
 
-const runPrettier = (cfg: RunConfig) => {
-  const mode = cfg.check ? "--check" : "--write";
-  return runTool("prettier", [mode, "."], cfg);
-};
+const runPrettier = (cfg: RunConfig) =>
+  runTool({
+    tool: "prettier",
+    args: [cfg.check ? "--check" : "--write", "."],
+    mandatory: true,
+    cfg,
+  });
 
 const runBuildifier = (cfg: RunConfig) => {
   const mode = cfg.check
     ? ["--mode=diff", "--diff_command=diff", "--lint=warn"]
     : ["--mode=fix", "--lint=fix"];
 
-  return runTool("buildifier", [...mode, "--warnings=all", "-r", "."], cfg);
+  return runTool({
+    tool: "buildifier",
+    args: [...mode, "--warnings=all", "-r", "."],
+    mandatory: true,
+    cfg,
+  });
+};
+
+const findJavaFiles = async (dir: string) => {
+  const res: string[] = [];
+  for await (const e of await opendir(dir, { recursive: true })) {
+    if (e.isFile() && e.name.endsWith(".java"))
+      res.push(path.join(e.parentPath, e.name));
+  }
+  return res;
+};
+
+const runGoogleJavaFormat = async (cfg: RunConfig) => {
+  const args = cfg.check
+    ? ["--dry-run", "--set-exit-if-changed"]
+    : ["--replace"];
+
+  const explicitFilesPromise = findJavaFiles(cfg.workspaceDir);
+
+  return runTool({
+    tool: "google_java_format",
+    args,
+    mandatory: false,
+    explicitFilesPromise,
+    cfg,
+  });
+};
+
+const allTrue = async (...promises: Promise<boolean>[]): Promise<boolean> => {
+  const values = await Promise.all(promises);
+  return values.every((x) => x); // poor man's "all"
 };
 
 const run = async (cfg: RunConfig): Promise<boolean> => {
-  const [prettierOK, buildifierOK] = await Promise.all([
-    runPrettier(cfg),
-    runBuildifier(cfg),
-  ]);
+  // Keep the buildifier result separately: We want to provide additional help if it fails.
+  const buildifierOKPromise = runBuildifier(cfg);
 
-  if (prettierOK && buildifierOK) return true;
+  const ok = await allTrue(
+    buildifierOKPromise,
+    runPrettier(cfg),
+    runGoogleJavaFormat(cfg),
+  );
+
+  if (ok) return true;
 
   if (cfg.check) {
     console.log("Some format checks failed. To fix, run");
@@ -96,6 +160,7 @@ const run = async (cfg: RunConfig): Promise<boolean> => {
     console.log("    bazel run //:format");
     console.log("");
 
+    const buildifierOK = await buildifierOKPromise;
     if (!buildifierOK) {
       console.log(
         "Attention: Not all buildifier checks can be fixed automatically.",

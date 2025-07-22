@@ -1,7 +1,6 @@
 """Language independent setup."""
 
 load("@aspect_bazel_lib//lib:utils.bzl", "utils")
-load("//private/format:format.bzl", "format")
 load("//private/setup:write_setup_source_file.bzl", "write_setup_source_file")
 load("//private/setup/npm:npm_setup.bzl", "npm_setup")
 load("//private/setup/renovate:renovate.bzl", "renovate_setup")
@@ -15,8 +14,6 @@ def core_setup(update_targets):
     npm_setup(update_targets)
 
     renovate_setup(update_targets)  # autodetect
-
-    format(name = "format")  # no update targets, format has its own test.
 
 def _bazelrc_setup(update_targets):
     if not utils.file_exists(".bazelversion"):

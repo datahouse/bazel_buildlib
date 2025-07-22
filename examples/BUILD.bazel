@@ -1,4 +1,4 @@
-load("@dh_buildlib//:defs.bzl", "dh_docker_images_push")
+load("@dh_buildlib//docker:defs.bzl", "dh_docker_images_push")
 load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
 
 # Package group for visibility of docker images.
@@ -21,10 +21,10 @@ dh_docker_images_push(
     images = {
         # Put your own images here (or leave empty to start with).
         "api": "//api",
+        "db-migrate": "//prisma:db-migrate",
         "frontend": "//frontend",
         "proxy": "//proxy",
         "proxy-blob-auth": "//proxy/blob-auth",
         "rest-api": "//rest-api",
     },
-    repository_prefix = "it-bazel/example",
 )

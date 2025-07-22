@@ -1,0 +1,6 @@
+load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
+
+buildlib_setup(
+    name = "buildlib_setup",
+    enable_java = True,
+)

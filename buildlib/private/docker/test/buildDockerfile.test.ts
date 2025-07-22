@@ -4,7 +4,7 @@ import process from "node:process";
 import path from "node:path";
 import { writeFile } from "node:fs/promises";
 
-import loadNodeImage from "./load_node_image.js";
+import loadNodeTestImage from "./load_node_test_image.js";
 import { buildDockerfile } from "../src/buildDockerfile.js";
 
 describe("buildDockerfile", () => {
@@ -22,7 +22,11 @@ describe("buildDockerfile", () => {
       );
 
       await expect(
-        buildDockerfile(dockerfilePath, await loadNodeImage(), new Docker()),
+        buildDockerfile(
+          dockerfilePath,
+          await loadNodeTestImage(),
+          new Docker(),
+        ),
       ).resolves.toEqual({
         ok: false,
         error: expect.stringMatching(

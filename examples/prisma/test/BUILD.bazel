@@ -1,4 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "docker_image_for_ts_test", "ts_test")
+load("@dh_buildlib//ts:defs.bzl", "ts_test")
+load("@dh_buildlib//ts/docker:defs.bzl", "docker_image_for_ts_test")
 
 docker_image_for_ts_test(
     name = "load_postgres_image",
@@ -7,9 +8,9 @@ docker_image_for_ts_test(
 
 ts_test(
     name = "test",
+    srcs = glob(["**/*.ts"]),
     data = [
-        "//prisma:schema",
-        "//prisma/migrations",
+        "//prisma:migrations",
         "@dh_buildlib//prisma:cli",
     ],
     env = {

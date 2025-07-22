@@ -1,0 +1,13 @@
+load("//private:ts_library.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    srcs = glob(["**/*.ts"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:node_modules/@testcontainers/postgresql",
+        "//:node_modules/@types/node",
+        "//private/docker/src",
+        "//private/js-lib/src",
+    ],
+)

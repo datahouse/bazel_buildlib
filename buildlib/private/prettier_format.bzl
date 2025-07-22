@@ -2,7 +2,7 @@
 
 load(":npm_js_binary.bzl", "npm_js_binary")
 
-def prettier_format(name, src, out, testonly = None, visibility = None):
+def prettier_format(name, src, out, tags = [], testonly = None, visibility = None):
     """Convenience rule to format a file with prettier."""
 
     prettier = name + ".prettier"
@@ -22,6 +22,7 @@ def prettier_format(name, src, out, testonly = None, visibility = None):
         srcs = [src],
         outs = [out],
         tools = [prettier],
+        tags = tags,
         testonly = testonly,
         visibility = visibility,
     )

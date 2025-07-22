@@ -10,6 +10,7 @@ import {
 } from "@mui/joy";
 
 import AttachmentsList from "./AttachmentsList.js";
+import LoadBoundary from "./LoadBoundary.js";
 
 import UploadInput from "./UploadInput.js";
 
@@ -32,7 +33,9 @@ export default function AttachmentsModal({
         <DialogTitle>Attachments</DialogTitle>
         <ModalClose />
         <DialogContent>
-          <AttachmentsList itemId={itemId} />
+          <LoadBoundary itemDesc="the attachments">
+            <AttachmentsList itemId={itemId} />
+          </LoadBoundary>
           <Button
             component="label"
             variant="outlined"

@@ -1,4 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "gql_schema", "node_binary_image")
+load("@dh_buildlib//gql/ts:defs.bzl", "gql_schema")
+load("@dh_buildlib//ts/docker:defs.bzl", "node_binary_image")
 
 node_binary_image(
     name = "api",

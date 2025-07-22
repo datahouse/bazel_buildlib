@@ -2,6 +2,7 @@ load("//private:ts_library.bzl", "ts_test")
 
 ts_test(
     name = "test",
+    srcs = glob(["**/*.ts"]),
     deps = [
         "//private/js-lib/src",
     ],

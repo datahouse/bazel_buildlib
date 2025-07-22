@@ -1,5 +1,5 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
-load("@dh_buildlib//:defs.bzl", "ts_library")
+load("@dh_buildlib//ts:defs.bzl", "ts_library")
 
 js_library(
     # Typescript sources for the graphql codegen.
@@ -15,6 +15,10 @@ js_library(
 
 ts_library(
     name = "src",
+    srcs = glob([
+        "**/*.ts",
+        "**/*.tsx",
+    ]),
     uses_dom = True,
     visibility = [
         "//frontend:__subpackages__",
@@ -31,6 +35,7 @@ ts_library(
         "//:node_modules/apollo-upload-client",
         "//:node_modules/react",
         "//:node_modules/react-dom",
+        "//:node_modules/react-error-boundary",
         "//frontend/gql",
         "//shared-fe-lib/src",
     ],

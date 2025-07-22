@@ -1,5 +1,6 @@
 load("@aspect_bazel_lib//lib:jq.bzl", "jq")
-load("//:defs.bzl", "json_to_ts")
+load("@rules_java//java:java_library.bzl", "java_library")
+load("//ts:defs.bzl", "json_to_ts")
 load(":private.bzl", "gen_my_version")
 
 gen_my_version(
@@ -26,4 +27,27 @@ json_to_ts(
     out = "myVersion.ts",
     type = "string",
     visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "java",
+    srcs = [":gen_java_src"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "gen_java_src",
+    srcs = [
+        ":my-version.txt",
+        "MyVersion.tpl.java",
+    ],
+    outs = ["MyVersion.java"],
+    # Not the prettiest, but works.
+    # Note that there cannot be escaping issues, because my-version.txt cannot
+    # contain quotes (by semver spec).
+    cmd = """
+    MY_VERSION=`cat $(location :my-version.txt)`
+    TPL=$(location :MyVersion.tpl.java)
+    sed "s/@@MY_VERSION@@/$$MY_VERSION/" $$TPL > $@
+    """,
 )

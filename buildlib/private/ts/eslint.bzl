@@ -6,13 +6,14 @@ This is merely separate from library.bzl for readability purposes.
 load("@aspect_bazel_lib//lib:utils.bzl", "to_label")
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_test")
 
-def eslint(name, srcs, deps, testonly = None):
+def eslint(name, srcs, deps, tags = [], testonly = None):
     """Runs eslint on the given sources.
 
     Args:
       name: Name of the test rule (the fix rule will have `.fix` appended).
       srcs: Sources to lint.
       deps: Compile time dependencies for srcs.
+      tags: tags, propagated to all targets
       testonly: Testonly flag
     """
 
@@ -48,6 +49,7 @@ def eslint(name, srcs, deps, testonly = None):
         args = common_args,
         entry_point = entry_point,
         data = data,
+        tags = tags,
         testonly = testonly,
     )
 
@@ -56,5 +58,6 @@ def eslint(name, srcs, deps, testonly = None):
         args = ["--fix"] + common_args,
         entry_point = entry_point,
         data = data,
+        tags = tags,
         testonly = testonly,
     )

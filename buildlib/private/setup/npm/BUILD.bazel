@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@dh_buildlib_private_npm//:pnpm/package_json.bzl", _pnpm = "bin")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 exports_files([
     "test-pnpm-lock.sh",
@@ -15,6 +16,7 @@ bzl_library(
     deps = [
         "//private/setup:write_setup_source_file",
         "@aspect_rules_js//js:defs",
+        "@rules_shell//shell:rules_bzl",
     ],
 )
 

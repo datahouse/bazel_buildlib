@@ -1,14 +1,19 @@
 """tests for prisma"""
 
-load("//:defs.bzl", "docker_image_for_ts_test", "prisma_cli_image", "prisma_schema")
-load("//prisma:defs.bzl", "prisma_deploy_image")
+load("//prisma:defs.bzl", "prisma_deploy_image", "prisma_migrations", "prisma_schema")
 load("//private:ts_library.bzl", "ts_test")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test")
 load(":parse_distro_tests.bzl", "parse_distro_test_suite")
 load(":parse_libssl_version_tests.bzl", "parse_lib_ssl_version_test_suite")
 
 parse_distro_test_suite(name = "parse_distro_test")
 
 parse_lib_ssl_version_test_suite(name = "parse_lib_ssl_version_test")
+
+docker_image_for_ts_test(
+    name = "load_postgres_image",
+    image = "@postgres_image_linux_amd64",
+)
 
 prisma_schema(
     name = "schema",
@@ -18,34 +23,58 @@ prisma_schema(
     validate_db_url = "postgres://localhost/",
 )
 
-prisma_cli_image(
-    name = "cli_image",
+prisma_migrations(
+    name = "migrations",
     testonly = True,
-    schema = "schema.prisma",
+    srcs = glob(["migrations/**"]),
+    schema = ":schema",
+    validation_db_image = "@postgres_image_linux_amd64",
+)
+
+# deploy image based on the standard node_default_platform
+prisma_deploy_image(
+    name = "deploy_image_default",
+    testonly = True,
+    migrations = ":migrations",
 )
 
 docker_image_for_ts_test(
-    name = "load_cli_image",
-    image = ":cli_image",
+    name = "load_deploy_image_default",
+    image = ":deploy_image_default",
+)
+
+platform(
+    name = "node_alpine_platform",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "@dh_buildlib//prisma/linux:musl",
+        "@dh_buildlib//prisma/openssl:3",
+    ],
 )
 
 prisma_deploy_image(
-    name = "deploy_image",
+    name = "deploy_image_alpine",
     testonly = True,
-    schema = "schema.prisma",
+    base = "@node_alpine3.20_image_linux_amd64",
+    migrations = ":migrations",
+    platform = ":node_alpine_platform",
 )
 
 docker_image_for_ts_test(
-    name = "load_deploy_image",
-    image = ":deploy_image",
+    name = "load_deploy_image_alpine",
+    image = ":deploy_image_alpine",
 )
 
 ts_test(
     name = "test",
+    srcs = glob(["**/*.ts"]),
     tags = ["requires-network"],  # access to docker socket
     deps = [
-        ":load_cli_image",
-        ":load_deploy_image",
+        ":load_deploy_image_alpine",
+        ":load_deploy_image_default",
+        ":load_postgres_image",
+        "//:node_modules/@testcontainers/postgresql",
         "//:node_modules/testcontainers",
     ],
 )

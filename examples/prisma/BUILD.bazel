@@ -1,4 +1,5 @@
-load("@dh_buildlib//:defs.bzl", "prisma_cli_image", "prisma_dev", "prisma_generate", "prisma_schema")
+load("@dh_buildlib//prisma:defs.bzl", "prisma_deploy_image", "prisma_dev", "prisma_generate", "prisma_migrations", "prisma_schema")
+load("@dh_buildlib//prisma/generators:defs.bzl", "prisma_client_js", "typegraphql_prisma")
 
 package_group(
     name = "prisma-users",
@@ -19,7 +20,26 @@ prisma_schema(
 
 prisma_generate(
     name = "generate",
+    generators = [
+        ":prisma-client.generator",
+        ":typegraphql-prisma.generator",
+    ],
     schema = ":schema",
+)
+
+prisma_client_js(
+    name = "prisma-client",
+    generate = ":generate",
+    visibility = [
+        ":prisma-users",
+        "//prisma:__subpackages__",
+    ],
+)
+
+typegraphql_prisma(
+    name = "typegraphql-prisma",
+    generate = ":generate",
+    prisma_client = ":prisma-client",
     visibility = [
         ":prisma-users",
         "//prisma:__subpackages__",
@@ -34,10 +54,18 @@ prisma_dev(
     seed_script = "//prisma/seed",
 )
 
-# TODO: This is currently unused.
-# We'll need to properly build migrations into this, so we can use it to deploy
-# non-local DBs.
-prisma_cli_image(
-    name = "cli",
-    schema = "schema.prisma",
+prisma_migrations(
+    name = "migrations",
+    srcs = glob(["migrations/**"]),
+    schema = ":schema",
+    validation_db_image = "@postgres_image_linux_amd64",
+    visibility = [
+        "//prisma:__subpackages__",
+    ],
+)
+
+prisma_deploy_image(
+    name = "db-migrate",
+    migrations = ":migrations",
+    visibility = ["//:docker-image-users"],
 )

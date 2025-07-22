@@ -1,5 +1,5 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
-load("@dh_buildlib//:defs.bzl", "node_binary_image")
+load("@dh_buildlib//ts/docker:defs.bzl", "node_binary_image")
 
 js_library(
     name = "tsoa_config",

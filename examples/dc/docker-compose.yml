@@ -36,3 +36,22 @@ services:
       - 5432 # for prisma.
     environment:
       POSTGRES_PASSWORD: zuuboi4eemae5ee2UNga
+
+  # This service is used to perform db migrations, typically in a production
+  # setting.
+  #
+  # To run it on a host with output to terminal:
+  #   docker compose up db-migrate
+  #
+  # To run it on a host in detached mode:
+  #   docker compose --profile deploy up -d
+  #
+  # Equivalents under bazel:
+  #   bazelisk run //dc -- up db-migrate
+  #   bazelisk run //dc -- --profile deploy up -d
+  #
+  db-migrate:
+    bazel-image: //prisma:db-migrate
+    profiles: [deploy] # does not come up by default; need to specify deploy profile or service explicitly
+    environment:
+      DATABASE_URL: postgres://postgres:zuuboi4eemae5ee2UNga@db/postgres

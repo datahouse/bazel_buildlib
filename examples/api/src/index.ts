@@ -1,18 +1,24 @@
-// TODO: Migrate to Apollo Server 4 once we can upgrade to graphql 16 (see #33).
-// import { ApolloServer } from '@apollo/server';
-// import { startStandaloneServer } from '@apollo/server/standalone';
+import process from "node:process";
+import http from "node:http";
 
-import process from "process";
-import http from "http";
-
-import { ApolloServer } from "apollo-server-express";
-import {
-  ApolloServerPluginLandingPageGraphQLPlayground,
-  ApolloServerPluginLandingPageProductionDefault,
-  ApolloServerPluginDrainHttpServer,
-} from "apollo-server-core";
+// Unfortunately, we cannot use:
+//
+//   import { startStandaloneServer } from '@apollo/server/standalone';
+//
+// because we need express middlewares for:
+//
+// - file uploads
+// - the GraphQL playground
+//
+// Therefore, we use express and the apollo express middleware.
 
 import express from "express";
+
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@as-integrations/express5";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+
+import expressGQLPlayground from "graphql-playground-middleware-express";
 
 import { createPathBasedClient } from "openapi-fetch";
 
@@ -33,7 +39,8 @@ const port = 4000;
 const main = async () => {
   const app = express();
 
-  const httpServer = http.createServer(app);
+  // void to cast express 5 promise result type away.
+  const httpServer = http.createServer((req, res) => void app(req, res));
 
   const blobStore = new BlobStore("/blob_store");
   const priviledgedPrisma = new PrismaClient();
@@ -41,20 +48,9 @@ const main = async () => {
     baseUrl: "https://api.gravatar.com/v3",
   });
 
-  const server = new ApolloServer({
+  const server = new ApolloServer<Context>({
     schema: await getSchema(),
-    plugins: [
-      ApolloServerPluginDrainHttpServer({ httpServer }),
-      process.env.GQL_ENABLE_PLAYGROUND
-        ? ApolloServerPluginLandingPageGraphQLPlayground()
-        : ApolloServerPluginLandingPageProductionDefault(),
-    ],
-    context: () => {
-      // TODO: Take subject from JWT token on the request.
-      const sub = "alice@example.com";
-      const { prisma, elevatedPrisma } = enableRLS(priviledgedPrisma, sub);
-      return { prisma, elevatedPrisma, blobStore, gravatar } satisfies Context;
-    },
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     // Required for uploads to be secure.
     //
     // Why: Uploads require to accept requests with:
@@ -77,13 +73,31 @@ const main = async () => {
     csrfPrevention: true,
   });
 
+  const context = (): Promise<Context> => {
+    // TODO: Take subject from JWT token on the request.
+    const sub = "alice@example.com";
+    const { prisma, elevatedPrisma } = enableRLS(priviledgedPrisma, sub);
+
+    return Promise.resolve({ prisma, elevatedPrisma, blobStore, gravatar });
+  };
+
   await server.start();
 
   // Enable upload middleware.
   // Only needed if you need uploads.
   app.use(graphqlUploadExpress());
 
-  server.applyMiddleware({ app, path: "/" });
+  // Enable json parsing
+  app.use(express.json());
+
+  if (process.env.GQL_ENABLE_PLAYGROUND) {
+    const middleware = expressGQLPlayground.default({
+      endpoint: "/gql/v1/graphql",
+    });
+    app.get("/", middleware);
+  }
+
+  app.use("/gql/v1", expressMiddleware(server, { context }));
 
   await new Promise<void>((res) => {
     httpServer.listen(port, res);

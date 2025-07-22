@@ -1,0 +1,10 @@
+load("//private:ts_library.bzl", "ts_library")
+
+ts_library(
+    name = "dom_lib",
+    srcs = glob(["**/*.ts"]),
+    uses_dom = True,
+    visibility = [
+        "//private/ts/test/js_env_deps:__pkg__",
+    ],
+)

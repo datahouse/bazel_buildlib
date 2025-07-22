@@ -1,4 +1,12 @@
-"""Rule to label and push docker images to docker.datarepo.ch."""
+"""Rule to label and push docker images to docker.datarepo.ch.
+
+Note to implementers: You can test what this rule would do locally using the --dry-run flag:
+
+examples$ bazel run \
+  --workspace_status_command scripts/git_workspace_status.sh \
+  --stamp --embed_label=test \
+  :docker-push -- --dry-run
+"""
 
 load("@aspect_bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
 load("@aspect_rules_js//js:libs.bzl", "js_binary_lib")
@@ -11,36 +19,32 @@ def _oci_pushes_impl(ctx):
 
     image_info = {
         name: get_oci_dir(target).short_path
-        for target, name in ctx.attr.images.items()
+        for name, target in ctx.attr.images.items()
     }
 
     image_info_file = ctx.actions.declare_file("%s-image-infos.json" % ctx.label.name)
     ctx.actions.write(image_info_file, json.encode(image_info))
 
+    args = [
+        "--cranePath",
+        crane.crane_info.binary.short_path,
+        "--stamp",
+        "true" if maybe_stamp(ctx) else "false",
+        "--tagFile",
+        ctx.file.remote_tag.short_path,
+        "--imageInfoFile",
+        image_info_file.short_path,
+    ]
+
     launcher = js_binary_lib.create_launcher(
         ctx,
         log_prefix_rule_set = "dh_buildlib",
         log_prefix_rule = "oci_images_push",
-        fixed_args = [
-            "--cranePath",
-            crane.crane_info.binary.short_path,
-            "--stamp",
-            "true" if maybe_stamp(ctx) else "false",
-            "--tagFile",
-            ctx.file.remote_tag.short_path,
-            "--repositoryPrefix",
-            ctx.attr.repository_prefix,
-            "--imageInfoFile",
-            image_info_file.short_path,
-        ],
+        fixed_args = args,
     )
 
     runfiles = ctx.runfiles(
-        files = [ctx.file.remote_tag, image_info_file],
-        transitive_files = depset(transitive = [
-            i.files
-            for i in ctx.attr.images
-        ]),
+        files = [ctx.file.remote_tag, image_info_file] + ctx.files.images,
     ).merge_all([launcher.runfiles, crane.default.default_runfiles])
 
     return DefaultInfo(
@@ -67,9 +71,8 @@ _oci_pushes = rule(
         js_binary_lib.attrs,
         STAMP_ATTRS,
         {
-            "images": attr.label_keyed_string_dict(),
+            "images": attr.string_keyed_label_dict(),
             "remote_tag": attr.label(allow_single_file = True),
-            "repository_prefix": attr.string(),
         },
     ),
     executable = True,
@@ -78,38 +81,42 @@ _oci_pushes = rule(
     ],
 )
 
-def dh_docker_images_push(name, images, repository_prefix):
-    """Labels (stamps) and pushes image_names to docker.datarepo.ch
-
-    Example: [`@examples//:docker-push`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22docker%2Dpush%22%2C)
-
-    Args:
-      name: Name of this rule. By convention, must be "docker-push". The
-        name argument merely exists for consistency and to avoid breaking bazel tools.
-      images: Dictionary from registry image name to build target.
-      repository_prefix: Prefix of the images on docker.datarepo.ch.
-        Typically "project-tla".
-    """
-
-    if name != "docker-push" or native.package_name() != "":
-        fail("dh_docker_images_push must be at //:docker-push")
-
+def _dh_docker_images_push_impl(name, images, visibility):
     for image_name, image_target in images.items():
         oci_image(
-            name = image_name + ".stamped",
+            name = name + "_" + image_name + ".stamped",
             base = image_target,
             labels = Label(":push-labels.txt"),
         )
 
     _oci_pushes(
         name = "docker-push",
-        repository_prefix = "docker.datarepo.ch/" + repository_prefix,
         remote_tag = Label(":push-tag.txt"),
         images = {
-            image_name + ".stamped": image_name
+            image_name: name + "_" + image_name + ".stamped"
             for image_name in images
         },
         entry_point = Label("//private/docker/src:oci-pusher.js"),
         data = [Label("//private/docker/src")],
         enable_runfiles = True,
+        visibility = visibility,
     )
+
+dh_docker_images_push = macro(
+    doc = """Labels (stamps) and pushes image_names to docker.datarepo.ch
+
+    Note: This macro should only be used in the top-level package and called "docker-push".
+    Otherwise, it-drone-bazel will not push the images correctly.
+
+    Example: [`@examples//:docker-push`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22docker%2Dpush%22%2C)
+    """,
+    attrs = {
+        "images": attr.string_keyed_label_dict(
+            doc = "Dictionary from registry image name to build target.",
+            mandatory = True,
+            allow_empty = False,
+            configurable = False,
+        ),
+    },
+    implementation = _dh_docker_images_push_impl,
+)
