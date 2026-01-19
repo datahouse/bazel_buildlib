@@ -1,7 +1,7 @@
 """prisma_migrations macro."""
 
-load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "COPY_FILE_TO_BIN_TOOLCHAINS", "copy_files_to_bin_actions")
 load("@aspect_rules_js//js:defs.bzl", "js_test")
+load("@bazel_lib//lib:copy_to_bin.bzl", "COPY_FILE_TO_BIN_TOOLCHAINS", "copy_files_to_bin_actions")
 load(":providers.bzl", "PrismaMigrationsInfo", "PrismaSchemaInfo")
 
 def _prisma_schema_info_impl(ctx):

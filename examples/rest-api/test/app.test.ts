@@ -3,7 +3,7 @@ import supertest from "supertest";
 import { mockDeep, DeepMockProxy } from "jest-mock-extended";
 
 import { PrismaClient as RLSPrismaClient } from "../../prisma/rls/index.js";
-import { PrismaClient } from "../../prisma/prisma-client/index.js";
+import { PrismaClient } from "../../prisma/client/index.js";
 
 import { setupApp, Console } from "../src/app.js";
 

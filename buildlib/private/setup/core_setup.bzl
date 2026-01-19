@@ -1,6 +1,6 @@
 """Language independent setup."""
 
-load("@aspect_bazel_lib//lib:utils.bzl", "utils")
+load("@bazel_lib//lib:utils.bzl", "utils")
 load("//private/setup:write_setup_source_file.bzl", "write_setup_source_file")
 load("//private/setup/npm:npm_setup.bzl", "npm_setup")
 load("//private/setup/renovate:renovate.bzl", "renovate_setup")

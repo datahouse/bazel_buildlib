@@ -1,4 +1,5 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("//docker:defs.bzl", "extract_from_image")
 load("//private:ts_library.bzl", "ts_test")
 load("//ts/docker:defs.bzl", "docker_image_for_ts_test", "node_binary_image")
 
@@ -22,9 +23,20 @@ docker_image_for_ts_test(
     image = ":node_test",
 )
 
+extract_from_image(
+    name = "extract_smoke_test",
+    testonly = 1,
+    out = "profile-for-test.txt",
+    image = "@node_image",
+    path = "etc/profile",
+)
+
 ts_test(
     name = "test",
     srcs = glob(["**/*.ts"]),
+    data = [
+        "profile-for-test.txt",
+    ],
     tags = [
         "requires-network",  # docker socket
     ],

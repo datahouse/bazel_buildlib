@@ -30,7 +30,7 @@ def _jest_test_impl(name, data, deps, env, tags, ts_sources, uses_dom, visibilit
         # We pass srcs to js_test as well so it can resolve source maps and show error context.
         # The customized testRegex ensures jest will not try to execute them as test.
         data = [
-            "//:node_modules/@babel/plugin-transform-modules-commonjs",
+            Label("//:node_modules/@babel/plugin-transform-modules-commonjs"),
             Label("//private/ts/jest-config:deps"),
             jest_config,
         ] + deps + env_deps + data + ts_sources,

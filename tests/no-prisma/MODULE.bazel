@@ -1,6 +1,6 @@
-bazel_dep(name = "aspect_rules_js", version = "2.4.0")
-bazel_dep(name = "aspect_rules_ts", version = "3.6.3")
-bazel_dep(name = "rules_oci", version = "2.2.6")
+bazel_dep(name = "aspect_rules_js", version = "2.9.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.3")
+bazel_dep(name = "rules_oci", version = "2.2.7")
 bazel_dep(name = "dh_buildlib", version = "0.0.0")
 local_path_override(
     module_name = "dh_buildlib",
@@ -17,9 +17,9 @@ use_repo(rules_ts_ext, "npm_typescript")
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "node_image",
-    digest = "sha256:9a25b5a6f9a90218b73a62205f111e71de5e4289aee952b4dd7e86f7498f2544",
+    digest = "sha256:b2b2184ba9b78c022e1d6a7924ec6fba577adf28f15c9d9c457730cc4ad3807a",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "23.11.1",  # ignored, doc only
+    tag = "24.13.0",  # ignored, doc only
 )
 use_repo(oci, "node_image", "node_image_linux_amd64")

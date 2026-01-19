@@ -21,14 +21,14 @@ prisma_schema(
 prisma_generate(
     name = "generate",
     generators = [
-        ":prisma-client.generator",
+        ":client.generator",
         ":typegraphql-prisma.generator",
     ],
     schema = ":schema",
 )
 
 prisma_client_js(
-    name = "prisma-client",
+    name = "client",
     generate = ":generate",
     visibility = [
         ":prisma-users",
@@ -39,7 +39,7 @@ prisma_client_js(
 typegraphql_prisma(
     name = "typegraphql-prisma",
     generate = ":generate",
-    prisma_client = ":prisma-client",
+    prisma_client = ":client",
     visibility = [
         ":prisma-users",
         "//prisma:__subpackages__",

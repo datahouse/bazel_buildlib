@@ -8,7 +8,7 @@ describe("hot reload base", () => {
     async () => {
       const hotBaseTestImage = await loadHotBaseTestImage();
 
-      const container = await new GenericContainer(hotBaseTestImage)
+      await using container = await new GenericContainer(hotBaseTestImage)
         .withExposedPorts(80) // expose the port so testcontainers waits for it to be bound.
         .start();
 
@@ -16,8 +16,6 @@ describe("hot reload base", () => {
 
       // A somewhat unnecessary expect to make the linter happy.
       expect(container.getMappedPort(80)).not.toEqual(0);
-
-      await container.stop();
     },
     5 * 60 * 1000,
   );

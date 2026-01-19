@@ -2,7 +2,7 @@ import process from "node:process";
 
 import { ErrorRequestHandler } from "express";
 
-import { PrismaClient } from "../../../prisma/prisma-client/index.js";
+import { PrismaClient } from "../../../prisma/client/index.js";
 import enableRLS from "../../../prisma/rls/index.js";
 
 import { setupApp } from "./app.js";

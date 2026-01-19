@@ -24,15 +24,14 @@ PrismaGeneratorInfo = provider(
     fields = {
         "exec_paths": "Additional paths to add to PATH env when running `prisma generate`",
         "generate_deps": "Additional dependencies to run `prisma generate`",
-        "module_type": "JavaScript module type of the output",
-        "target_name": "Name of the generator and the output directory",
+        "target_name": "Name of the generator and the final output directory",
     },
 )
 
 PrismaGenerateInfo = provider(
     doc = "Information about a result of prisma generation.",
     fields = {
-        "out_dirs": "Dict from generator target_name -> output directory",
+        "out_dirs": "Dict from generator target_name -> result output directory",
     },
 )
 

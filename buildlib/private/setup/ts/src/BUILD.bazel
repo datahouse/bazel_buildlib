@@ -6,8 +6,10 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:node_modules/@types/argparse",
+        "//:node_modules/@types/esprima",
+        "//:node_modules/@types/estree",
         "//:node_modules/@types/node",
         "//:node_modules/argparse",
-        "//:node_modules/zod",
+        "//:node_modules/esprima",
     ],
 )

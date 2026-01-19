@@ -1,51 +1,28 @@
 """Rule to load a docker image into the local docker daemon from within a TS test."""
 
-load("@aspect_bazel_lib//lib:copy_file.bzl", "COPY_FILE_TOOLCHAINS", "copy_file_action")
-load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
 load("@aspect_rules_js//js:defs.bzl", "js_library")
-
-def _loader_impl(ctx):
-    ctx.actions.expand_template(
-        output = ctx.outputs.js,
-        template = ctx.file._js_tpl,
-        substitutions = {
-            "{{ IMAGE }}": ctx.file.image.short_path,
-            "{{ LIB }}": relative_file(ctx.file._lib.path, ctx.outputs.js.path),
-        },
-    )
-
-    copy_file_action(ctx, ctx.file._decl, ctx.outputs.decl)
-
-_loader = rule(
-    implementation = _loader_impl,
-    attrs = {
-        "decl": attr.output(),
-        "image": attr.label(
-            allow_single_file = True,
-        ),
-        "js": attr.output(),
-        "_decl": attr.label(
-            allow_single_file = True,
-            default = Label("//private/docker:load-image-for-ts-test.d.ts"),
-        ),
-        "_js_tpl": attr.label(
-            allow_single_file = True,
-            default = Label("//private/docker:load-image-for-ts-test.tpl.js"),
-        ),
-        "_lib": attr.label(
-            allow_single_file = True,
-            default = Label("//private/docker/src:loadImageToDocker.js"),
-        ),
-    },
-    toolchains = COPY_FILE_TOOLCHAINS,
-)
+load("@bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@bazel_lib//lib:expand_template.bzl", "expand_template")
 
 def _docker_image_for_ts_test_impl(name, image, visibility):
-    _loader(
-        name = name + ".loader",
-        js = name + ".js",
-        decl = name + ".d.ts",
-        image = image,
+    tool = Label("//private/docker/src:load-image")
+
+    expand_template(
+        name = name + ".js_gen",
+        out = name + ".js",
+        testonly = True,
+        template = Label("//private/docker:load-image-for-ts-test.tpl.js"),
+        substitutions = {
+            "{{ IMAGE }}": "$(rootpath %s)" % image,
+            "{{ LOADER }}": "$(rootpath %s)" % tool,
+        },
+        data = [image, tool],
+    )
+
+    copy_file(
+        name = name + ".d.ts_gen",
+        src = Label("//private/docker:load-image-for-ts-test.d.ts"),
+        out = name + ".d.ts",
         testonly = True,
     )
 
@@ -53,8 +30,7 @@ def _docker_image_for_ts_test_impl(name, image, visibility):
         name = name,
         srcs = [name + ".js"],
         types = [name + ".d.ts"],
-        data = [image],
-        deps = [Label("//private/docker/src")],
+        data = [image, tool],
         testonly = True,
         visibility = visibility,
     )
@@ -89,7 +65,7 @@ docker_image_for_ts_test = macro(
       // and return a reference you can use with testcontainers.
       const image = await loadMyImage();
 
-      const container = await new GenericContainer(image).start();
+      await using container = await new GenericContainer(image).start();
     });
     ```
 

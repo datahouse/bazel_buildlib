@@ -14,12 +14,8 @@ docker_compose(
 sh_test(
     name = "dc_up_test",
     srcs = ["dc_up_test.sh"],
-    data = [
-        ":dc",
-        "@docker_compose//file",
-    ],
+    data = [":dc"],
     env = {
         "DH_DC_BIN": "$(rootpath :dc)",
-        "DOCKER_COMPOSE_BIN": "$(rootpath @docker_compose//file)",
     },
 )

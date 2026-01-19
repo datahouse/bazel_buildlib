@@ -19,6 +19,7 @@ interface Props {
   onClose: () => void;
   itemId: number;
   upload: (file: File) => void;
+  deleteAttachment: (attachmentId: number) => void;
 }
 
 export default function AttachmentsModal({
@@ -26,6 +27,7 @@ export default function AttachmentsModal({
   itemId,
   open,
   onClose,
+  deleteAttachment,
 }: Props) {
   return (
     <Modal open={open} onClose={onClose}>
@@ -34,7 +36,10 @@ export default function AttachmentsModal({
         <ModalClose />
         <DialogContent>
           <LoadBoundary itemDesc="the attachments">
-            <AttachmentsList itemId={itemId} />
+            <AttachmentsList
+              itemId={itemId}
+              deleteAttachment={deleteAttachment}
+            />
           </LoadBoundary>
           <Button
             component="label"

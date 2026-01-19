@@ -121,11 +121,5 @@ CREATE POLICY my_todos ON "TodoItem" TO api
   -- So no need to repeat conditions.
   USING ("TodoItem"."listId" IN (SELECT "TodoList"."id" FROM "TodoList"));
 
-CREATE POLICY read_my_attachments ON "TodoAttachment" FOR SELECT TO api
-  USING ("TodoAttachment"."itemId" IN (SELECT "TodoItem"."id" FROM "TodoItem"));
-
-CREATE POLICY add_my_attachments ON "TodoAttachment" FOR INSERT TO api_elevated
-  WITH CHECK ("TodoAttachment"."itemId" IN (SELECT "TodoItem"."id" FROM "TodoItem"));
-
-CREATE POLICY delete_my_attachments ON "TodoAttachment" FOR DELETE TO api_elevated
+CREATE POLICY my_attachments ON "TodoAttachment" TO api
   USING ("TodoAttachment"."itemId" IN (SELECT "TodoItem"."id" FROM "TodoItem"));

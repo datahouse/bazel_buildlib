@@ -48,7 +48,7 @@ test("my test", async () => {
   // and return a reference you can use with testcontainers.
   const image = await loadMyImage();
 
-  const container = await new GenericContainer(image).start();
+  await using container = await new GenericContainer(image).start();
 });
 ```
 

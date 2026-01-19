@@ -1,15 +1,18 @@
 """Repository rule to store the prisma engines version from a pnpm lock."""
 
-load("@aspect_bazel_lib//lib:repo_utils.bzl", "repo_utils")
+load("@bazel_lib//lib:repo_utils.bzl", "repo_utils")
 
 def _load_pnpm_lock(ctx):
     """Loads a pnpm lockfile as a dictionary."""
+
+    pnpm_lock_path = ctx.path(ctx.attr.pnpm_lock)
+    ctx.watch(pnpm_lock_path)
 
     yq_path = str(ctx.path(Label("@yq_{}//:yq".format(repo_utils.platform(ctx)))))
 
     yq_args = [
         yq_path,
-        str(ctx.path(ctx.attr.pnpm_lock)),
+        str(pnpm_lock_path),
         "-o=json",
     ]
 
@@ -115,6 +118,7 @@ def _engines_version_impl(ctx):
     ctx.file("BUILD", content = """exports_files(["version.txt"])""")
 
 engines_version = repository_rule(
+    local = True,
     implementation = _engines_version_impl,
     attrs = {
         "pnpm_lock": attr.label(

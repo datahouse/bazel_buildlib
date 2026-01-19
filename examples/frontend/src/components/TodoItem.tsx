@@ -1,15 +1,12 @@
 import { useState } from "react";
 
-import { ListItem, Checkbox, IconButton, Snackbar, Badge } from "@mui/joy";
+import { ListItem, Checkbox, IconButton, Badge } from "@mui/joy";
 
 import { AttachFileOutlined, FileUploadOutlined } from "@mui/icons-material";
 
-import {
-  useMutation,
-  MutationResult,
-  FragmentType,
-  useSuspenseFragment,
-} from "@apollo/client";
+import { FragmentType } from "@apollo/client";
+
+import { useMutation, useSuspenseFragment } from "@apollo/client/react";
 
 import { gql } from "../../gql/index.js";
 import { TodoItemFieldsFragment } from "../../gql/graphql.js";
@@ -18,6 +15,7 @@ import { GET_ACTIVE_TODOS, GET_ATTACHMENTS } from "../queries.js";
 
 import AttachmentsModal from "./AttachmentsModal.js";
 import UploadInput from "./UploadInput.js";
+import { MutationResultSnackbar } from "./MutationSnackbar.js";
 
 const TODO_ITEM_FIELDS_FRAGMENT = gql(`
   fragment TodoItemFields on TodoItem {
@@ -38,43 +36,31 @@ export const UPLOAD_TODO_ATTACHMENT = gql(`
   }
 `);
 
+// exported for testing
+export const DELETE_TODO_ATTACHMENT = gql(`
+  mutation deleteTodoAttachment ($id: Int!) {
+    deleteAttachment (
+      id: $id
+    )
+  }
+`);
+
 export interface Props {
   item: FragmentType<TodoItemFieldsFragment>;
-}
-
-interface UploadSnackbarProps {
-  result: MutationResult<unknown>;
-}
-
-function UploadSnackbar({ result }: UploadSnackbarProps) {
-  const onClose = () => result.reset();
-  const error = !!result.error;
-  const success = !!result.data;
-
-  // Use two separate snackbar components to keep the code cleaner.
-  // In practice, their open property is mutually exclusive.
-  return (
-    <>
-      <Snackbar color="success" variant="soft" open={success} onClose={onClose}>
-        Successfully uploaded file
-      </Snackbar>
-      <Snackbar color="danger" variant="soft" open={error} onClose={onClose}>
-        Error uploading: {result.error?.message}
-      </Snackbar>
-    </>
-  );
 }
 
 interface AttachmentsButtonProps {
   attachmentCount: number;
   itemId: number;
   upload: (file: File) => void;
+  deleteAttachment: (attachmentId: number) => void;
 }
 
 function AttachmentsButton({
   attachmentCount,
   itemId,
   upload,
+  deleteAttachment,
 }: AttachmentsButtonProps) {
   const [open, setOpen] = useState(false);
 
@@ -93,6 +79,7 @@ function AttachmentsButton({
         onClose={() => setOpen(false)}
         itemId={itemId}
         upload={upload}
+        deleteAttachment={deleteAttachment}
       />
     </>
   );
@@ -104,9 +91,19 @@ export default function TodoItem({ item: itemFragment }: Props) {
     from: itemFragment,
   });
 
+  const refetchQueries = [GET_ACTIVE_TODOS, GET_ATTACHMENTS];
+
   const [upload, uploadResult] = useMutation(UPLOAD_TODO_ATTACHMENT, {
-    refetchQueries: [GET_ACTIVE_TODOS, GET_ATTACHMENTS],
+    refetchQueries,
   });
+
+  const [deleteAttachment, deleteAttachmentResult] = useMutation(
+    DELETE_TODO_ATTACHMENT,
+    { refetchQueries },
+  );
+
+  const execAttachmentDelete = (id: number) =>
+    void deleteAttachment({ variables: { id } });
 
   const attachmentCount = item?._count?.attachments ?? 0;
 
@@ -119,6 +116,7 @@ export default function TodoItem({ item: itemFragment }: Props) {
         itemId={item.id}
         attachmentCount={attachmentCount}
         upload={execUpload}
+        deleteAttachment={execAttachmentDelete}
       />
     ) : (
       <IconButton component="label" aria-label="upload attachment">
@@ -134,7 +132,16 @@ export default function TodoItem({ item: itemFragment }: Props) {
   return (
     <ListItem endAction={endAction}>
       <Checkbox label={item.text} checked={item.done} />
-      <UploadSnackbar result={uploadResult} />
+      <MutationResultSnackbar
+        result={uploadResult}
+        successMessage="File uploaded successfully"
+        errorMessage="Error uploading file"
+      />
+      <MutationResultSnackbar
+        result={deleteAttachmentResult}
+        successMessage="Attachment deleted successfully"
+        errorMessage="Error deleting attachment"
+      />
     </ListItem>
   );
 }

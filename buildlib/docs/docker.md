@@ -7,6 +7,7 @@ Docker and docker compose related rules.
 
 - [build_dockerfile](#build_dockerfile)
 - [dc_service_reference](#dc_service_reference)
+- [extract_from_image](#extract_from_image)
 
 ## Macros
 
@@ -87,6 +88,29 @@ Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%2
 | <a id="dc_service_reference-service_name"></a>service_name |  Docker compose service name   | String | required |  |
 
 
+<a id="extract_from_image"></a>
+
+## extract_from_image
+
+<pre>
+load("@dh_buildlib//docker:defs.bzl", "extract_from_image")
+
+extract_from_image(<a href="#extract_from_image-name">name</a>, <a href="#extract_from_image-out">out</a>, <a href="#extract_from_image-image">image</a>, <a href="#extract_from_image-path">path</a>)
+</pre>
+
+Extracts a file from an OCI image.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="extract_from_image-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="extract_from_image-out"></a>out |  Output file   | <a href="https://bazel.build/concepts/labels">Label</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
+| <a id="extract_from_image-image"></a>image |  OCI image to extract from   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="extract_from_image-path"></a>path |  Path inside the image to extract (no leading slash)   | String | required |  |
+
+
 <a id="docker_compose"></a>
 
 ## docker_compose
@@ -94,7 +118,7 @@ Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%2
 <pre>
 load("@dh_buildlib//docker:defs.bzl", "docker_compose")
 
-docker_compose(<a href="#docker_compose-name">name</a>, <a href="#docker_compose-project">project</a>, <a href="#docker_compose-src">src</a>, <a href="#docker_compose-deps">deps</a>, <a href="#docker_compose-visibility">visibility</a>, <a href="#docker_compose-testonly">testonly</a>)
+docker_compose(<a href="#docker_compose-name">name</a>, <a href="#docker_compose-project">project</a>, <a href="#docker_compose-src">src</a>, <a href="#docker_compose-deps">deps</a>, <a href="#docker_compose-srcs">srcs</a>, <a href="#docker_compose-visibility">visibility</a>, <a href="#docker_compose-testonly">testonly</a>)
 </pre>
 
 Bazel rule for docker compose files.
@@ -109,8 +133,9 @@ Example: [`@examples//dc`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%20%2
 | :------------- | :------------- | :------------- |
 | <a id="docker_compose-name"></a>name |  Name of the rule.   |  none |
 | <a id="docker_compose-project"></a>project |  Name of the docker compose project. This is used as a prefix for the containers so it should be somewhat unique. If in doubt, a good default is the project tla (e.g. sbz for SBZ).   |  none |
-| <a id="docker_compose-src"></a>src |  The docker compose file (docker-compose.yml).   |  none |
-| <a id="docker_compose-deps"></a>deps |  Container images required by this docker compose file.   |  none |
+| <a id="docker_compose-src"></a>src |  Deprecated use srcs. The docker compose file (docker-compose.yml). Mutually exclusive with srcs.   |  `None` |
+| <a id="docker_compose-deps"></a>deps |  Container images required by this docker compose file.   |  `None` |
+| <a id="docker_compose-srcs"></a>srcs |  Docker compose inputs: must include exactly one file starting with 'docker-compose.' and ends with '.yml\|.yaml'; other files (e.g. .env) are included as runfiles. Mutually exclusive with src.   |  `None` |
 | <a id="docker_compose-visibility"></a>visibility |  Visibility specifier.   |  `None` |
 | <a id="docker_compose-testonly"></a>testonly |  Testonly flag.   |  `None` |
 

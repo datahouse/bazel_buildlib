@@ -1,6 +1,6 @@
 """prisma_dev rule."""
 
-load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
+load("@bazel_lib//lib:paths.bzl", "relative_file")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//private/docker:providers.bzl", "DcServiceReferenceInfo")
 load("//private/prisma:providers.bzl", "PrismaSchemaInfo")

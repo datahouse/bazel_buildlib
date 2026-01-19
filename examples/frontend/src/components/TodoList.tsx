@@ -4,7 +4,9 @@ import { List, ListItem, ListItemButton, styled } from "@mui/joy";
 
 import { KeyboardArrowDown, KeyboardArrowRight } from "@mui/icons-material";
 
-import { FragmentType, useSuspenseFragment } from "@apollo/client";
+import { FragmentType } from "@apollo/client";
+
+import { useSuspenseFragment } from "@apollo/client/react";
 
 import { gql } from "../../gql/index.js";
 import { TodoListFieldsFragment } from "../../gql/graphql.js";

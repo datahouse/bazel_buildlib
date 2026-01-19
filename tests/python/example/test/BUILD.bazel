@@ -1,0 +1,11 @@
+load("@aspect_rules_py//py:defs.bzl", "py_test")
+
+py_test(
+    name = "hello_tests",
+    srcs = ["hello_test.py"],
+    pytest_main = True,
+    deps = [
+        "//example/src:hello",
+        "@pypi//pytest",
+    ],
+)

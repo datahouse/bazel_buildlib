@@ -1,8 +1,8 @@
-bazel_dep(name = "aspect_bazel_lib", version = "2.20.0")
-bazel_dep(name = "aspect_rules_js", version = "2.4.0")
-bazel_dep(name = "aspect_rules_ts", version = "3.6.3")
-bazel_dep(name = "bazel_skylib", version = "1.8.1")
-bazel_dep(name = "rules_oci", version = "2.2.6")
+bazel_dep(name = "aspect_rules_js", version = "2.9.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.3")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_oci", version = "2.2.7")
+bazel_dep(name = "tar.bzl", version = "0.7.0")
 bazel_dep(name = "dh_buildlib", version = "0.0.0")
 
 # When setting up in a different repository this should be
@@ -26,23 +26,23 @@ use_repo(rules_ts_ext, "npm_typescript")
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "nginx_image",
-    digest = "sha256:f5c017fb33c6db484545793ffb67db51cdd7daebee472104612f73a85063f889",
+    digest = "sha256:c881927c4077710ac4b1da63b83aa163937fb47457950c267d92f7e4dedf4aec",
     image = "index.docker.io/library/nginx",
     platforms = ["linux/amd64"],
-    tag = "1.29.0",  # ignored, doc only
+    tag = "1.29.4",  # ignored, doc only
 )
 oci.pull(
     name = "node_image",
-    digest = "sha256:9a25b5a6f9a90218b73a62205f111e71de5e4289aee952b4dd7e86f7498f2544",
+    digest = "sha256:b2b2184ba9b78c022e1d6a7924ec6fba577adf28f15c9d9c457730cc4ad3807a",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "23.11.1",  # ignored, doc only
+    tag = "24.13.0",  # ignored, doc only
 )
 oci.pull(
     name = "postgres_image",
-    digest = "sha256:3962158596daaef3682838cc8eb0e719ad1ce520f88e34596ce8d5de1b6330a1",
+    digest = "sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2",
     image = "index.docker.io/library/postgres",
     platforms = ["linux/amd64"],
-    tag = "17.5",  # ignored, doc only
+    tag = "18.1",  # ignored, doc only
 )
 use_repo(oci, "nginx_image", "nginx_image_linux_amd64", "node_image", "node_image_linux_amd64", "postgres_image", "postgres_image_linux_amd64")

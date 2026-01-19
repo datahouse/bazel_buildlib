@@ -8,6 +8,6 @@ ts_library(
         "//prisma/test:__pkg__",
     ],
     deps = [
-        "//prisma:prisma-client",
+        "//prisma:client",
     ],
 )

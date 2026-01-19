@@ -8,16 +8,20 @@ module(
 # Non-Dev Dependencies
 
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "bazel_skylib", version = "1.8.1")
-bazel_dep(name = "aspect_bazel_lib", version = "2.20.0")
-bazel_dep(name = "rules_nodejs", version = "6.4.0")
-bazel_dep(name = "rules_shell", version = "0.5.0")
-bazel_dep(name = "rules_java", version = "8.14.0")
-bazel_dep(name = "aspect_rules_js", version = "2.4.0")
-bazel_dep(name = "aspect_rules_ts", version = "3.6.3")
-bazel_dep(name = "aspect_rules_swc", version = "2.4.3")
-bazel_dep(name = "rules_oci", version = "2.2.6")
-bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "bazel_lib", version = "3.1.1")
+bazel_dep(name = "rules_nodejs", version = "6.7.3")
+bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "rules_java", version = "9.3.0")
+bazel_dep(name = "aspect_rules_js", version = "2.9.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.8.3")
+bazel_dep(name = "rules_python", version = "1.8.0")
+bazel_dep(name = "aspect_rules_swc", version = "2.6.0")
+bazel_dep(name = "rules_oci", version = "2.2.7")
+bazel_dep(name = "jq.bzl", version = "0.4.0")
+bazel_dep(name = "tar.bzl", version = "0.7.0")
+bazel_dep(name = "yq.bzl", version = "0.3.4")
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.1.1")
 
 # Internal non-dev repositories / extensions.
 
@@ -86,14 +90,17 @@ use_repo(rules_ts_ext, "dh_buildlib_private_typescript")
 
 # yq toolchain for the prisma engines repository.
 
-bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
-use_repo(bazel_lib_toolchains, "yq_darwin_amd64")
-use_repo(bazel_lib_toolchains, "yq_darwin_arm64")
-use_repo(bazel_lib_toolchains, "yq_linux_amd64")
-use_repo(bazel_lib_toolchains, "yq_linux_arm64")
-use_repo(bazel_lib_toolchains, "yq_linux_ppc64le")
-use_repo(bazel_lib_toolchains, "yq_linux_s390x")
-use_repo(bazel_lib_toolchains, "yq_windows_amd64")
+yq_toolchain = use_extension("@yq.bzl//yq:extensions.bzl", "yq")
+use_repo(
+    yq_toolchain,
+    "yq_darwin_amd64",
+    "yq_darwin_arm64",
+    "yq_linux_amd64",
+    "yq_linux_arm64",
+    "yq_linux_ppc64le",
+    "yq_linux_s390x",
+    "yq_windows_amd64",
+)
 
 prisma_engines_version = use_repo_rule("//private/prisma:engines_version.bzl", "engines_version")
 
@@ -118,7 +125,7 @@ use_repo(prisma, "prisma")
 # Dev dependencies
 
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
-bazel_dep(name = "rules_jvm_external", version = "6.7", dev_dependency = True)
+bazel_dep(name = "rules_jvm_external", version = "6.9", dev_dependency = True)
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven", dev_dependency = True)
 
@@ -136,49 +143,47 @@ use_repo(maven, "maven")
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci", dev_dependency = True)
 oci.pull(
     name = "node_image",
-    digest = "sha256:9a25b5a6f9a90218b73a62205f111e71de5e4289aee952b4dd7e86f7498f2544",
+    digest = "sha256:b2b2184ba9b78c022e1d6a7924ec6fba577adf28f15c9d9c457730cc4ad3807a",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "23.11.1",  # ignored, doc only
+    tag = "24.13.0",  # ignored, doc only
 )
 oci.pull(
     name = "postgres_image",
-    digest = "sha256:3962158596daaef3682838cc8eb0e719ad1ce520f88e34596ce8d5de1b6330a1",
+    digest = "sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2",
     image = "index.docker.io/library/postgres",
     platforms = ["linux/amd64"],
-    tag = "17.5",  # ignored, doc only
+    tag = "18.1",  # ignored, doc only
 )
 
 # there are issues with prisma 5.x and alpine 3.21 regarding location of libssl, hence 3.20 was used here
 # https://github.com/nodejs/docker-node/issues/2175
 oci.pull(
     name = "node_alpine3.20_image",
-    digest = "sha256:78d6e102e0889545bcf80ded837034f485ba7f7ebe09211d0f2d383082a7a047",
+    digest = "sha256:8fe019e0d57dbdce5f5c27c0b63d2775cf34b00e3755a7dea969802d7e0c2b25",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "23.11.1-alpine3.20",
+    tag = "24.1.0-alpine3.20",
 )
 use_repo(oci, "node_alpine3.20_image", "node_alpine3.20_image_linux_amd64", "node_image", "node_image_linux_amd64", "postgres_image", "postgres_image_linux_amd64")
 
 # Pull in rules_python to set ignore_root_user_error = True.
 # Workaround for https://git.datahouse.ch/datahouse/it-drone-bazel/issues/49
-bazel_dep(name = "rules_python", version = "1.5.1", dev_dependency = True)
-
 python = use_extension("@rules_python//python/extensions:python.bzl", "python", dev_dependency = True)
 python.toolchain(
     ignore_root_user_error = True,
     python_version = "3.11",
 )
 
-http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+compose = use_extension("@dh_buildlib//private/docker/compose:compose_extension.bzl", "compose_bin_extension")
+compose.download(version = "5.0.1")
+use_repo(compose, "dc_darwin_aarch64", "dc_darwin_x86_64", "dc_linux_aarch64", "dc_linux_x86_64", "dc_windows_aarch64", "dc_windows_x86_64")
 
-http_file(
-    name = "docker_compose",
-    dev_dependency = True,
-    executable = True,
-    # TODO(#1090)
-    # - Write an extension for this.
-    # - Upgrade via Renovate.
-    integrity = "sha256-bvSOS/Jfvx8a1QxDt5fMJOEuTN4pdlB2tBReCeNfVxM=",
-    url = "https://github.com/docker/compose/releases/download/v2.32.3/docker-compose-linux-x86_64",
+register_toolchains(
+    "@dh_buildlib//private/docker/compose:darwin_aarch64_toolchain",
+    "@dh_buildlib//private/docker/compose:darwin_x86_64_toolchain",
+    "@dh_buildlib//private/docker/compose:linux_aarch64_toolchain",
+    "@dh_buildlib//private/docker/compose:linux_x86_64_toolchain",
+    "@dh_buildlib//private/docker/compose:windows_x86_64_toolchain",
+    "@dh_buildlib//private/docker/compose:windows_aarch64_toolchain",
 )

@@ -23,7 +23,7 @@ ts_test(
         ":load_postgres_image",
         "//:node_modules/@testcontainers/postgresql",
         "//:node_modules/@types/node",
-        "//prisma:prisma-client",
+        "//prisma:client",
         "//prisma/rls",
     ],
 )

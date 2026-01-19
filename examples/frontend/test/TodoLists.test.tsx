@@ -1,25 +1,35 @@
 import "@testing-library/jest-dom";
 
-import { Unmasked } from "@apollo/client";
+import { GraphQLCodegenDataMasking } from "@apollo/client/masking";
 
 import {
   render as rawRender,
   act,
   screen,
   fireEvent,
+  waitFor,
 } from "@testing-library/react";
-import { MockedProvider, MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
+
+import { MockedProvider } from "@apollo/client/testing/react";
 
 import type { DocumentType } from "../gql/index.js";
 
 import { GET_ACTIVE_TODOS, GET_ATTACHMENTS } from "../src/queries.js";
-import { UPLOAD_TODO_ATTACHMENT } from "../src/components/TodoItem.js";
+import {
+  DELETE_TODO_ATTACHMENT,
+  UPLOAD_TODO_ATTACHMENT,
+} from "../src/components/TodoItem.js";
 
 import TodoLists from "../src/TodoLists.js";
 
 // Types of queries we use.
-
-type GetActiveTodosData = Unmasked<DocumentType<typeof GET_ACTIVE_TODOS>>;
+type GetAttachmentsData = GraphQLCodegenDataMasking.Unmasked<
+  DocumentType<typeof GET_ATTACHMENTS>
+>;
+type GetActiveTodosData = GraphQLCodegenDataMasking.Unmasked<
+  DocumentType<typeof GET_ACTIVE_TODOS>
+>;
 
 // A note about the __typename fields:
 // - They are required to make fragments work correctly.
@@ -70,7 +80,7 @@ const fakeData = (): GetActiveTodosData => ({
   ],
 });
 
-const render = (mocks: MockedResponse[]) =>
+const render = (mocks: MockLink.MockedResponse[]) =>
   act(() =>
     rawRender(
       <MockedProvider mocks={mocks}>
@@ -323,6 +333,90 @@ test("upload (with attachments dialog)", async () => {
   expect(await screen.findByText("test.txt")).toBeInTheDocument();
 
   expect(uploadMock).toHaveBeenCalledTimes(1);
+});
+
+test("delete attachment", async () => {
+  const DELETE_ID = 8;
+
+  const preDeleteTodos = fakeData();
+  const postDeleteTodos = fakeData();
+
+  const itemToDeleteFor = postDeleteTodos.todoLists[0].items[0];
+  itemToDeleteFor._count!.attachments -= 1;
+
+  const postDeleteAttachments: GetAttachmentsData = {
+    todoAttachments: [
+      {
+        id: 7,
+        filename: "file1.txt",
+        uuid: "00000000-0000-0000-0000-000000000000",
+        __typename: "TodoAttachment",
+      },
+    ],
+  };
+
+  const preDeleteAttachments: GetAttachmentsData = {
+    todoAttachments: [
+      ...postDeleteAttachments.todoAttachments,
+      {
+        id: DELETE_ID,
+        filename: "file2.txt",
+        uuid: "11111111-1111-1111-1111-111111111111",
+        __typename: "TodoAttachment",
+      },
+    ],
+  };
+
+  const deleteMock = jest.fn().mockResolvedValue({
+    data: { deleteAttachment: DELETE_ID },
+  });
+
+  const mocks = [
+    {
+      request: { query: GET_ACTIVE_TODOS },
+      result: { data: preDeleteTodos },
+    },
+    {
+      request: {
+        query: GET_ATTACHMENTS,
+        variables: { itemId: itemToDeleteFor.id },
+      },
+      result: { data: preDeleteAttachments },
+    },
+    {
+      request: {
+        query: DELETE_TODO_ATTACHMENT,
+        variables: { id: DELETE_ID },
+      },
+      result: deleteMock,
+    },
+    {
+      request: { query: GET_ACTIVE_TODOS },
+      result: { data: postDeleteTodos },
+    },
+    {
+      request: {
+        query: GET_ATTACHMENTS,
+        variables: { itemId: itemToDeleteFor.id },
+      },
+      result: { data: postDeleteAttachments },
+    },
+  ];
+
+  await render(mocks);
+
+  fireEvent.click(await screen.findByLabelText(/2 attachments/));
+  fireEvent.click(await screen.findByLabelText(/Delete file2.txt/));
+
+  // Check we update the attachment count (behind the modal).
+  await screen.findByLabelText(/1 attachments/);
+
+  // Check we update the attachment list (in the modal).
+  await waitFor(() => {
+    expect(screen.queryByText(/file2.txt/)).not.toBeInTheDocument();
+  });
+
+  expect(deleteMock).toHaveBeenCalledTimes(1);
 });
 
 test("reports loading", async () => {

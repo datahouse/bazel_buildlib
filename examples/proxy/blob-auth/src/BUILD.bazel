@@ -6,7 +6,7 @@ _tsoa.tsoa(
     srcs = glob(["**/controller.ts"]) + [
         "index.ts",
         "tsoa-ioc.ts",
-        "//prisma:prisma-client",
+        "//prisma:client",
         "//proxy/blob-auth:tsoa_config",
     ],
     outs = ["routes.ts"],
@@ -27,7 +27,7 @@ ts_library(
         "//:node_modules/@types/node",
         "//:node_modules/express",
         "//:node_modules/tsoa",
-        "//prisma:prisma-client",
+        "//prisma:client",
         "//prisma/rls",
     ],
 )

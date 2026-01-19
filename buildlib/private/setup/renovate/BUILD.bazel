@@ -1,4 +1,4 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
 
 bzl_library(
     name = "bzl",
@@ -12,6 +12,6 @@ bzl_library(
         "//private/setup:write_setup_source_file",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_js//npm:repositories",
-        "@rules_nodejs//nodejs:index.for_docs",
+        "@rules_nodejs//nodejs:repositories",
     ],
 )

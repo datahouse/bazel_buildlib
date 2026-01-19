@@ -7,7 +7,7 @@ import {
   StartedPostgreSqlContainer,
 } from "@testcontainers/postgresql";
 
-import { PrismaClient as BasePrismaClient } from "../prisma-client/index.js";
+import { PrismaClient as BasePrismaClient } from "../client/index.js";
 import enableRLS, { PrismaClient } from "../rls/index.js";
 
 import loadPostgresImage from "./load_postgres_image.js";
@@ -70,6 +70,9 @@ const createTestData = async (prisma: BasePrismaClient) => {
     },
   });
 };
+
+// postgres: 42501 insufficient_privilege
+const insufficientPrivilegeCodeRE = /code: "42501"/;
 
 describe("RLS for alice", () => {
   let psqlContainer: StartedPostgreSqlContainer;
@@ -146,7 +149,9 @@ describe("RLS for alice", () => {
   });
 
   it("alice cannot delete any attachments", async () => {
-    await expect(prisma.todoAttachment.deleteMany({})).rejects.toThrow();
+    await expect(prisma.todoAttachment.deleteMany({})).rejects.toThrow(
+      insufficientPrivilegeCodeRE,
+    );
 
     // Check nothing got deleted.
     const attachments = await prisma.todoAttachment.findMany({
@@ -170,7 +175,7 @@ describe("RLS for alice", () => {
           mimetype: "text/plain",
         },
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow(insufficientPrivilegeCodeRE);
 
     // Check it actually isn't here.
     expect(
@@ -200,7 +205,7 @@ describe("RLS for alice", () => {
       },
     });
 
-    await expect(result).rejects.toThrow();
+    await expect(result).rejects.toThrow(insufficientPrivilegeCodeRE);
 
     // Check it actually isn't here.
     expect(

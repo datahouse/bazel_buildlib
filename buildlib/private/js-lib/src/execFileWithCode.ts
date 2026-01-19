@@ -1,4 +1,7 @@
-import { execFile, type ExecFileOptions } from "node:child_process";
+import {
+  execFile,
+  type ExecFileOptionsWithStringEncoding,
+} from "node:child_process";
 
 export interface ExecResult {
   code: number;
@@ -11,7 +14,7 @@ export interface ExecResult {
 export const execFileWithCode = (
   file: string,
   args: string[] = [],
-  opts: ExecFileOptions = {},
+  opts: ExecFileOptionsWithStringEncoding = {},
 ): Promise<ExecResult> =>
   new Promise((res, rej) => {
     execFile(file, args, opts, (error, stdout, stderr) => {

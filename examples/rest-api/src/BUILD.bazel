@@ -13,7 +13,7 @@ _tsoa.tsoa(
     srcs = glob(["**/controller.ts"]) + [
         "index.ts",
         "tsoa-ioc.ts",
-        "//prisma:prisma-client",
+        "//prisma:client",
         "//rest-api:tsoa_config",
     ],
     outs = [
@@ -45,7 +45,7 @@ ts_library(
         "//:node_modules/express",
         "//:node_modules/swagger-ui-express",
         "//:node_modules/tsoa",
-        "//prisma:prisma-client",
+        "//prisma:client",
         "//prisma/rls",
     ],
 )

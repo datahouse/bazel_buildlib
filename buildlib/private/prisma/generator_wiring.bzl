@@ -14,7 +14,6 @@ def _prisma_generator_def_impl(ctx):
     return PrismaGeneratorInfo(
         target_name = _get_target_name(ctx, ".generator"),
         generate_deps = ctx.attr.deps,
-        module_type = ctx.attr.module_type,
         exec_paths = ctx.attr.exec_paths,
     )
 
@@ -27,10 +26,6 @@ prisma_generator_def = rule(
         ),
         "exec_paths": attr.string_list(
             default = [],
-        ),
-        "module_type": attr.string(
-            values = ["module", "commonjs"],
-            mandatory = True,
         ),
     },
     implementation = _prisma_generator_def_impl,

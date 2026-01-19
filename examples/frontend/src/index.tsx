@@ -1,13 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
-import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
+import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client/react";
+import UploadHttpLink from "apollo-upload-client/UploadHttpLink.mjs";
 import App from "./App.js";
 
 const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
   dataMasking: true,
-  link: createUploadLink({
+  link: new UploadHttpLink({
     uri: "/gql/v1/",
     headers: {
       "Apollo-Require-Preflight": "true",

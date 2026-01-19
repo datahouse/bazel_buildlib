@@ -2,6 +2,7 @@
 pnpm-lock.yaml linguist-generated=true
 MODULE.bazel.lock linguist-generated=true
 maven_install.json linguist-generated=true
+buildlib_pip_lock.txt linguist-generated=true
 tsconfig.json linguist-generated=true
 tsconfig-base.json linguist-generated=true
 buildlib/docs/*.md linguist-generated=true

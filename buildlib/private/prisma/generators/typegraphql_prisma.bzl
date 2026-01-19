@@ -6,6 +6,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("//private/prisma:generator_wiring.bzl", "prisma_generator_def", "prisma_generator_result")
 load("//private/prisma:providers.bzl", "PrismaGeneratorInfo")
+load(":postprocess_utils.bzl", "declare_commonjs")
 
 def _typegraphql_prisma_impl(name, generate, prisma_client, visibility, testonly):
     # Write an executable that invokes typegraphql-prisma.
@@ -35,7 +36,6 @@ def _typegraphql_prisma_impl(name, generate, prisma_client, visibility, testonly
             "//:node_modules/type-graphql",
             name + ".genlib",
         ],
-        module_type = "commonjs",
         exec_paths = [paths.join(native.package_name(), name + ".bin")],
         # Generate must be in the same package.
         visibility = ["//" + native.package_name() + ":__pkg__"],
@@ -48,9 +48,16 @@ def _typegraphql_prisma_impl(name, generate, prisma_client, visibility, testonly
         testonly = testonly,
     )
 
+    declare_commonjs(
+        name = name + ".proc",
+        raw_result = name + ".result",
+        out_dir = name,
+        testonly = testonly,
+    )
+
     js_library(
         name = name,
-        srcs = [name + ".result"],
+        srcs = [name + ".proc"],
         deps = [
             "//:node_modules/@types/node",
             "//:node_modules/typegraphql-prisma",

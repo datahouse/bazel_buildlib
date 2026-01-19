@@ -2,10 +2,11 @@
 
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@rules_java//java:java_binary.bzl", "java_binary")
+load("@rules_python//python/entry_points:py_console_script_binary.bzl", "py_console_script_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//private:npm_js_binary.bzl", "npm_js_binary")
 
-def _format_impl(name, bazelrc, format_java, visibility):
+def _format_impl(name, bazelrc, format_java, format_py, visibility):
     data = [
         Label("//private/format/src"),
     ]
@@ -49,6 +50,15 @@ def _format_impl(name, bazelrc, format_java, visibility):
 
         add_formatter("GOOGLE_JAVA_FORMAT", name + ".google_java_format")
 
+    if format_py:
+        py_console_script_binary(
+            name = name + ".black",
+            pkg = "@pypi//black",
+            script = "black",
+        )
+
+        add_formatter("BLACK", name + ".black")
+
     js_binary(
         name = name,
         data = data,
@@ -80,6 +90,11 @@ format = macro(
         ),
         "format_java": attr.bool(
             doc = "whether to format java",
+            mandatory = True,
+            configurable = False,
+        ),
+        "format_py": attr.bool(
+            doc = "whether to format python",
             mandatory = True,
             configurable = False,
         ),

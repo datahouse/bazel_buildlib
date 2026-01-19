@@ -46,7 +46,7 @@ const syncToDir = async (
     const want = fileTree.get(elem.name);
     fileTree.delete(elem.name); // track that we took care of this.
 
-    const trgPath = path.join(elem.path, elem.name);
+    const trgPath = path.join(elem.parentPath, elem.name);
 
     // Mutually recursive, reference before define is unavoidable.
     // eslint-disable-next-line @typescript-eslint/no-use-before-define

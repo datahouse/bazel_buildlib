@@ -3,13 +3,13 @@
 def _empty_dir_layer_impl(ctx):
     args = ctx.actions.args()
 
-    args.add("--base", ctx.file.base.path)
+    args.add("--passwd", ctx.file.passwd)
     args.add_all("--path", ctx.attr.paths)
     args.add("--user", ctx.attr.user)
     args.add("--output", ctx.outputs.out)
 
     ctx.actions.run(
-        inputs = [ctx.file.base],
+        inputs = [ctx.file.passwd],
         outputs = [ctx.outputs.out],
         arguments = [args],
         executable = ctx.executable._builder,
@@ -18,8 +18,8 @@ def _empty_dir_layer_impl(ctx):
 
 empty_dir_layer = rule(
     attrs = {
-        "base": attr.label(allow_single_file = True),
         "out": attr.output(),
+        "passwd": attr.label(allow_single_file = True),
         "paths": attr.string_list(),
         "user": attr.string(),
         "_builder": attr.label(

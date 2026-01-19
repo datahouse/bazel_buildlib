@@ -1,7 +1,8 @@
 """prisma_deploy_image macro."""
 
-load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@tar.bzl//tar:mtree.bzl", "mtree_mutate", "mtree_spec")
+load("@tar.bzl//tar:tar.bzl", "tar")
 load("//private/docker:js_image_layers.bzl", "js_image_layers")
 load(":providers.bzl", "PrismaEnginesInfo", "PrismaMigrationsInfo")
 

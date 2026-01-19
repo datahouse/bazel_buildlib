@@ -5,7 +5,7 @@ For dh_buildlib, npm_link_all_packages comes from a different repository, so we 
 a custom `load` statement.
 """
 
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("//private/format:format.bzl", "format")
 load("//private/setup/ts:ts_setup.bzl", "ts_setup")
 load(":core_setup.bzl", "core_setup")
@@ -13,7 +13,8 @@ load(":core_setup.bzl", "core_setup")
 def buildlib_setup_no_npm(
         name,
         enable_ts = False,
-        enable_java = False):
+        enable_java = False,
+        enable_py = False):
     # buildifier: disable=function-docstring-args
     """See docs on buildlib/setup/defs/buildlib_setup.bzl"""
 
@@ -27,6 +28,7 @@ def buildlib_setup_no_npm(
         name = "format",
         bazelrc = "//:.bazelrc",
         format_java = enable_java,
+        format_py = enable_py,
     )
 
     update_targets = []

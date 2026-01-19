@@ -11,11 +11,14 @@ export interface Props {
 // Probably too simplistic for more advanced use cases, but a simple enough
 // drop-in when some basic loading / error handling is required.
 export default function LoadBoundary({ itemDesc, children }: Props) {
-  const errorRender = ({ error }: FallbackProps) => (
-    <Alert color="danger" variant="soft">
-      Error: {error.message}
-    </Alert>
-  );
+  const errorRender = ({ error }: FallbackProps) => {
+    const msg = error instanceof Error ? error.message : String(error);
+    return (
+      <Alert color="danger" variant="soft">
+        Error: {msg}
+      </Alert>
+    );
+  };
 
   const loading = (
     <Alert color="warning" variant="soft">

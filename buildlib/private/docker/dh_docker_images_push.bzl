@@ -2,14 +2,15 @@
 
 Note to implementers: You can test what this rule would do locally using the --dry-run flag:
 
-examples$ bazel run \
+examples$ DRONE_REPO_NAME=fake-repo-name \
+  DRONE_WORKSPACE=$(pwd) \
+  bazel run \
   --workspace_status_command scripts/git_workspace_status.sh \
   --stamp --embed_label=test \
   :docker-push -- --dry-run
 """
 
-load("@aspect_bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
-load("@aspect_rules_js//js:libs.bzl", "js_binary_lib")
+load("@bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
 load("@bazel_skylib//lib:dicts.bzl", "dicts")
 load("@rules_oci//oci:defs.bzl", "oci_image")
 load(":oci_util.bzl", "get_oci_dir")
@@ -25,30 +26,31 @@ def _oci_pushes_impl(ctx):
     image_info_file = ctx.actions.declare_file("%s-image-infos.json" % ctx.label.name)
     ctx.actions.write(image_info_file, json.encode(image_info))
 
-    args = [
-        "--cranePath",
+    launcher = ctx.actions.declare_file(ctx.label.name + ".runner")
+
+    exec_args = [
+        ctx.executable._oci_pusher.short_path,
         crane.crane_info.binary.short_path,
-        "--stamp",
         "true" if maybe_stamp(ctx) else "false",
-        "--tagFile",
-        ctx.file.remote_tag.short_path,
-        "--imageInfoFile",
+        ctx.file._remote_tag.short_path,
         image_info_file.short_path,
+        '"$@"',
     ]
 
-    launcher = js_binary_lib.create_launcher(
-        ctx,
-        log_prefix_rule_set = "dh_buildlib",
-        log_prefix_rule = "oci_images_push",
-        fixed_args = args,
+    ctx.actions.write(
+        output = launcher,
+        content = "#! /bin/sh\nexec %s\n" % " ".join(exec_args),
+        is_executable = True,
     )
 
     runfiles = ctx.runfiles(
-        files = [ctx.file.remote_tag, image_info_file] + ctx.files.images,
-    ).merge_all([launcher.runfiles, crane.default.default_runfiles])
-
+        files = [launcher, ctx.file._remote_tag, image_info_file] + ctx.files.images,
+    ).merge_all([
+        ctx.attr._oci_pusher[DefaultInfo].default_runfiles,
+        crane.default.default_runfiles,
+    ])
     return DefaultInfo(
-        executable = launcher.executable,
+        executable = launcher,
         runfiles = runfiles,
     )
 
@@ -68,17 +70,22 @@ _oci_pushes = rule(
     """,
     implementation = _oci_pushes_impl,
     attrs = dicts.add(
-        js_binary_lib.attrs,
         STAMP_ATTRS,
         {
             "images": attr.string_keyed_label_dict(),
-            "remote_tag": attr.label(allow_single_file = True),
+            "_oci_pusher": attr.label(
+                default = "//private/docker/src:oci-pusher",
+                cfg = "exec",
+                executable = True,
+            ),
+            "_remote_tag": attr.label(
+                allow_single_file = True,
+                default = ":push-tag.txt",
+            ),
         },
     ),
     executable = True,
-    toolchains = js_binary_lib.toolchains + [
-        "@rules_oci//oci:crane_toolchain_type",
-    ],
+    toolchains = ["@rules_oci//oci:crane_toolchain_type"],
 )
 
 def _dh_docker_images_push_impl(name, images, visibility):
@@ -91,14 +98,10 @@ def _dh_docker_images_push_impl(name, images, visibility):
 
     _oci_pushes(
         name = "docker-push",
-        remote_tag = Label(":push-tag.txt"),
         images = {
             image_name: name + "_" + image_name + ".stamped"
             for image_name in images
         },
-        entry_point = Label("//private/docker/src:oci-pusher.js"),
-        data = [Label("//private/docker/src")],
-        enable_runfiles = True,
         visibility = visibility,
     )
 

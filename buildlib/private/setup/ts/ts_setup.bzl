@@ -17,9 +17,15 @@ def ts_setup(update_targets):
     """
 
     _tsconfig_base(update_targets)
-    _eslintrc(update_targets)
 
-def _eslintrc(_update_targets):
+    _eslint_config_setup(
+        name = "eslint_config",
+        eslint_config = "eslint.config.js",
+        pkg_json = "package.json",
+        visibility = ["//:__subpackages__"],
+    )
+
+def _eslint_config_setup_impl(name, visibility, eslint_config, pkg_json):
     # We copy the eslint defaults twice.
     # - Once to the source directory, so the IDEs find it.
     # - Once to a nested directory bazel-bin, so eslint finds it when running
@@ -29,22 +35,22 @@ def _eslintrc(_update_targets):
     # is copied whenever we lint anything (so it doesn't need to be built explicitly).
 
     copy_file(
-        name = "eslintrc.defaults",
-        src = Label(":eslint.dh-defaults.cjs"),
-        out = "eslintrc.dh-defaults.cjs",
+        name = name + "_defaults",
+        src = Label(":eslint.dh-defaults.js"),
+        out = "dhDefaults.eslint.config.js",
     )
 
     copy_file(
-        name = "eslintrc.defaults.bin",
-        src = ":eslintrc.defaults",
-        out = "bazel-bin/eslintrc.dh-defaults.cjs",
+        name = name + "_defaults_bin",
+        src = name + "_defaults",
+        out = "bazel-bin/dhDefaults.eslint.config.js",
     )
 
     js_library(
-        name = "eslintrc",
+        name = name,
         srcs = [
-            ".eslintrc.cjs",
-            "eslintrc.defaults.bin",
+            eslint_config,
+            name + "_defaults_bin",
             # Add package.json.
             #
             # eslint-plugin-import (transitive dependency of AirBnB) requires the
@@ -52,18 +58,37 @@ def _eslintrc(_update_targets):
             # https://github.com/import-js/eslint-plugin-import/blob/d1602854ea9842082f48c51da869f3e3b70d1ef9/src/core/packagePath.js#L11
             #
             # Otherwise, `pkgUp` returns `null`, making the call to `basename` fail.
-            "package.json",
+            pkg_json,
             ":tsconfig-base",
         ],
-        visibility = ["//:__subpackages__"],
+        visibility = visibility,
     )
 
     js_test(
-        name = "eslintrc.test",
-        args = ["./.eslintrc.cjs"],
-        data = [Label("//private/setup/ts/src"), ".eslintrc.cjs"],
-        entry_point = Label("//private/setup/ts/src:check-eslintrc.js"),
+        name = name + "_test",
+        args = ["$(rootpath %s)" % eslint_config],
+        data = [
+            Label("//private/setup/ts/src"),
+            eslint_config,
+        ],
+        entry_point = Label("//private/setup/ts/src:check-eslint-config.js"),
     )
+
+_eslint_config_setup = macro(
+    attrs = {
+        "eslint_config": attr.label(
+            mandatory = True,
+            allow_single_file = True,
+            configurable = False,
+        ),
+        "pkg_json": attr.label(
+            mandatory = True,
+            allow_single_file = True,
+            configurable = False,
+        ),
+    },
+    implementation = _eslint_config_setup_impl,
+)
 
 def _gen_tsconfig_base_impl(ctx):
     # See [evil-bazel-hackery] in buildlib/private/ts/config.bzl
@@ -90,7 +115,12 @@ def _tsconfig_base(update_targets):
     ts_config(
         name = "tsconfig-base",
         src = ":tsconfig-base.gen",
-        visibility = ["//:__subpackages__"],
+        visibility = [
+            "//:__subpackages__",
+            # Macro friends.
+            "@dh_buildlib//private/prisma/generators:__subpackages__",
+            "@dh_buildlib//private/setup/ts:__subpackages__",
+        ],
     )
 
     prettier_format(

@@ -1,6 +1,6 @@
 """write_setup_source_file macro."""
 
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_file")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_file")
 
 def write_setup_source_file(name, in_file, out_file, update_targets):
     """Write a setup source file.

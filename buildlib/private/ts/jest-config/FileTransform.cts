@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires -- CJS
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- CJS
 const { basename } = require("node:path");
 
 /** Transforms all file imports into filenames.

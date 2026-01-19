@@ -3,8 +3,8 @@
 This is merely separate from library.bzl for readability purposes.
 """
 
-load("@aspect_bazel_lib//lib:utils.bzl", "to_label")
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_test")
+load("@bazel_lib//lib:utils.bzl", "to_label")
 
 def eslint(name, srcs, deps, tags = [], testonly = None):
     """Runs eslint on the given sources.
@@ -22,18 +22,21 @@ def eslint(name, srcs, deps, tags = [], testonly = None):
     data = srcs + deps + [
         Label("//private/ts/eslint-runner"),
         ":tsconfig",
-        "//:eslintrc",
+        "//:eslint_config",
+        # Dependencies of the DH default config.
+        # Adding user dependencies is currently not supported.
+        "//:node_modules/globals",
+        "//:node_modules/@eslint/js",
+        "//:node_modules/@eslint/eslintrc",
         "//:node_modules/eslint",
-        "//:node_modules/@typescript-eslint/eslint-plugin",
-        "//:node_modules/@typescript-eslint/parser",
         "//:node_modules/eslint-config-airbnb",
-        "//:node_modules/eslint-config-airbnb-typescript",
         "//:node_modules/eslint-config-prettier",
         "//:node_modules/eslint-plugin-import",
         "//:node_modules/eslint-plugin-react",
         "//:node_modules/eslint-plugin-jest",
         "//:node_modules/eslint-plugin-react-hooks",
         "//:node_modules/eslint-plugin-jsx-a11y",
+        "//:node_modules/typescript-eslint",
     ]
 
     common_args = [

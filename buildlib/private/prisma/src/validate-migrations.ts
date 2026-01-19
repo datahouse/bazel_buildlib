@@ -1,6 +1,6 @@
 import process from "node:process";
-import { basename } from "node:path";
-import { readFile } from "node:fs/promises";
+import { dirname, basename, join } from "node:path";
+import { readFile, mkdtemp, rm, cp } from "node:fs/promises";
 
 import { inspect } from "node:util";
 
@@ -54,6 +54,18 @@ const createDbContainer = (image: string, dbType: string) => {
   }
 };
 
+// polyfill for fsPromises.mkdtempDisposable
+// TODO: Replace with upstream, once we have Node.js 24.4.0 everywhere.
+const mkdtempDisposable = async (prefix: string) => {
+  const path = await mkdtemp(prefix);
+  const remove = () => rm(path, { recursive: true });
+  return {
+    path,
+    remove,
+    [Symbol.asyncDispose]: remove,
+  };
+};
+
 const runPrismaMigrateDev = async ({
   prismaCliPath,
   schemaPath,
@@ -62,32 +74,56 @@ const runPrismaMigrateDev = async ({
   dbType,
 }: Config) => {
   const image = await loadImageDirToDocker(dbImageDir);
-  const container = await createDbContainer(image, dbType).start();
+  await using container = await createDbContainer(image, dbType).start();
 
-  try {
-    const env = {
-      ...process.env,
-      [dbUrlEnv]: container.getConnectionUri(),
-    };
+  // Create a temporary directory to copy schema and migrations to:
+  //
+  // The migration consistency test relies on attempting to create a migration
+  // to detect drift. If there is drift, an actual migration is created.
+  //
+  // Under very aggressive bazel sandbox settings, this will fail, because prisma
+  // will attempt to modify input files (e.g. migration_lock.toml), which is not allowed.
+  //
+  // As a result, the user will be presented with a rather cryptic error
+  // (something like "I/O error, migration_lock.toml modified") as opposed to a
+  // message explaining that the migrations are not consistent with the schema.
+  //
+  // To mitigate this, we copy relevant files to a temporary directory, where it
+  // is OK if they are modified.
+  await using tmpDir = await mkdtempDisposable(
+    join(process.env.TEST_TMPDIR!, "migrate-test-tmp-"),
+  );
 
-    return await execFileWithCode(
-      prismaCliPath,
-      [
-        "migrate",
-        "dev",
-        "--skip-generate",
-        "--skip-seed",
-        "--schema",
-        schemaPath,
-        // Pass a migration name. Otherwise prisma will try to read from stdin and hang.
-        "--name",
-        fakeMigrationName,
-      ],
-      { env },
-    );
-  } finally {
-    await container.stop();
-  }
+  const migrationsDirname = "migrations";
+  const tmpSchemaPath = join(tmpDir.path, basename(schemaPath));
+
+  await cp(schemaPath, tmpSchemaPath);
+  await cp(
+    join(dirname(schemaPath), migrationsDirname),
+    join(tmpDir.path, migrationsDirname),
+    { recursive: true },
+  );
+
+  const env = {
+    ...process.env,
+    [dbUrlEnv]: container.getConnectionUri(),
+  };
+
+  return await execFileWithCode(
+    prismaCliPath,
+    [
+      "migrate",
+      "dev",
+      "--skip-generate",
+      "--skip-seed",
+      "--schema",
+      tmpSchemaPath,
+      // Pass a migration name. Otherwise prisma will try to read from stdin and hang.
+      "--name",
+      fakeMigrationName,
+    ],
+    { env },
+  );
 };
 
 const areMigrationsClean = (result: ExecResult) => {

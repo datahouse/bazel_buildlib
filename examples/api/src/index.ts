@@ -32,7 +32,7 @@ import Context from "./Context.js";
 import BlobStore from "./BlobStore.js";
 
 import enableRLS from "../../prisma/rls/index.js";
-import { PrismaClient } from "../../prisma/prisma-client/index.js";
+import { PrismaClient } from "../../prisma/client/index.js";
 
 const port = 4000;
 

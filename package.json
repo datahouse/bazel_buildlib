@@ -1,8 +1,8 @@
 {
   "type": "module",
   "devDependencies": {
-    "prettier": "3.6.2",
-    "renovate": "41.17.2"
+    "prettier": "3.8.0",
+    "renovate": "42.71.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": []

@@ -55,9 +55,29 @@
         executionMode: "branch",
       },
     },
-    { matchPackageNames: ["node"], allowedVersions: "<= 22.15.1" },
+    { matchPackageNames: ["node"], allowedVersions: "<= 24.13.0" },
+    {
+      matchDatasources: ["github-releases"],
+      matchDepNames: ["docker/compose"],
+      postUpgradeTasks: {
+        commands: ["/renovate-commands/update-bzlmod-lock.sh"],
+        executionMode: "branch",
+      },
+      automerge: false,
+    },
+  ],
+  customManagers: [
+    {
+      customType: "regex",
+      managerFilePatterns: ["buildlib/MODULE.bazel"],
+      matchStrings: [
+        'compose\\.download\\(version\\s*=\\s*"(?<currentValue>.+)"\\)',
+      ],
+      depNameTemplate: "docker/compose",
+      datasourceTemplate: "github-releases",
+    },
   ],
   constraints: {
-    pnpm: "10.13.1",
+    pnpm: "10.28.0",
   },
 }

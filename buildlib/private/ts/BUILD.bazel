@@ -1,4 +1,4 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
 
 exports_files([
     ".swcrc",
@@ -15,9 +15,9 @@ bzl_library(
     deps = [
         "//private:npm_js_binary",
         "//private:prettier_format",
-        "@aspect_bazel_lib//lib:write_source_files",
         "@aspect_rules_swc//swc:defs",
         "@aspect_rules_ts//ts:defs",
+        "@bazel_lib//lib:write_source_files",
         "@bazel_skylib//rules:common_settings",
         "@bazel_skylib//rules:copy_file",
         "@bazel_skylib//rules:select_file",

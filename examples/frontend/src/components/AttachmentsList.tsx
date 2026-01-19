@@ -2,18 +2,24 @@ import { List, ListItem, IconButton, ListItemButton } from "@mui/joy";
 
 import { Delete } from "@mui/icons-material";
 
-import { useSuspenseQuery } from "@apollo/client";
+import { useSuspenseQuery } from "@apollo/client/react";
 
 import { GET_ATTACHMENTS } from "../queries.js";
 
 interface AttachmentItemProps {
   uuid: string;
   filename: string;
+  onDelete: () => void;
 }
 
-function AttachmentItem({ uuid, filename }: AttachmentItemProps) {
+function AttachmentItem({ uuid, filename, onDelete }: AttachmentItemProps) {
   const deleteButton = (
-    <IconButton aria-label="Delete" size="sm" color="danger">
+    <IconButton
+      aria-label={`Delete ${filename}`}
+      size="sm"
+      color="danger"
+      onClick={onDelete}
+    >
       <Delete />
     </IconButton>
   );
@@ -34,9 +40,10 @@ function AttachmentItem({ uuid, filename }: AttachmentItemProps) {
 
 export interface Props {
   itemId: number;
+  deleteAttachment: (attachmentId: number) => void;
 }
 
-export default function AttachmentsList({ itemId }: Props) {
+export default function AttachmentsList({ itemId, deleteAttachment }: Props) {
   const { data } = useSuspenseQuery(GET_ATTACHMENTS, {
     variables: { itemId },
   });
@@ -44,7 +51,12 @@ export default function AttachmentsList({ itemId }: Props) {
   return (
     <List>
       {data.todoAttachments.map(({ id, uuid, filename }) => (
-        <AttachmentItem key={id} uuid={uuid} filename={filename} />
+        <AttachmentItem
+          key={id}
+          uuid={uuid}
+          filename={filename}
+          onDelete={() => deleteAttachment(id)}
+        />
       ))}
     </List>
   );

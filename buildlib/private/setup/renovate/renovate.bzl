@@ -1,7 +1,7 @@
 """Renovate setup."""
 
-load("@aspect_bazel_lib//lib:utils.bzl", "utils")
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("@bazel_lib//lib:utils.bzl", "utils")
 load("@rules_nodejs//nodejs:repositories.bzl", "LATEST_KNOWN_NODE_VERSION")
 load("//private:npm_js_binary.bzl", "npm_js_test")
 load("//private:prettier_format.bzl", "prettier_format")

@@ -8,38 +8,18 @@ import spawnInheritIO from "./spawnInheritIO.js";
 
 import { inferRepositoryPrefix } from "./repoPrefix.js";
 
-const parseArgs = () => {
+const parseArgs = (args: string[]) => {
   const parser = new argparse.ArgumentParser({
     description: "Multi OCI image pusher",
   });
 
-  parser.add_argument("--cranePath", {
-    help: "Crane binary to use",
-    required: true,
-  });
-  parser.add_argument("--stamp", {
-    help: "Whether the build is running under stamp",
-    required: true,
-  });
-  parser.add_argument("--tagFile", {
-    help: "File with tag to push",
-    required: true,
-  });
-  parser.add_argument("--imageInfoFile", {
-    help: "File with info about images to push",
-    required: true,
-  });
   parser.add_argument("--dry-run", {
     help: "Only show commands, don't run",
     action: argparse.BooleanOptionalAction,
     default: false,
   });
 
-  return parser.parse_args() as {
-    cranePath: string;
-    stamp: string;
-    tagFile: string;
-    imageInfoFile: string;
+  return parser.parse_args(args) as {
     dry_run: boolean;
   };
 };
@@ -55,13 +35,13 @@ const loadTag = async (tagFile: string) => {
 };
 
 const main = async () => {
-  const {
-    cranePath,
-    stamp,
-    tagFile,
-    imageInfoFile,
-    dry_run: dryRun,
-  } = parseArgs();
+  // Ignore first 2 args:
+  // - The name of the node binary
+  // - The path to the JS script.
+  const [, , cranePath, stamp, tagFile, imageInfoFile, ...userArgs] =
+    process.argv;
+
+  const { dry_run: dryRun } = parseArgs(userArgs);
 
   if (stamp !== "true")
     throw new Error(
@@ -85,7 +65,16 @@ const main = async () => {
   if (dryRun) {
     console.log("dh_docker_images_push would run:", commands);
   } else {
-    await Promise.all(commands.map((cmd) => spawnInheritIO(cranePath, ...cmd)));
+    const exitCodes = await Promise.all(
+      commands.map((cmd) => spawnInheritIO(cranePath, ...cmd)),
+    );
+
+    if (exitCodes.every((c) => c === 0)) {
+      process.exit(0);
+    }
+
+    // Just exit non-zero, the failing crane command will have reported a problem.
+    process.exit(1);
   }
 };
 

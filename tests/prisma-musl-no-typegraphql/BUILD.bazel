@@ -22,4 +22,5 @@ node_binary_image(
     data = ["//src"],
     entry_point = "//src:index.js",
     platform = ":node_alpine_platform",
+    visibility = ["//test:__pkg__"],
 )

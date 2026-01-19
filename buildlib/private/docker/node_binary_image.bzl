@@ -10,6 +10,7 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_oci//oci:defs.bzl", "oci_image")
 load("//private/docker:js_image_layers.bzl", "js_image_layers")
 load(":empty_dir_layer.bzl", "empty_dir_layer")
+load(":extract_from_image.bzl", "extract_from_image")
 
 def _node_cmd_impl(ctx):
     cmd = "node\n%s" % paths.join("/app", ctx.file.entry_point.short_path)
@@ -60,9 +61,16 @@ def _node_binary_image_impl(
     ]
 
     if volumes:
+        extract_from_image(
+            name = name + ".passwd.gen",
+            image = base,
+            path = "etc/passwd",
+            out = name + ".passwd",
+        )
+
         empty_dir_layer(
             name = name + ".volumes",
-            base = base,
+            passwd = name + ".passwd",
             user = user,
             paths = volumes,
             out = name + ".volumes.tar.gz",

@@ -1,0 +1,36 @@
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
+load(":platforms.bzl", "ARCH_TO_CONSTRAINT", "OS_TO_CONSTRAINT")
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["**/*.bzl"]),
+    visibility = [
+        "//docker:__pkg__",
+        "//private/docker:__pkg__",
+    ],
+    deps = [
+        "@aspect_rules_js//js:libs",
+        "@bazel_skylib//lib:dicts",
+        "@dh_buildlib_private_ibazel_info//:bzl",
+    ],
+)
+
+toolchain_type(name = "toolchain_type")
+
+[
+    toolchain(
+        name = "{}_{}_toolchain".format(os, arch),
+        exec_compatible_with = [
+            os_constraint,
+            arch_constraint,
+        ],
+        target_compatible_with = [
+            os_constraint,
+            arch_constraint,
+        ],
+        toolchain = "@dc_{}_{}//:toolchain".format(os, arch),
+        toolchain_type = "@dh_buildlib//private/docker/compose:toolchain_type",
+    )
+    for os, os_constraint in OS_TO_CONSTRAINT.items()
+    for arch, arch_constraint in ARCH_TO_CONSTRAINT.items()
+]

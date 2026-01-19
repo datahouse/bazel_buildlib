@@ -10,15 +10,19 @@
 
 import { Request, Application } from "express";
 
-import { IocContainer, IocContainerFactory } from "@tsoa/runtime";
+import {
+  IocContainer,
+  IocContainerFactory,
+  ServiceIdentifier,
+} from "@tsoa/runtime";
 
 import ServerContext from "./ServerContext.js";
 
 class IocContainerAdapter implements IocContainer {
   constructor(private ctx: ServerContext) {}
 
-  public get<T>(controller: { prototype: T }): T {
-    const constructor = controller as new (ctx: ServerContext) => T;
+  public get<T>(service: ServiceIdentifier): T {
+    const constructor = service as new (ctx: ServerContext) => T;
     return new constructor(this.ctx);
   }
 }

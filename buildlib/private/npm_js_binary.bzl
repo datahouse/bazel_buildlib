@@ -6,9 +6,9 @@ does not require the targets to be present to load the definitions.
 This means users are not required to install packages they do not use.
 """
 
-load("@aspect_bazel_lib//lib:directory_path.bzl", "DirectoryPathInfo")
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_test")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
+load("@bazel_lib//lib:directory_path.bzl", "DirectoryPathInfo")
 
 def _entrypoint_impl(ctx):
     # We need to look for the actual node_module store, not the top-level link:

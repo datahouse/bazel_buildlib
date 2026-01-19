@@ -21,8 +21,15 @@ const main = async () => {
   // Ignore first 2 args:
   // - The name of the node binary
   // - The path to the JS script.
-  const [, , pinnedDcPath, composeProject, imageInfoPath, ...composeArgs] =
-    process.argv;
+  const [
+    ,
+    ,
+    composeExecutable,
+    pinnedDcPath,
+    composeProject,
+    imageInfoPath,
+    ...composeArgs
+  ] = process.argv;
 
   const imageInfos = await readImageInfos(imageInfoPath);
 
@@ -33,18 +40,17 @@ const main = async () => {
     ]),
   );
 
-  // TODO(#1090): Always inject compose bin managed by bazel.
-  const executable = process.env.DOCKER_COMPOSE_BIN;
-
-  await spawnInheritIO(
-    executable ?? "docker",
-    ...(executable ? [] : ["compose"]),
+  const code = await spawnInheritIO(
+    composeExecutable,
     "--project-name",
     composeProject,
     "--file",
     pinnedDcPath,
     ...composeArgs,
   );
+
+  // Forward exit code. If there is a problem, compose itself will have reported it.
+  process.exit(code);
 };
 
 await main();

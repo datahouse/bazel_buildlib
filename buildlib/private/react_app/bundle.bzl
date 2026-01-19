@@ -1,10 +1,11 @@
 """Rules to bundle react apps."""
 
-load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "mtree_spec", "tar")
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@tar.bzl//tar:mtree.bzl", "mtree_mutate", "mtree_spec")
+load("@tar.bzl//tar:tar.bzl", "tar")
 load("//private:npm_js_binary.bzl", "npm_js_binary")
 
 def bundle(name, deps, nginx_image, testonly = None):
@@ -36,7 +37,14 @@ def bundle(name, deps, nginx_image, testonly = None):
 
     js_run_binary(
         name = bundle_name,
-        args = ["build", "--outDir", bundle_name, native.package_name()],
+        args = [
+            "build",
+            "--config",
+            "%s/vite.config.mjs" % native.package_name(),
+            "--outDir",
+            bundle_name,
+            native.package_name(),
+        ],
         tool = name + ".bin",
         srcs = deps + [
             name + ".vite.cfg",

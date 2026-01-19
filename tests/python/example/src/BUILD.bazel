@@ -1,0 +1,7 @@
+load("@aspect_rules_py//py:defs.bzl", "py_library")
+
+py_library(
+    name = "hello",
+    srcs = ["hello.py"],
+    visibility = ["//example/test:__pkg__"],
+)

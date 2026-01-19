@@ -4,7 +4,10 @@ load("//private:ts_library.bzl", "ts_library")
 ts_library(
     name = "src",
     srcs = glob(["**/*.ts"]),
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//private/docker/test:__pkg__",
+        "//private/prisma/src:__pkg__",
+    ],
     deps = [
         "//:node_modules/@types/argparse",
         "//:node_modules/@types/dockerode",
@@ -26,6 +29,13 @@ js_binary(
     name = "dc-processor",
     data = [":src"],
     entry_point = "dc-processor.js",
+    visibility = ["//visibility:public"],
+)
+
+js_binary(
+    name = "dc-runner",
+    data = [":src"],
+    entry_point = "dc-runner.js",
     visibility = ["//visibility:public"],
 )
 
@@ -54,5 +64,26 @@ js_binary(
     name = "build-dockerfile",
     data = [":src"],
     entry_point = "build-dockerfile.js",
+    visibility = ["//visibility:public"],
+)
+
+js_binary(
+    name = "load-image",
+    data = [":src"],
+    entry_point = "load-image.js",
+    visibility = ["//visibility:public"],
+)
+
+js_binary(
+    name = "extract-from-image",
+    data = [":src"],
+    entry_point = "extract-from-image.js",
+    visibility = ["//visibility:public"],
+)
+
+js_binary(
+    name = "oci-pusher",
+    data = [":src"],
+    entry_point = "oci-pusher.js",
     visibility = ["//visibility:public"],
 )

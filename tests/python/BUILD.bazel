@@ -1,0 +1,19 @@
+load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+buildlib_setup(
+    name = "buildlib_setup",
+    enable_py = True,
+)
+
+compile_pip_requirements(
+    name = "requirements",
+    # rules_python delegates to pip-compile internally. Override
+    # CUSTOM_COMPILE_COMMAND so the pip-compile header in buildlib_pip_lock.txt
+    # does not reference a Bazel command, which Renovate cannot execute.
+    # https://docs.renovatebot.com/modules/manager/pip-compile/
+    env = {
+        "CUSTOM_COMPILE_COMMAND": "pip-compile --generate-hashes --no-emit-index-url --output-file=buildlib_pip_lock.txt pyproject.toml",
+    },
+    requirements_txt = "buildlib_pip_lock.txt",
+)

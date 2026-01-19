@@ -1,6 +1,6 @@
 """internal macro to DRY up document generation."""
 
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
 
 def bzl_lib_for_docs(name, deps = []):
     """bzl_library target and exports_files for stardoc.

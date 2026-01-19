@@ -1,3 +1,4 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("//private:ts_library.bzl", "ts_library")
 
 ts_library(
@@ -6,8 +7,19 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:node_modules/@testcontainers/postgresql",
+        "//:node_modules/@types/argparse",
         "//:node_modules/@types/node",
+        "//:node_modules/argparse",
         "//private/docker/src",
         "//private/js-lib/src",
     ],
+)
+
+js_binary(
+    name = "generate",
+    data = [
+        ":src",
+    ],
+    entry_point = "generate.js",
+    visibility = ["//visibility:public"],
 )

@@ -137,6 +137,17 @@ const runGoogleJavaFormat = async (cfg: RunConfig) => {
   });
 };
 
+const runBlack = async (cfg: RunConfig) => {
+  const args = cfg.check ? ["--check", "--diff", "."] : ["."];
+
+  return runTool({
+    tool: "black",
+    args,
+    mandatory: false,
+    cfg,
+  });
+};
+
 const allTrue = async (...promises: Promise<boolean>[]): Promise<boolean> => {
   const values = await Promise.all(promises);
   return values.every((x) => x); // poor man's "all"
@@ -150,6 +161,7 @@ const run = async (cfg: RunConfig): Promise<boolean> => {
     buildifierOKPromise,
     runPrettier(cfg),
     runGoogleJavaFormat(cfg),
+    runBlack(cfg),
   );
 
   if (ok) return true;

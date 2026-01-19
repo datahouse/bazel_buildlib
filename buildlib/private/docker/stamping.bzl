@@ -1,6 +1,6 @@
 """Internal rule to load stamping data for docker images (before pushing)."""
 
-load("@aspect_bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
+load("@bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
 
 def _load_stamp_data_impl(ctx):
     stamp = maybe_stamp(ctx)

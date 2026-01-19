@@ -1,8 +1,8 @@
 """tsconfig rules"""
 
-load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@aspect_rules_ts//ts:defs.bzl", "TsConfigInfo", "ts_config")
+load("@bazel_lib//lib:paths.bzl", "relative_file")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//private:prettier_format.bzl", "prettier_format")
 
@@ -112,7 +112,7 @@ def _gen_tsconfig_impl(ctx):
     }
 
     if ctx.attr.uses_dom:
-        cfg["compilerOptions"] = {"lib": ["dom", "dom.iterable", "es2018"]}
+        cfg["compilerOptions"] = {"lib": ["dom", "dom.iterable", "esnext"]}
 
     ctx.actions.write(
         content = json.encode(cfg),

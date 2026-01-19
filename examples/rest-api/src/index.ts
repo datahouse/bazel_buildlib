@@ -1,6 +1,6 @@
 import process from "node:process";
 
-import { PrismaClient } from "../../prisma/prisma-client/index.js";
+import { PrismaClient } from "../../prisma/client/index.js";
 import enableRLS from "../../prisma/rls/index.js";
 
 import { setupApp } from "./app.js";

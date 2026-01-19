@@ -1,5 +1,5 @@
-bazel_dep(name = "rules_java", version = "8.14.0")
-bazel_dep(name = "rules_jvm_external", version = "6.8")
+bazel_dep(name = "rules_java", version = "9.3.0")
+bazel_dep(name = "rules_jvm_external", version = "6.9")
 bazel_dep(name = "dh_buildlib", version = "0.0.0")
 local_path_override(
     module_name = "dh_buildlib",
@@ -25,7 +25,7 @@ use_repo(maven, "maven")
 
 # Pull in rules_python to set ignore_root_user_error = True.
 # Workaround for https://git.datahouse.ch/datahouse/it-drone-bazel/issues/49
-bazel_dep(name = "rules_python", version = "1.5.1")
+bazel_dep(name = "rules_python", version = "1.8.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(

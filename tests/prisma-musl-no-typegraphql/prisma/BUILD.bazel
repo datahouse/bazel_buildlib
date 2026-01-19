@@ -1,5 +1,5 @@
 load("@dh_buildlib//prisma:defs.bzl", "prisma_generate", "prisma_schema")
-load("@dh_buildlib//prisma/generators:defs.bzl", "prisma_client_js")
+load("@dh_buildlib//prisma/generators:defs.bzl", "prisma_client")
 
 prisma_schema(
     name = "schema",
@@ -14,7 +14,7 @@ prisma_generate(
     schema = ":schema",
 )
 
-prisma_client_js(
+prisma_client(
     name = "client",
     generate = ":generate",
     visibility = [

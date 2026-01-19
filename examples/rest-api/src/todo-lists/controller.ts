@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Route, Path, Body } from "tsoa";
 
-import { TodoList, TodoItem } from "../../../prisma/prisma-client/index.js";
+import { TodoList, TodoItem } from "../../../prisma/client/index.js";
 
 import type ServerContext from "../ServerContext.js";
 

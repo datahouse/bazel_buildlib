@@ -9,7 +9,7 @@ import loadPostgresImage from "./load_postgres_image.js";
 const runContainerOneShot = async (
   container: GenericContainer,
 ): Promise<string> => {
-  const startedContainer = await container
+  await using startedContainer = await container
     .withWaitStrategy(Wait.forOneShotStartup())
     .start();
 
@@ -46,35 +46,25 @@ describe("prisma deploy image", () => {
   ])(
     "can run the default container behaviour performing prisma migrate deploy",
     async (_, loadImageFunction) => {
-      const network = await new Network().start();
-      try {
-        const postgresImage = await loadPostgresImage();
-        const psqlContainer = await new PostgreSqlContainer(postgresImage)
-          .withNetwork(network)
-          .start();
-        try {
-          const databaseUrl = new URL(psqlContainer.getConnectionUri());
-          databaseUrl.hostname = psqlContainer.getHostname(); // docker container hostname
-          databaseUrl.port = "5432";
+      await using network = await new Network().start();
+      const postgresImage = await loadPostgresImage();
+      await using psqlContainer = await new PostgreSqlContainer(postgresImage)
+        .withNetwork(network)
+        .start();
+      const databaseUrl = new URL(psqlContainer.getConnectionUri());
+      databaseUrl.hostname = psqlContainer.getHostname(); // docker container hostname
+      databaseUrl.port = "5432";
 
-          const container = new GenericContainer(await loadImageFunction())
-            .withEnvironment({ DATABASE_URL: databaseUrl.toString() })
-            .withNetwork(network);
+      const container = new GenericContainer(await loadImageFunction())
+        .withEnvironment({ DATABASE_URL: databaseUrl.toString() })
+        .withNetwork(network);
 
-          const output = await runContainerOneShot(container);
-          expect(output).toMatch(/1 migration found in prisma\/migrations/);
-          expect(output).toMatch(
-            /Applying migration `20250404145926_database_initialization/,
-          );
-          expect(output).toMatch(
-            /All migrations have been successfully applied./,
-          );
-        } finally {
-          await psqlContainer.stop();
-        }
-      } finally {
-        await network.stop();
-      }
+      const output = await runContainerOneShot(container);
+      expect(output).toMatch(/1 migration found in prisma\/migrations/);
+      expect(output).toMatch(
+        /Applying migration `20250404145926_database_initialization/,
+      );
+      expect(output).toMatch(/All migrations have been successfully applied./);
     },
     5 * 60 * 1000,
   );

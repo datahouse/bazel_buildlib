@@ -1,0 +1,27 @@
+load("@dh_buildlib//ts:defs.bzl", "ts_test")
+load("@dh_buildlib//ts/docker:defs.bzl", "docker_image_for_ts_test")
+
+docker_image_for_ts_test(
+    name = "load_postgres_image",
+    image = "@postgres_image",
+)
+
+docker_image_for_ts_test(
+    name = "load_musl_image",
+    image = "//:musl_image",
+)
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]),
+    tags = [
+        "requires-network",  # docker daemon for testcontainers
+    ],
+    deps = [
+        ":load_musl_image",
+        ":load_postgres_image",
+        "//:node_modules/@testcontainers/postgresql",
+        "//:node_modules/testcontainers",
+        "//prisma:client",
+    ],
+)

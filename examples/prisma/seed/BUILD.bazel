@@ -5,7 +5,7 @@ ts_library(
     name = "src",
     srcs = glob(["**/*.ts"]),
     deps = [
-        "//prisma:prisma-client",
+        "//prisma:client",
     ],
 )
 

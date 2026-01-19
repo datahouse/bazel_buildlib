@@ -1,0 +1,9 @@
+[project]
+name = "dh_buildlib-python-EXPERIMENTAL"
+dynamic = ["version"]
+
+dependencies = [
+  "pytest==9.0.2",
+  "black==26.1.0",
+]
+

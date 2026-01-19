@@ -1,20 +1,28 @@
 import "@testing-library/jest-dom";
 
 import { render as rawRender, act, screen } from "@testing-library/react";
-import { MockedProvider, MockedResponse } from "@apollo/client/testing";
+import { MockLink } from "@apollo/client/testing";
+
+import { MockedProvider } from "@apollo/client/testing/react";
 
 import AttachmentsModal from "../../src/components/AttachmentsModal.js";
 
 import { GET_ATTACHMENTS } from "../../src/queries.js";
 
-const render = (mocks: MockedResponse[]) => {
+const render = (mocks: MockLink.MockedResponse[]) => {
   // General note: Uploads are tested in TodoLists.test.tsx
   const ignore = () => {};
 
   return act(() =>
     rawRender(
       <MockedProvider mocks={mocks}>
-        <AttachmentsModal open itemId={10} upload={ignore} onClose={ignore} />
+        <AttachmentsModal
+          open
+          itemId={10}
+          upload={ignore}
+          onClose={ignore}
+          deleteAttachment={ignore}
+        />
       </MockedProvider>,
     ),
   );

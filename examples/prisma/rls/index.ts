@@ -1,4 +1,4 @@
-import { PrismaClient as BasePrismaClient } from "../prisma-client/index.js";
+import { PrismaClient as BasePrismaClient } from "../client/index.js";
 
 function prepareTransaction(
   priviledgedPrisma: BasePrismaClient,

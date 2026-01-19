@@ -1,0 +1,16 @@
+common --experimental_use_hermetic_linux_sandbox
+
+# Binaries / libraries
+common --sandbox_add_mount_pair=/usr
+common --sandbox_add_mount_pair=/bin
+common --sandbox_add_mount_pair=/lib
+common --sandbox_add_mount_pair=/lib64
+
+# To discover libjli.so
+common --sandbox_add_mount_pair=/proc
+
+# For /etc/alternatives, user home, os info.
+common --sandbox_add_mount_pair=/etc
+
+# Docker socket.
+common --sandbox_add_mount_pair=/var/run/docker.sock

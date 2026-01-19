@@ -1,6 +1,6 @@
 import { List, ListSubheader, Sheet, styled } from "@mui/joy";
 
-import { useSuspenseQuery } from "@apollo/client";
+import { useSuspenseQuery } from "@apollo/client/react";
 
 import { GET_ACTIVE_TODOS } from "./queries.js";
 

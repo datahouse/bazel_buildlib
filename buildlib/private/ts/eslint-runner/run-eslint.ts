@@ -81,10 +81,11 @@ const hasFixables = (r: ESLint.LintResult): boolean =>
 const reportResults = async (
   eslint: ESLint,
   results: ESLint.LintResult[],
+  resultsData: ESLint.LintResultData,
   fixTargetName: string,
 ): Promise<void> => {
   const formatter = await eslint.loadFormatter();
-  const resultText = formatter.format(results);
+  const resultText = formatter.format(results, resultsData);
   console.log(resultText);
 
   if (results.findIndex(hasFixables) !== -1) {
@@ -123,11 +124,15 @@ const main = async () => {
   const eslint = new eslintMod.ESLint({ fix });
 
   const results = await runLint(eslint, files);
+  const resultsData = {
+    cwd: process.cwd(),
+    rulesMeta: eslint.getRulesMetaForResults(results),
+  };
 
   if (fix) {
     await fixResults(eslintMod, results);
   } else {
-    await reportResults(eslint, results, fixTargetName);
+    await reportResults(eslint, results, resultsData, fixTargetName);
 
     const shouldFail = results.findIndex(hasProblems) !== -1;
     if (shouldFail) process.exit(1);

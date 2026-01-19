@@ -1,7 +1,7 @@
 """prisma_schema rule."""
 
-load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "COPY_FILE_TO_BIN_TOOLCHAINS", "copy_file_to_bin_action")
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@bazel_lib//lib:copy_to_bin.bzl", "COPY_FILE_TO_BIN_TOOLCHAINS", "copy_file_to_bin_action")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load(":providers.bzl", "PrismaSchemaInfo")
 
 def _validate_schema(ctx, schema):

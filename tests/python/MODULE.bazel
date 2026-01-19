@@ -1,0 +1,27 @@
+bazel_dep(name = "aspect_rules_py", version = "1.8.4")
+bazel_dep(name = "dh_buildlib", version = "0.0.0")
+local_path_override(
+    module_name = "dh_buildlib",
+    path = "../../buildlib",
+)
+
+# TODO: force user repositories to choose an exact python version
+bazel_dep(name = "rules_python", version = "1.8.0")
+
+PYTHON_VERSION = "3.11"
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    ignore_root_user_error = True,
+    python_version = PYTHON_VERSION,
+)
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "pypi",
+    python_version = PYTHON_VERSION,
+    # Named to avoid matching Renovate's default pip_requirements pattern.
+    # https://docs.renovatebot.com/modules/manager/pip_requirements/#default-config
+    requirements_lock = "//:buildlib_pip_lock.txt",
+)
+use_repo(pip, "pypi")

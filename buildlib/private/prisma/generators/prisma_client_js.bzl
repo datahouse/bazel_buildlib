@@ -1,6 +1,7 @@
 """prisma_client_js macro."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@bazel_lib//lib:copy_directory.bzl", "copy_directory")
 load("//private/prisma:generator_wiring.bzl", "prisma_generator_def", "prisma_generator_result")
 load("//private/prisma:providers.bzl", "PrismaGenerateInfo")
 
@@ -10,7 +11,6 @@ def _prisma_client_js_impl(name, generate, visibility, testonly):
         deps = [
             "//:node_modules/@prisma/client",
         ],
-        module_type = "commonjs",
         # Generate must be in the same package.
         visibility = ["//" + native.package_name() + ":__pkg__"],
         # Do not forward testonly: central generator may generate non-test targets.
@@ -22,9 +22,15 @@ def _prisma_client_js_impl(name, generate, visibility, testonly):
         testonly = testonly,
     )
 
+    copy_directory(
+        name = name + ".proc",
+        src = name + ".result",
+        out = name,
+    )
+
     js_library(
         name = name,
-        srcs = [name + ".result"],
+        srcs = [name + ".proc"],
         deps = [
             "//:node_modules/@types/node",
         ],

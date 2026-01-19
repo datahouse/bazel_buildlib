@@ -1,5 +1,5 @@
-load("@aspect_bazel_lib//lib:tar.bzl", "tar")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
+load("@tar.bzl//tar:tar.bzl", "tar")
 
 exports_files([
     "vite.config.mjs",
@@ -14,13 +14,13 @@ bzl_library(
     deps = [
         "//private:npm_js_binary",
         "//private/docker:bzl",
-        "@aspect_bazel_lib//lib:copy_file",
-        "@aspect_bazel_lib//lib:tar",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_js//js:libs",
         "@aspect_rules_js//js:providers",
+        "@bazel_lib//lib:copy_file",
         "@bazel_skylib//rules:copy_file",
         "@rules_oci//oci:defs",
+        "@tar.bzl//tar:tar",
     ],
 )
 

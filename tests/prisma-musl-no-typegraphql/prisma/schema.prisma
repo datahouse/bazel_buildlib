@@ -4,8 +4,10 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "client"
+  provider            = "prisma-client"
+  output              = "client"
+  moduleFormat        = "cjs"
+  importFileExtension = "js"
 }
 
 model User {
