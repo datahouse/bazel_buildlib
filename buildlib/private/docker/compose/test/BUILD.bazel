@@ -1,0 +1,46 @@
+load("@dh_buildlib//docker:defs.bzl", "docker_compose")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//private:ts_library.bzl", "ts_test")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test")
+
+docker_compose(
+    name = "dc",
+    srcs = ["docker-compose.yml"],
+    project = "it-bazel-buildlib-test",
+    deps = ["@node_image_linux_amd64"],
+)
+
+sh_test(
+    name = "dc_up_test",
+    srcs = ["dc_up_test.sh"],
+    data = [":dc"],
+    env = {
+        "DH_DC_BIN": "$(rootpath :dc)",
+    },
+    env_inherit = ["DOCKER_HOST"],
+    tags = [
+        "requires-network",  # docker socket
+    ],
+)
+
+docker_image_for_ts_test(
+    name = "load_postgres_image",
+    image = "@postgres_image_linux_amd64",
+)
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]),
+    data = ["@compose"],
+    env = {
+        "COMPOSE_BIN": "$(rootpath @compose)",
+    },
+    tags = ["requires-docker"],
+    deps = [
+        ":load_postgres_image",
+        "//:node_modules/@testcontainers/postgresql",
+        "//:node_modules/jest-extended",
+        "//:node_modules/testcontainers",
+        "//private/docker/compose/src",
+    ],
+)

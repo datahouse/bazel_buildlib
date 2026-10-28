@@ -1,11 +1,5 @@
-load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@dh_buildlib//ts/docker:defs.bzl", "node_binary_image")
-
-js_library(
-    name = "tsoa_config",
-    srcs = ["tsoa.json"],
-    visibility = ["//rest-api/src:__pkg__"],
-)
 
 node_binary_image(
     name = "rest-api",
@@ -13,4 +7,13 @@ node_binary_image(
     entry_point = "//rest-api/src:index.js",
     ports = ["8000"],
     visibility = ["//:docker-image-users"],
+)
+
+write_source_file(
+    # Rule to snapshot the resulting REST API to the repository.
+    # Only use this, if you need to offer a stable API and need to keep track
+    # of changes (otherwise it's just noise).
+    name = "api-snapshot",
+    in_file = "//rest-api/src:api.json",
+    out_file = "api-snapshot.json",
 )

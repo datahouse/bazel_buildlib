@@ -38,7 +38,7 @@ Example: [`@examples//prisma`](../../examples/prisma/BUILD.bazel#:~:text=name%20
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="prisma_dev-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="prisma_dev-db_service"></a>db_service |  dc_service_reference of the database to connect to.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="prisma_dev-db_url"></a>db_url |  Database URL template to connect to.<br><br>The env variable DB_SERVICE is available for substitution and will be set with the location of the discovered db_service (`host:port`).   | String | required |  |
+| <a id="prisma_dev-db_url"></a>db_url |  Database URL template to connect to.<br><br>The host:port resolved by `db_service` will be placed into this URL.   | String | required |  |
 | <a id="prisma_dev-schema"></a>schema |  Schema to run with.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="prisma_dev-seed_script"></a>seed_script |  Executable passed as seed script to prisma (optional).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 
@@ -57,6 +57,10 @@ Creates a docker image to run `prisma migrate deploy`
 
 The image is intended to be used for upgrading database schemas in production environments.
 
+Prisma >= 7: Set the DB URL via the `DATABASE_URL` environment variable.
+
+Prisma <  7: Set the DB URL via the environment variable specified in your prisma.schema.
+
 Example: [`@examples//prisma:db-migrate`](../../examples/prisma/BUILD.bazel#:~:text=name%20%3D%20%22db%2Dmigrate%22%2C)
 
 **ATTRIBUTES**
@@ -67,7 +71,7 @@ Example: [`@examples//prisma:db-migrate`](../../examples/prisma/BUILD.bazel#:~:t
 | <a id="prisma_deploy_image-name"></a>name |  A unique name for this macro instance. Normally, this is also the name for the macro's main or only target. The names of any other targets that this macro might create will be this name with a string suffix.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="prisma_deploy_image-base"></a>base |  base image to use. defaults to: @node_image_linux_amd64   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="prisma_deploy_image-migrations"></a>migrations |  set of migrations to be included in the deploy image   | <a href="https://bazel.build/concepts/labels">Label</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
-| <a id="prisma_deploy_image-platform"></a>platform |  Platform of the base image.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@dh_buildlib//private/docker:node_default_platform"`  |
+| <a id="prisma_deploy_image-platform"></a>platform |  Platform of the base image.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@dh_buildlib//private/docker/build:node_default_platform"`  |
 | <a id="prisma_deploy_image-testonly"></a>testonly |  testonly flag   | Boolean; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `False`  |
 | <a id="prisma_deploy_image-visibility"></a>visibility |  The visibility to be passed to this macro's exported targets. It always implicitly includes the location where this macro is instantiated, so this attribute only needs to be explicitly set if you want the macro's targets to be additionally visible somewhere else.   | <a href="https://bazel.build/concepts/labels">List of labels</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  |
 
@@ -164,7 +168,7 @@ Example: [`@examples//prisma:migrations`](../../examples/prisma/BUILD.bazel#:~:t
 <pre>
 load("@dh_buildlib//prisma:defs.bzl", "prisma_schema")
 
-prisma_schema(*, <a href="#prisma_schema-name">name</a>, <a href="#prisma_schema-db_url_env">db_url_env</a>, <a href="#prisma_schema-schema">schema</a>, <a href="#prisma_schema-testonly">testonly</a>, <a href="#prisma_schema-validate_db_url">validate_db_url</a>, <a href="#prisma_schema-visibility">visibility</a>)
+prisma_schema(*, <a href="#prisma_schema-name">name</a>, <a href="#prisma_schema-srcs">srcs</a>, <a href="#prisma_schema-testonly">testonly</a>, <a href="#prisma_schema-visibility">visibility</a>)
 </pre>
 
 Declares a prisma schema, including a validation test.
@@ -177,10 +181,8 @@ Example: [`@examples//prisma:schema`](../../examples/prisma/BUILD.bazel#:~:text=
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="prisma_schema-name"></a>name |  A unique name for this macro instance. Normally, this is also the name for the macro's main or only target. The names of any other targets that this macro might create will be this name with a string suffix.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="prisma_schema-db_url_env"></a>db_url_env |  Environment variable name to use for the database URL.   | String | required |  |
-| <a id="prisma_schema-schema"></a>schema |  schema file   | <a href="https://bazel.build/concepts/labels">Label</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
+| <a id="prisma_schema-srcs"></a>srcs |  Schema file (only a single file is supported for now).   | <a href="https://bazel.build/concepts/labels">List of labels</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
 | <a id="prisma_schema-testonly"></a>testonly |  Testonly flag   | Boolean; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `False`  |
-| <a id="prisma_schema-validate_db_url"></a>validate_db_url |  Database URL to use when validating the schema. This URL only needs to be structurally valid (no db needs to run there).   | String | required |  |
 | <a id="prisma_schema-visibility"></a>visibility |  The visibility to be passed to this macro's exported targets. It always implicitly includes the location where this macro is instantiated, so this attribute only needs to be explicitly set if you want the macro's targets to be additionally visible somewhere else.   | <a href="https://bazel.build/concepts/labels">List of labels</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  |
 
 

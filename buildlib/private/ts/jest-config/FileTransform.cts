@@ -1,5 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- CJS
-const { basename } = require("node:path");
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/unbound-method, global-require -- CJS
+const { basename } = require("node:path") as typeof import("node:path");
 
 /** Transforms all file imports into filenames.
  *

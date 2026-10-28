@@ -18,7 +18,7 @@ def prettier_format(name, src, out, tags = [], testonly = None, visibility = Non
     # we want to format (but js_run_binary doesn't support stdin piping).
     native.genrule(
         name = name,
-        cmd = "BAZEL_BINDIR=. $(location %s) --stdin-filepath $< < $< > $@" % prettier,
+        cmd = "BAZEL_BINDIR=. $(execpath %s) --stdin-filepath $< < $< > $@" % prettier,
         srcs = [src],
         outs = [out],
         tools = [prettier],

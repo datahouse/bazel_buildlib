@@ -1,0 +1,11 @@
+load("//private:ts_library.bzl", "ts_test")
+
+ts_test(
+    name = "jest-esm",
+    srcs = glob(["**/*.ts"]),
+    enable_jest_esm = True,
+    deps = [
+        # Known esm only package that is not handled in jest.config.ts by default
+        "//:node_modules/jose",
+    ],
+)

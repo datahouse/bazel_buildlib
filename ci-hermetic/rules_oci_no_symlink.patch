@@ -1,0 +1,11 @@
+--- oci/private/image.bzl
++++ oci/private/image.bzl
+@@ -147,4 +147,4 @@ def _oci_image_impl(ctx):
+
+     output = ctx.actions.declare_directory(ctx.label.name)
+
+-    use_symlinks = bazel_features.rules.permits_treeartifact_uplevel_symlinks
++    use_symlinks = False
+
+     # create the image builder
+     builder = ctx.actions.declare_file("image_%s.sh" % ctx.label.name)

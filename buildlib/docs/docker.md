@@ -72,7 +72,7 @@ load("@dh_buildlib//docker:defs.bzl", "dc_service_reference")
 dc_service_reference(<a href="#dc_service_reference-name">name</a>, <a href="#dc_service_reference-dc">dc</a>, <a href="#dc_service_reference-index">index</a>, <a href="#dc_service_reference-port">port</a>, <a href="#dc_service_reference-service_name">service_name</a>)
 </pre>
 
-Reference to an exposed port of a docker service.
+Reference to an internal port of a docker service.
 
 Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%20%22db%22%2C)
 
@@ -84,7 +84,7 @@ Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%2
 | <a id="dc_service_reference-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="dc_service_reference-dc"></a>dc |  Docker compose rule that contains the target service   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="dc_service_reference-index"></a>index |  Index of the replica   | Integer | optional |  `1`  |
-| <a id="dc_service_reference-port"></a>port |  Internal port of the service   | Integer | required |  |
+| <a id="dc_service_reference-port"></a>port |  Internal port of the service. The port does not need to be published in the docker-compose file.   | Integer | required |  |
 | <a id="dc_service_reference-service_name"></a>service_name |  Docker compose service name   | String | required |  |
 
 
@@ -95,10 +95,18 @@ Example: [`@examples//dc:db`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%2
 <pre>
 load("@dh_buildlib//docker:defs.bzl", "extract_from_image")
 
-extract_from_image(<a href="#extract_from_image-name">name</a>, <a href="#extract_from_image-out">out</a>, <a href="#extract_from_image-image">image</a>, <a href="#extract_from_image-path">path</a>)
+extract_from_image(<a href="#extract_from_image-name">name</a>, <a href="#extract_from_image-out">out</a>, <a href="#extract_from_image-image">image</a>, <a href="#extract_from_image-path">path</a>, <a href="#extract_from_image-path_regexp">path_regexp</a>)
 </pre>
 
 Extracts a file from an OCI image.
+
+Supports literal paths or path regular expressions.
+
+* Paths do not have a leading slash.
+* Regular expressions are passed to JS new RegExp
+* Regular expression tests are **not** anchored (you have to anchor).
+
+Performs best-effort conflict / duplicate detection.
 
 **ATTRIBUTES**
 
@@ -108,7 +116,8 @@ Extracts a file from an OCI image.
 | <a id="extract_from_image-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="extract_from_image-out"></a>out |  Output file   | <a href="https://bazel.build/concepts/labels">Label</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
 | <a id="extract_from_image-image"></a>image |  OCI image to extract from   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="extract_from_image-path"></a>path |  Path inside the image to extract (no leading slash)   | String | required |  |
+| <a id="extract_from_image-path"></a>path |  Path inside the image to extract   | String | optional |  `""`  |
+| <a id="extract_from_image-path_regexp"></a>path_regexp |  Regexp to match path against   | String | optional |  `""`  |
 
 
 <a id="docker_compose"></a>
@@ -118,7 +127,7 @@ Extracts a file from an OCI image.
 <pre>
 load("@dh_buildlib//docker:defs.bzl", "docker_compose")
 
-docker_compose(<a href="#docker_compose-name">name</a>, <a href="#docker_compose-project">project</a>, <a href="#docker_compose-src">src</a>, <a href="#docker_compose-deps">deps</a>, <a href="#docker_compose-srcs">srcs</a>, <a href="#docker_compose-visibility">visibility</a>, <a href="#docker_compose-testonly">testonly</a>)
+docker_compose(<a href="#docker_compose-name">name</a>, <a href="#docker_compose-project">project</a>, <a href="#docker_compose-srcs">srcs</a>, <a href="#docker_compose-deps">deps</a>, <a href="#docker_compose-visibility">visibility</a>, <a href="#docker_compose-testonly">testonly</a>)
 </pre>
 
 Bazel rule for docker compose files.
@@ -133,9 +142,8 @@ Example: [`@examples//dc`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%20%2
 | :------------- | :------------- | :------------- |
 | <a id="docker_compose-name"></a>name |  Name of the rule.   |  none |
 | <a id="docker_compose-project"></a>project |  Name of the docker compose project. This is used as a prefix for the containers so it should be somewhat unique. If in doubt, a good default is the project tla (e.g. sbz for SBZ).   |  none |
-| <a id="docker_compose-src"></a>src |  Deprecated use srcs. The docker compose file (docker-compose.yml). Mutually exclusive with srcs.   |  `None` |
+| <a id="docker_compose-srcs"></a>srcs |  Docker compose inputs: must include exactly one file starting with 'docker-compose.' and ends with '.yml\|.yaml'; other files (e.g. .env) are included as runfiles.   |  none |
 | <a id="docker_compose-deps"></a>deps |  Container images required by this docker compose file.   |  `None` |
-| <a id="docker_compose-srcs"></a>srcs |  Docker compose inputs: must include exactly one file starting with 'docker-compose.' and ends with '.yml\|.yaml'; other files (e.g. .env) are included as runfiles. Mutually exclusive with src.   |  `None` |
 | <a id="docker_compose-visibility"></a>visibility |  Visibility specifier.   |  `None` |
 | <a id="docker_compose-testonly"></a>testonly |  Testonly flag.   |  `None` |
 
@@ -147,15 +155,33 @@ Example: [`@examples//dc`](../../examples/dc/BUILD.bazel#:~:text=name%20%3D%20%2
 <pre>
 load("@dh_buildlib//docker:defs.bzl", "dh_docker_images_push")
 
-dh_docker_images_push(*, <a href="#dh_docker_images_push-name">name</a>, <a href="#dh_docker_images_push-images">images</a>, <a href="#dh_docker_images_push-visibility">visibility</a>)
+dh_docker_images_push(*, <a href="#dh_docker_images_push-name">name</a>, <a href="#dh_docker_images_push-images">images</a>, <a href="#dh_docker_images_push-prefix">prefix</a>, <a href="#dh_docker_images_push-visibility">visibility</a>)
 </pre>
 
-Labels (stamps) and pushes image_names to docker.datarepo.ch
+Annotates (stamps) and pushes `images` to docker.datarepo.ch
 
 Note: This macro should only be used in the top-level package and called "docker-push".
-Otherwise, it-drone-bazel will not push the images correctly.
+Otherwise, [it-drone-bazel](https://git.datahouse.ch/datahouse/it-drone-bazel) will not push the images correctly.
+
+Running `:docker-push` pushes every entry of `images` to `docker.datarepo.ch/<prefix>/<image>` where:
+
+* `<image>` is the key of the dictionary entry.
+* `<prefix>` is (by default) inferred from the git repository name (lower-case of repo name)[^subdir].
 
 Example: [`@examples//:docker-push`](../../examples/BUILD.bazel#:~:text=name%20%3D%20%22docker%2Dpush%22%2C)
+
+You can test what this rule would do locally by using the `--dry-run` flag:
+
+```sh
+examples$ DRONE_REPO_NAME=fake-repo-name \
+  DRONE_WORKSPACE=$(pwd) \
+  bazel run \
+  --workspace_status_command scripts/git_workspace_status.sh \
+  --stamp --embed_label=test \
+  :docker-push -- --dry-run
+```
+
+[^subdir]: If the bazel workspace is not in the root of the git repository, the relative bazel workspace sub-directory is appended, but this is a niche use-case.
 
 **ATTRIBUTES**
 
@@ -164,6 +190,7 @@ Example: [`@examples//:docker-push`](../../examples/BUILD.bazel#:~:text=name%20%
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="dh_docker_images_push-name"></a>name |  A unique name for this macro instance. Normally, this is also the name for the macro's main or only target. The names of any other targets that this macro might create will be this name with a string suffix.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="dh_docker_images_push-images"></a>images |  Dictionary from registry image name to build target.   | Dictionary: String -> Label; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
+| <a id="dh_docker_images_push-prefix"></a>prefix |  Overrides the automatically inferred prefix (if set). Empty string means infer.   | String; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `""`  |
 | <a id="dh_docker_images_push-visibility"></a>visibility |  The visibility to be passed to this macro's exported targets. It always implicitly includes the location where this macro is instantiated, so this attribute only needs to be explicitly set if you want the macro's targets to be additionally visible somewhere else.   | <a href="https://bazel.build/concepts/labels">List of labels</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  |
 
 

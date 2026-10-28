@@ -20,11 +20,10 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 
 import expressGQLPlayground from "graphql-playground-middleware-express";
 
-import { createPathBasedClient } from "openapi-fetch";
-
 import graphqlUploadExpress from "graphql-upload/graphqlUploadExpress.mjs";
 
-import type { paths as GravatarPaths } from "../clients/gravatar-schema.js";
+import { createClient as createGravatarClient } from "../clients/gravatar/client/index.js";
+import { GravatarClient } from "../clients/gravatar/sdk.gen.js";
 
 import getSchema from "./schema.js";
 
@@ -44,8 +43,10 @@ const main = async () => {
 
   const blobStore = new BlobStore("/blob_store");
   const priviledgedPrisma = new PrismaClient();
-  const gravatar = createPathBasedClient<GravatarPaths>({
-    baseUrl: "https://api.gravatar.com/v3",
+  const gravatar = new GravatarClient({
+    client: createGravatarClient({
+      baseUrl: "https://api.gravatar.com/v3",
+    }),
   });
 
   const server = new ApolloServer<Context>({

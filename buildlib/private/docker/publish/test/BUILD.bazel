@@ -1,0 +1,11 @@
+load("//private:ts_library.bzl", "ts_test")
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]),
+    deps = [
+        "//private/docker/lib/src",
+        "//private/docker/publish/src",
+        "//private/js-lib/src",
+    ],
+)

@@ -53,7 +53,7 @@ Head to <http://proxy-it-bazel-examples.localhost/>
 
 ## Automatic reload
 
-For all commands, `bazelisk` can be replaced with `ibazel` to automatically reload[^1]. For example:
+For all commands, `bazelisk` can be replaced with `ibazel` to automatically reload. For example:
 
 ```sh
 ibazel run //dc -- up -d
@@ -61,8 +61,6 @@ ibazel run //dc -- up -d
 
 Note the `-d` flag: The containers will keep running in the background even if
 the command is terminated. However, this allows to recreate only changed containers.
-
-[^1]: Note that there is currently an issue with `ibazel` and [Bazel Modules](https://bazel.build/external/module) [(#1168)](https://git.datahouse.ch/datahouse/it-bazel/issues/1168).
 
 ## Format code
 

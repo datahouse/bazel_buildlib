@@ -1,0 +1,35 @@
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("//docker:defs.bzl", "extract_from_image")
+load("//private:ts_library.bzl", "ts_test")
+load("//private/react_app:react_app.bzl", "react_app")
+
+oci_image(
+    name = "fake-base",
+    testonly = True,
+    architecture = "amd64",
+    os = "linux",
+)
+
+react_app(
+    name = "app",
+    testonly = True,
+    srcs = ["index.html"],
+    nginx_image = ":fake-base",
+    tailwind = True,
+    deps = ["//private/react_app/test/tailwind/src"],
+)
+
+extract_from_image(
+    name = "app_css",
+    testonly = True,
+    out = "app.css",
+    image = ":app",
+    path_regexp = "^usr/share/nginx/html/assets/.*\\.css$",
+)
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]),
+    data = [":app_css"],
+    deps = ["//:node_modules/@types/node"],
+)

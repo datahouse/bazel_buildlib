@@ -1,0 +1,6 @@
+load("//private:ts_library.bzl", "ts_test")
+
+ts_test(
+    name = "import-meta",
+    srcs = glob(["**/*.ts"]),
+)

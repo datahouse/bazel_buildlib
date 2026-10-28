@@ -7,19 +7,19 @@ load(":providers.bzl", "PrismaSchemaInfo")
 def _validate_schema(ctx, schema):
     validation_marker = ctx.actions.declare_file(ctx.label.name + ".validation")
 
-    ctx.actions.run_shell(
-        command = "$1 validate --schema $2 && touch $3",
-        arguments = [
-            ctx.executable._prisma_tool.path,
-            schema.path,
-            validation_marker.path,
-        ],
-        env = {
-            "BAZEL_BINDIR": ".",
-            ctx.attr.db_url_env: ctx.attr.validate_db_url,
-        },
+    args = ctx.actions.args()
+    args.add("--prismaCli", ctx.executable._prisma_tool)
+    args.add("--schemaPath", schema)
+    args.add("--validationMarker", validation_marker)
+    ctx.actions.run(
+        executable = ctx.executable._validate_schema_tool,
+        arguments = [args],
+        env = {"BAZEL_BINDIR": "."},
         inputs = [schema],
-        tools = [ctx.executable._prisma_tool],
+        tools = [
+            ctx.executable._validate_schema_tool,
+            ctx.executable._prisma_tool,
+        ],
         outputs = [validation_marker],
     )
 
@@ -52,20 +52,12 @@ def _prisma_schema_impl(ctx):
 
     _format_schema(ctx, schema)
 
-    # Split off schema from url to get db_type.
-    # TODO: We should probably invert this at some point:
-    # Take in the db_type and construct the URL.
-    # Kept like this for backwards compatibility.
-    db_type, _, _ = ctx.attr.validate_db_url.partition(":")
-
     return [
         DefaultInfo(
             files = depset([schema]),
         ),
         PrismaSchemaInfo(
             schema = schema,
-            db_url_env = ctx.attr.db_url_env,
-            db_type = db_type,
         ),
         OutputGroupInfo(
             _validation = depset([validation_marker]),
@@ -75,33 +67,37 @@ def _prisma_schema_impl(ctx):
 _prisma_schema = rule(
     implementation = _prisma_schema_impl,
     attrs = {
-        "db_url_env": attr.string(
-            mandatory = True,
-        ),
         "formatted_schema": attr.output(),
         "schema": attr.label(
             mandatory = True,
             allow_single_file = [".prisma"],
-        ),
-        "validate_db_url": attr.string(
-            mandatory = True,
         ),
         "_prisma_tool": attr.label(
             executable = True,
             cfg = "exec",
             default = "@prisma//:cli",
         ),
+        "_validate_schema_tool": attr.label(
+            default = Label("//private/prisma/src:validate-schema"),
+            executable = True,
+            cfg = "exec",
+        ),
     },
     toolchains = COPY_FILE_TO_BIN_TOOLCHAINS,
 )
 
-def _prisma_schema_macro_impl(name, schema, db_url_env, validate_db_url, visibility, testonly):
+def _prisma_schema_macro_impl(name, srcs, visibility, testonly):
+    if len(srcs) != 1:
+        # For now. TODO: Support multi-file schemas
+        # https://www.prisma.io/docs/orm/prisma-schema/overview/location#multi-file-prisma-schema
+        fail("srcs must have exactly one element (multi-file prisma schemas are not supported at the moment)")
+
+    schema = srcs[0]
+
     _prisma_schema(
         name = name,
         schema = schema,
         formatted_schema = name + ".fmt.prisma",
-        db_url_env = db_url_env,
-        validate_db_url = validate_db_url,
         testonly = testonly,
         visibility = visibility,
     )
@@ -124,13 +120,10 @@ prisma_schema = macro(
     Example: [`@examples//prisma:schema`](../../examples/prisma/BUILD.bazel#:~:text=name%20%3D%20%22schema%22%2C)
     """,
     attrs = {
-        "db_url_env": attr.string(
-            doc = "Environment variable name to use for the database URL.",
-            mandatory = True,
-        ),
-        "schema": attr.label(
-            doc = "schema file",
-            allow_single_file = [".prisma"],
+        "srcs": attr.label_list(
+            doc = "Schema file (only a single file is supported for now).",
+            allow_files = [".prisma"],
+            allow_empty = False,
             mandatory = True,
             configurable = False,
         ),
@@ -138,11 +131,6 @@ prisma_schema = macro(
             doc = "Testonly flag",
             default = False,
             configurable = False,
-        ),
-        "validate_db_url": attr.string(
-            doc = """Database URL to use when validating the schema.
-            This URL only needs to be structurally valid (no db needs to run there).""",
-            mandatory = True,
         ),
     },
     implementation = _prisma_schema_macro_impl,

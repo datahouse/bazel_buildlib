@@ -1,12 +1,8 @@
-import type { PathBasedClient } from "openapi-fetch";
-
 import { PrismaClient } from "../../prisma/rls/index.js";
 
-import type { paths as GravatarPaths } from "../clients/gravatar-schema.js";
+import type { GravatarClient } from "../clients/gravatar/sdk.gen.js";
 
 import BlobStore from "./BlobStore.js";
-
-export type GravatarClient = PathBasedClient<GravatarPaths>;
 
 export default interface Context {
   prisma: PrismaClient;

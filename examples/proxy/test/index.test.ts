@@ -111,42 +111,48 @@ describe("blobstore auth", () => {
   });
 
   it("permits allowed blobs", async () => {
-    const { status, headers, body } = await supertest(proxyURL)
+    const resp = await supertest(proxyURL)
       .get("/blob/todoAttachment/11111111-1111-1111-1111-111111111111")
       .responseType("ArrayBuffer");
+
+    const { status, headers } = resp; // body is any, do not extract.
 
     expect(status).toEqual(200);
     expect(headers).toMatchObject({
       "content-type": "image/png",
       "content-disposition": "inline; filename*=UTF-8''test.png",
     });
-    expect(Buffer.from(body)).toEqual(Buffer.from([0x03, 0x04, 0x05]));
+    expect(Buffer.from(resp.body)).toEqual(Buffer.from([0x03, 0x04, 0x05]));
   });
 
   it("ignores filename extension for content-type", async () => {
-    const { status, headers, body } = await supertest(proxyURL)
+    const resp = await supertest(proxyURL)
       .get("/blob/todoAttachment/22222222-2222-2222-2222-222222222222")
       .responseType("ArrayBuffer");
+
+    const { status, headers } = resp; // body is any, do not extract.
 
     expect(status).toEqual(200);
     expect(headers).toMatchObject({
       "content-type": "image/png",
       "content-disposition": "inline; filename*=UTF-8''test.gif",
     });
-    expect(Buffer.from(body)).toEqual(Buffer.from([0x06, 0x07, 0x08]));
+    expect(Buffer.from(resp.body)).toEqual(Buffer.from([0x06, 0x07, 0x08]));
   });
 
   it("respects existing charsets on text data", async () => {
-    const { status, headers, body } = await supertest(proxyURL)
+    const resp = await supertest(proxyURL)
       .get("/blob/todoAttachment/33333333-3333-3333-3333-333333333333")
       .responseType("ArrayBuffer");
+
+    const { status, headers } = resp; // body is any, do not extract.
 
     expect(status).toEqual(200);
     expect(headers).toMatchObject({
       "content-type": "text/plain; charset=us-ascii",
       "content-disposition": "inline; filename*=UTF-8''test.txt",
     });
-    expect(Buffer.from(body).toString("ascii")).toEqual("Test ASCII");
+    expect(Buffer.from(resp.body).toString("ascii")).toEqual("Test ASCII");
   });
 
   it("adds default charset on text data", async () => {
@@ -154,15 +160,17 @@ describe("blobstore auth", () => {
     // couldn't get NGINX to omit the charset.
     // It's something we can live with.
 
-    const { status, headers, body } = await supertest(proxyURL)
+    const resp = await supertest(proxyURL)
       .get("/blob/todoAttachment/44444444-4444-4444-4444-444444444444")
       .responseType("ArrayBuffer");
+
+    const { status, headers } = resp; // body is any, do not extract.
 
     expect(status).toEqual(200);
     expect(headers).toMatchObject({
       "content-type": "text/plain; charset=utf-8",
       "content-disposition": "inline; filename*=UTF-8''test.txt",
     });
-    expect(Buffer.from(body).toString("utf8")).toEqual("Test UTF8 😊");
+    expect(Buffer.from(resp.body).toString("utf8")).toEqual("Test UTF8 😊");
   });
 });

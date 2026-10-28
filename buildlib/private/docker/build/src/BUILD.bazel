@@ -1,0 +1,45 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("//private:ts_library.bzl", "ts_library")
+
+package(default_visibility = ["//private/docker/build:__subpackages__"])
+
+ts_library(
+    name = "src",
+    srcs = glob(["**/*.ts"]),
+    deps = [
+        "//:node_modules/@types/dockerode",
+        "//:node_modules/@types/node",
+        "//:node_modules/@types/parse-passwd",
+        "//:node_modules/argparse",
+        "//:node_modules/dockerode",
+        "//:node_modules/parse-passwd",
+        "//:node_modules/tar",
+        "//:node_modules/zod",
+        "//private/docker/lib/src",
+        "//private/docker/load/src",
+    ],
+)
+
+js_binary(
+    name = "js-image-layer",
+    data = [":src"],
+    entry_point = "js-image-layer.js",
+)
+
+js_binary(
+    name = "empty-dir-layer-mtree",
+    data = [":src"],
+    entry_point = "empty-dir-layer-mtree.js",
+)
+
+js_binary(
+    name = "build-dockerfile",
+    data = [":src"],
+    entry_point = "build-dockerfile.js",
+)
+
+js_binary(
+    name = "extract-from-image",
+    data = [":src"],
+    entry_point = "extract-from-image.js",
+)

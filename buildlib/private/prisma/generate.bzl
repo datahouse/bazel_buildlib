@@ -1,8 +1,9 @@
 """prisma_generate rule."""
 
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
+load("@prisma//:version.bzl", "PRISMA7_OR_ABOVE")
 load("//private:npm_js_binary.bzl", "npm_js_binary")
-load("//private/prisma:providers.bzl", "PrismaEnginesInfo", "PrismaGenerateInfo", "PrismaGeneratorInfo", "PrismaSchemaInfo")
+load(":providers.bzl", "PrismaEnginesInfo", "PrismaGenerateInfo", "PrismaGeneratorInfo", "PrismaSchemaInfo")
 
 def _prisma_generate_impl(ctx):
     args = ctx.actions.args()
@@ -24,13 +25,13 @@ def _prisma_generate_impl(ctx):
 
     engines = ctx.attr._prisma_engines[PrismaEnginesInfo]
 
+    direct_inputs = [schema, engines.schema_engine]
+    if not PRISMA7_OR_ABOVE:
+        direct_inputs.append(engines.query_engine)
+        direct_inputs.append(engines.libquery_engine)
+
     inputs = depset(
-        direct = [
-            schema,
-            engines.query_engine,
-            engines.libquery_engine,
-            engines.schema_engine,
-        ],
+        direct = direct_inputs,
         transitive = [js_lib_helpers.gather_files_from_js_infos(
             generate_deps,
             include_sources = True,
@@ -42,11 +43,13 @@ def _prisma_generate_impl(ctx):
     )
 
     args.add("--cliPath", ctx.executable.prisma)
-    args.add("--queryEngineBinary", engines.query_engine)
-    args.add("--queryEngineLibrary", engines.libquery_engine)
     args.add("--schemaEngineBinary", engines.schema_engine)
     args.add("--schemaPath", schema.short_path)
     args.add("--binDir", ctx.bin_dir.path)
+
+    if not PRISMA7_OR_ABOVE:
+        args.add("--queryEngineBinary", engines.query_engine)
+        args.add("--queryEngineLibrary", engines.libquery_engine)
 
     ctx.actions.run(
         inputs = inputs,

@@ -3,7 +3,7 @@
 load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
-load("//private/docker:providers.bzl", "HotReloadableInfo")
+load("//private/docker/compose:providers.bzl", "HotReloadableInfo")
 load(":bundle.bzl", "bundle")
 load(":hot_reload_base.bzl", "hot_reload_base")
 
@@ -24,7 +24,7 @@ def _react_app_impl(ctx):
     ])
 
     return [
-        DefaultInfo(files = depset([ctx.file.run_image])),
+        DefaultInfo(files = depset([ctx.file.base])),
         HotReloadableInfo(
             files = filtered_files,
             container_path = "/app/hot",
@@ -36,11 +36,12 @@ _react_app = rule(
     doc = """Glue rule to merge run (cold) and dev (hot) image.""",
     implementation = _react_app_impl,
     attrs = {
+        # Called 'base' for the base_image_metadata aspect.
+        "base": attr.label(allow_single_file = True),
         "deps": attr.label_list(
             providers = [JsInfo],
         ),
         "dev_image": attr.label(allow_single_file = True),
-        "run_image": attr.label(allow_single_file = True),
     },
 )
 
@@ -55,6 +56,7 @@ def _react_app_macro_impl(
         nginx_image,
         node_image,
         node_image_platform,
+        tailwind,
         visibility,
         testonly):
     nginx_image = nginx_image or _nginx_image_default
@@ -71,6 +73,7 @@ def _react_app_macro_impl(
         name = name + ".run",
         deps = [name + ".lib"],
         nginx_image = nginx_image,
+        tailwind = tailwind,
         testonly = testonly,
     )
 
@@ -79,12 +82,13 @@ def _react_app_macro_impl(
         deps = [name + ".lib"],
         node_image = node_image,
         node_image_platform = node_image_platform,
+        tailwind = tailwind,
         testonly = testonly,
     )
 
     _react_app(
         name = name,
-        run_image = name + ".run",
+        base = name + ".run",
         dev_image = name + ".dev",
         visibility = visibility,
         deps = [name + ".lib"],
@@ -125,12 +129,27 @@ react_app = macro(
         ),
         "node_image_platform": attr.label(
             doc = "Platform for the node base image (for dev / hot).",
-            default = Label("//private/docker:node_default_platform"),
+            default = Label("//private/docker/build:node_default_platform"),
         ),
         "srcs": attr.label_list(
             doc = "Direct sources. Typically `index.html`.",
             allow_files = True,
             default = [],
+        ),
+        "tailwind": attr.bool(
+            doc = """EXPERIMENTAL Enable Tailwind CSS via `@tailwindcss/vite`, in the run and dev image.
+
+Requires `tailwindcss` and `@tailwindcss/vite` in the consumer's `package.json`
+and a CSS entry imported by the app and declared via `assets`. Start it with
+`@import "tailwindcss" source(none);` and register the sources with
+[`@source`](https://tailwindcss.com/docs/detecting-classes-in-source-files#explicitly-registering-sources),
+relative to the CSS file. An `@source` path that does not resolve is silently
+ignored, and registering this target's package directory itself picks up the
+generated vite config.
+
+Example: [`@buildlib//private/react_app/test/tailwind/src:main.css`](../private/react_app/test/tailwind/src/main.css)""",
+            default = False,
+            configurable = False,
         ),
         "testonly": attr.bool(
             doc = "Testonly flag.",

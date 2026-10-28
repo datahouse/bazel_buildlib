@@ -2,7 +2,7 @@ import { mockDeep } from "jest-mock-extended";
 
 import type { User } from "../../../prisma/typegraphql-prisma/index.js";
 
-import type { components } from "../../clients/gravatar-schema.js";
+import type { Profile } from "../../clients/gravatar/types.gen.js";
 
 import Context from "../../src/Context.js";
 
@@ -32,30 +32,26 @@ describe("gravatarProfile", () => {
   it("calculates the gravatar profile hash", async () => {
     const ctx = mockDeep<Context>();
 
-    ctx.gravatar["/profiles/{profileIdentifier}"].GET.mockResolvedValue({
+    ctx.gravatar.getProfileById.mockResolvedValue({
       // cheat a bit, we do not want to define a full profile for testing.
-      data: fakeProfile as components["schemas"]["Profile"],
-      response: new Response(),
+      data: fakeProfile as Profile,
+      error: undefined,
     });
 
     await resolver.gravatarProfile(fakeUser, ctx);
 
-    expect(
-      ctx.gravatar["/profiles/{profileIdentifier}"].GET,
-    ).toHaveBeenCalledWith({
-      params: {
-        path: { profileIdentifier: fakeHash },
-      },
+    expect(ctx.gravatar.getProfileById).toHaveBeenCalledWith({
+      path: { profileIdentifier: fakeHash },
     });
   });
 
   it("returns the profile", async () => {
     const ctx = mockDeep<Context>();
 
-    ctx.gravatar["/profiles/{profileIdentifier}"].GET.mockResolvedValue({
+    ctx.gravatar.getProfileById.mockResolvedValue({
       // cheat a bit, we do not want to define a full profile for testing.
-      data: fakeProfile as components["schemas"]["Profile"],
-      response: new Response(),
+      data: fakeProfile as Profile,
+      error: undefined,
     });
 
     await expect(resolver.gravatarProfile(fakeUser, ctx)).resolves.toEqual(
@@ -66,10 +62,9 @@ describe("gravatarProfile", () => {
   it("returns undefined on not found", async () => {
     const ctx = mockDeep<Context>();
 
-    ctx.gravatar["/profiles/{profileIdentifier}"].GET.mockResolvedValue({
-      // cast: openapi spec doesn't have error value types, but we need a value
-      // to hint typing that we do not need `data` (one of data / error must be set).
-      error: "Not found" as never,
+    ctx.gravatar.getProfileById.mockResolvedValue({
+      data: undefined,
+      error: new Error("Not found"),
       response: new Response("Not found", { status: 404 }),
     });
 
@@ -81,10 +76,9 @@ describe("gravatarProfile", () => {
   it("fails on other errors", async () => {
     const ctx = mockDeep<Context>();
 
-    ctx.gravatar["/profiles/{profileIdentifier}"].GET.mockResolvedValue({
-      // cast: openapi spec doesn't have error value types, but we need a sentinel.
-      error: "Internal Error" as never,
-      response: new Response("Internal Error", { status: 500 }),
+    ctx.gravatar.getProfileById.mockResolvedValue({
+      data: undefined,
+      error: new Error("Internal Error"),
     });
 
     await expect(resolver.gravatarProfile(fakeUser, ctx)).rejects.toThrow(

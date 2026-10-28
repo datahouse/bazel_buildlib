@@ -10,9 +10,9 @@ const main = async () => {
   parser.add_argument("package_json", {
     help: "the package.json to check",
   });
-  const args = parser.parse_args();
+  const args = parser.parse_args<{ package_json: string }>();
   const pkgContent = await readFile(args.package_json, "utf8");
-  const parsedPkg = JSON.parse(pkgContent);
+  const parsedPkg = JSON.parse(pkgContent) as unknown;
   const problems = packageJsonProblems(parsedPkg);
   if (problems.length > 0) {
     console.error("There are problems with your package.json");

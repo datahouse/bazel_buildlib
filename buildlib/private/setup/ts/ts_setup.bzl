@@ -2,7 +2,7 @@
 
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_test")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@bazel_lib//lib:copy_file.bzl", "copy_file")
 load("//private:prettier_format.bzl", "prettier_format")
 load("//private/setup:write_setup_source_file.bzl", "write_setup_source_file")
 load("//private/setup/ts:tsconfig_base.bzl", "tsconfig_base")
@@ -22,14 +22,17 @@ def ts_setup(update_targets):
         name = "eslint_config",
         eslint_config = "eslint.config.js",
         pkg_json = "package.json",
-        visibility = ["//:__subpackages__"],
     )
 
-def _eslint_config_setup_impl(name, visibility, eslint_config, pkg_json):
+def _eslint_config_setup(name, eslint_config, pkg_json):
     # We copy the eslint defaults twice.
     # - Once to the source directory, so the IDEs find it.
     # - Once to a nested directory bazel-bin, so eslint finds it when running
     #   under bazel (in the source directory). This is somewhat of a hack.
+    #
+    # This approach forces us to make this macro a legacy macro:
+    # The output file names of the copies necessarily violate symbolic macro
+    # naming rules because they have different prefixes.
     #
     # Lastly, we carefully chose the dependency tree, so that the file for the IDEs
     # is copied whenever we lint anything (so it doesn't need to be built explicitly).
@@ -61,7 +64,7 @@ def _eslint_config_setup_impl(name, visibility, eslint_config, pkg_json):
             pkg_json,
             ":tsconfig-base",
         ],
-        visibility = visibility,
+        visibility = ["//:__subpackages__"],
     )
 
     js_test(
@@ -73,22 +76,6 @@ def _eslint_config_setup_impl(name, visibility, eslint_config, pkg_json):
         ],
         entry_point = Label("//private/setup/ts/src:check-eslint-config.js"),
     )
-
-_eslint_config_setup = macro(
-    attrs = {
-        "eslint_config": attr.label(
-            mandatory = True,
-            allow_single_file = True,
-            configurable = False,
-        ),
-        "pkg_json": attr.label(
-            mandatory = True,
-            allow_single_file = True,
-            configurable = False,
-        ),
-    },
-    implementation = _eslint_config_setup_impl,
-)
 
 def _gen_tsconfig_base_impl(ctx):
     # See [evil-bazel-hackery] in buildlib/private/ts/config.bzl
@@ -119,7 +106,6 @@ def _tsconfig_base(update_targets):
             "//:__subpackages__",
             # Macro friends.
             "@dh_buildlib//private/prisma/generators:__subpackages__",
-            "@dh_buildlib//private/setup/ts:__subpackages__",
         ],
     )
 

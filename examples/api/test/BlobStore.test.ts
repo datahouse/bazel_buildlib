@@ -1,6 +1,7 @@
 import path from "node:path";
 import { tmpdir } from "node:os";
 
+import type { Dirent } from "node:fs";
 import { mkdtemp, rm, readFile, readdir } from "node:fs/promises";
 
 import { Readable } from "node:stream";
@@ -80,7 +81,7 @@ describe("BlobStore", () => {
     });
 
     // Subdirectories are not cleaned up, only files.
-    expect(dirContent).toSatisfyAll((d) => d.isDirectory());
+    expect(dirContent).toSatisfyAll<Dirent>((d) => d.isDirectory());
   });
 
   it("should fail to delete a non-existent file", async () => {

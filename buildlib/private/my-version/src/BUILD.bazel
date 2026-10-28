@@ -5,7 +5,6 @@ ts_library(
     name = "src",
     srcs = glob(["**/*.ts"]),
     deps = [
-        "//:node_modules/@types/argparse",
         "//:node_modules/@types/node",
         "//:node_modules/argparse",
         "//private/js-lib/src",

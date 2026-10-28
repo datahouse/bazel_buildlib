@@ -1,4 +1,7 @@
-import { PrismaClient as BasePrismaClient } from "../client/index.js";
+import {
+  PrismaClient as BasePrismaClient,
+  type PrismaPromise,
+} from "../client/index.js";
 
 function prepareTransaction(
   priviledgedPrisma: BasePrismaClient,
@@ -36,7 +39,7 @@ function enableRLSInternal(
       async $allOperations({ args, query }) {
         const [, result] = await priviledgedPrisma.$transaction([
           prepareTransaction(priviledgedPrisma, sub, pgRole),
-          query(args),
+          query(args) as PrismaPromise<unknown>,
         ]);
 
         return result;

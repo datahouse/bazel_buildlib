@@ -15,7 +15,6 @@ bzl_library(
         ":write_setup_source_file",
         "//private/format:bzl",
         "//private/setup/npm:bzl",
-        "//private/setup/renovate:bzl",
         "//private/setup/ts:bzl",
         "@bazel_lib//lib:write_source_files",
     ],

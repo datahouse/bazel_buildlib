@@ -5,6 +5,17 @@ import type { Config } from "jest";
 
 const dom = process.env.DH_BUILDLIB_TS_TEST_ENABLE_DOM === "1";
 const configPath = process.env.DH_BUILDLIB_TS_TEST_JEST_CONFIG_PATH;
+const esmDepsEnv = process.env.DH_BUILDLIB_TS_TEST_ESM_NODE_MODULES;
+// aspect_rules_js rewrites scoped packages: @scope/pkg -> @scope+pkg@version
+// For unscoped packages: pkg -> pkg@version
+// See _package_store_name in:
+// https://github.com/aspect-build/rules_js/blob/main/npm/private/utils.bzl
+// We need to match these paths in the transformIgnorePatterns regex.
+const extraEsmDeps: string[] = esmDepsEnv!
+  .split(",")
+  .filter(Boolean)
+  .map((d: string) => RegExp.escape(`${d.replaceAll("/", "+")}@`));
+const enableJestEsm = process.env.DH_BUILDLIB_TS_TEST_ENABLE_ESM === "1";
 
 // The jest config lies somewhere completely different than where the tests lie.
 const rootDir = cwd();
@@ -12,20 +23,26 @@ const configDir = join(cwd(), dirname(configPath!));
 
 const buildlibConfig = (name: string) => join(configDir, name);
 
-const transform: Config["transform"] = {
-  // Invoke babel-jest for all JS sources.
-  // We need this for:
-  // - ESM support: Jest does not support ESM yet, so we transpile the
-  //   sources on the fly (we inject a custom babel config for this).
-  //   We should remove this, once Jest supports ESM:
-  //   https://jestjs.io/docs/ecmascript-modules
-  // - Module mocks, see #247
-  //   https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
-  "\\.[mc]?[jt]sx?$": [
-    "babel-jest",
-    { extends: buildlibConfig("babel.config.cjs") },
-  ],
-};
+const transform: Config["transform"] = !enableJestEsm
+  ? {
+      // Invoke babel-jest for all JS sources.
+      // We need this for:
+      // - ESM support: Jest does not support ESM yet, so we transpile the
+      //   sources on the fly (we inject a custom babel config for this).
+      //   We should remove this, once Jest supports ESM:
+      //   https://jestjs.io/docs/ecmascript-modules
+      // - Module mocks, see #247
+      //   https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
+      "\\.[mc]?[jt]sx?$": [
+        "babel-jest",
+        { extends: buildlibConfig("babel.config.cjs") },
+      ],
+    }
+  : {
+      // No transformation necessary.
+      // Module mocks do not work anyways under ESM:
+      // https://jestjs.io/docs/ecmascript-modules#module-mocking-in-esm
+    };
 
 const moduleNameMapper: Config["moduleNameMapper"] = {};
 
@@ -56,6 +73,9 @@ const config: Config = {
     "(\\.|/)test\\.[mc]?jsx?$",
   ],
   transform,
+};
+
+if (!enableJestEsm) {
   // Selectively CJS transform known node modules that publish only for ESM.
   //
   // We use a negative lookahead regex for this as suggested in the doc:
@@ -64,9 +84,11 @@ const config: Config = {
   // Note that the selectivity is crucial: At the time of writing,
   // transforming all node modules on //frontend/test
   // increases the test runtime from 10s to 70s.
-  transformIgnorePatterns: [
-    "node_modules/\\.aspect_rules_js/(?!graphql-upload@|react-error-boundary@)",
-  ],
-};
+  config.transformIgnorePatterns = [
+    extraEsmDeps.length > 0
+      ? `node_modules/\\.aspect_rules_js/(?!${extraEsmDeps.join("|")})`
+      : `node_modules/\\.aspect_rules_js/`,
+  ];
+}
 
 export default config;

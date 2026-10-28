@@ -3,9 +3,7 @@ load("@dh_buildlib//prisma/generators:defs.bzl", "prisma_client_js")
 
 prisma_schema(
     name = "schema",
-    db_url_env = "DATABASE_URL",
-    schema = "schema.prisma",
-    validate_db_url = "postgres://localhost/",
+    srcs = ["schema.prisma"],
 )
 
 prisma_generate(

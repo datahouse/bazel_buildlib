@@ -1,0 +1,14 @@
+# Set an (unused) action environment variable to separate the caching domain
+# from our main build. See #1718 for more info on this.
+common --action_env=DH_BUILDLIB_HERMETIC_SANDBOX_CACHE_KEY_SPLIT_DO_NOT_READ=1
+
+common --experimental_use_hermetic_linux_sandbox
+
+# Binaries / libraries
+common --sandbox_add_mount_pair=/usr
+common --sandbox_add_mount_pair=/bin
+common --sandbox_add_mount_pair=/lib
+common --sandbox_add_mount_pair=/lib64
+
+# For /etc/alternatives, user home, os info.
+common --sandbox_add_mount_pair=/etc

@@ -182,13 +182,10 @@ def _find_lib_ssl_in_locations(ctx, paths):
     """
 
     for path in paths:
-        res = ctx.execute(["ls", path])
-        if res.return_code != 0:
-            fail("failed to ls '{}': {}".format(path, res.stderr))
-
-        for line in res.stdout.splitlines():
-            if line.startswith("libssl.so.") and not line.startswith("libssl.so.0"):
-                return line
+        for entry in ctx.path(path).readdir(watch = "yes"):
+            fname = entry.basename
+            if fname.startswith("libssl.so.") and not fname.startswith("libssl.so.0"):
+                return fname
 
     fail("couldn't find libssl in {}".format(paths))
 

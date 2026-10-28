@@ -12,9 +12,7 @@ package_group(
 
 prisma_schema(
     name = "schema",
-    db_url_env = "DATABASE_URL",
-    schema = "schema.prisma",
-    validate_db_url = "postgres://localhost/",
+    srcs = ["schema.prisma"],
     visibility = ["//prisma:__subpackages__"],
 )
 
@@ -49,7 +47,7 @@ typegraphql_prisma(
 prisma_dev(
     name = "prisma",
     db_service = "//dc:db",
-    db_url = "postgres://postgres:zuuboi4eemae5ee2UNga@${DB_SERVICE}/",
+    db_url = "postgres://postgres:zuuboi4eemae5ee2UNga@dynamic-docker-container/",
     schema = ":schema",
     seed_script = "//prisma/seed",
 )

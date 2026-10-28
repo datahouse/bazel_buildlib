@@ -18,7 +18,9 @@ const parseArgs = () => {
     default: false,
   });
 
-  return parser.parse_args() as { check: boolean };
+  return parser.parse_args<{
+    check: boolean;
+  }>();
 };
 
 const loadEnv = () => {

@@ -1,0 +1,11 @@
+services:
+  db:
+    bazel-image: "@postgres_image_linux_amd64"
+    environment:
+      POSTGRES_PASSWORD: ohxoh6vahNgee4aewoox
+
+  db-migrate:
+    bazel-image: //prisma:db-migrate
+    profiles: [deploy]
+    environment:
+      DATABASE_URL: postgres://postgres:ohxoh6vahNgee4aewoox@db/postgres

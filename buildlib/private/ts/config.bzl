@@ -101,18 +101,33 @@ def _tsconfig_references(ctx):
 
     return references
 
+_type_path_prefix = "node_modules/@types/"
+
+def _tsconfig_types(deps):
+    return [
+        file.short_path.removeprefix(_type_path_prefix)
+        for dep in deps
+        # Note: Do *not* use [JsInfo].npm_sources: it contains the transitive sources,
+        # but we only want the direct ones.
+        for file in dep[DefaultInfo].files.to_list()
+        if file.short_path.startswith(_type_path_prefix)
+    ]
+
 def _gen_tsconfig_impl(ctx):
     # See [evil-bazel-hackery] for why this is not predeclared in the attrs.
     out = ctx.actions.declare_file("tsconfig.json")
 
     cfg = {
+        "compilerOptions": {
+            "types": _tsconfig_types(ctx.attr.deps),
+        },
         "extends": relative_file(ctx.file.extends.short_path, ctx.build_file_path),
         "include": _tsconfig_includes(ctx),
         "references": _tsconfig_references(ctx),
     }
 
     if ctx.attr.uses_dom:
-        cfg["compilerOptions"] = {"lib": ["dom", "dom.iterable", "esnext"]}
+        cfg["compilerOptions"]["lib"] = ["dom", "dom.iterable", "esnext"]
 
     ctx.actions.write(
         content = json.encode(cfg),

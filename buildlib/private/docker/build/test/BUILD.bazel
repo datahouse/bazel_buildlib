@@ -1,0 +1,59 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("//docker:defs.bzl", "extract_from_image")
+load("//private:ts_library.bzl", "ts_test")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test", "node_binary_image")
+
+# Do not transpile from ts: Otherwise we'd need another package for the ts_project.
+js_library(
+    name = "node_app",
+    testonly = 1,
+    srcs = ["node_app.js"],
+)
+
+node_binary_image(
+    name = "node_test",
+    testonly = 1,
+    data = [":node_app"],
+    entry_point = ":node_app.js",
+    volumes = ["/test_volume"],
+)
+
+docker_image_for_ts_test(
+    name = "load_node_test_image",
+    image = ":node_test",
+)
+
+extract_from_image(
+    name = "extract_smoke_test",
+    testonly = 1,
+    out = "profile-for-test.txt",
+    image = "@node_image_linux_amd64",
+    path = "etc/profile",
+)
+
+extract_from_image(
+    name = "extract_regexp_test",
+    testonly = 1,
+    out = "motd-for-test.txt",
+    image = "@node_image_linux_amd64",
+    path_regexp = "^etc/motd$",
+)
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]),
+    data = [
+        "motd-for-test.txt",
+        "profile-for-test.txt",
+        "@node_image_linux_amd64",
+    ],
+    env = {
+        "NODE_IMAGE_FOR_BUILD_TEST": "$(rootpath @node_image_linux_amd64)",
+    },
+    tags = ["requires-docker"],
+    deps = [
+        ":load_node_test_image",
+        "//:node_modules/testcontainers",
+        "//private/docker/build/src",
+    ],
+)

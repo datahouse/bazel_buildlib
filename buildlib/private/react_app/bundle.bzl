@@ -1,14 +1,14 @@
 """Rules to bundle react apps."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("@bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_oci//oci:defs.bzl", "oci_image")
 load("@tar.bzl//tar:mtree.bzl", "mtree_mutate", "mtree_spec")
 load("@tar.bzl//tar:tar.bzl", "tar")
 load("//private:npm_js_binary.bzl", "npm_js_binary")
 
-def bundle(name, deps, nginx_image, testonly = None):
+def bundle(name, deps, nginx_image, tailwind = False, testonly = None):
     """
     Creates the run / cold image for react_app.
 
@@ -16,6 +16,7 @@ def bundle(name, deps, nginx_image, testonly = None):
       name: Name of the rule.
       deps: Dependencies.
       nginx_image: Nginx image to use.
+      tailwind: Whether to add the Tailwind packages.
       testonly: Testonly flag
     """
 
@@ -35,6 +36,11 @@ def bundle(name, deps, nginx_image, testonly = None):
 
     bundle_name = name + ".bundle"
 
+    tailwind_srcs = [
+        "//:node_modules/@tailwindcss/vite",
+        "//:node_modules/tailwindcss",
+    ] if tailwind else []
+
     js_run_binary(
         name = bundle_name,
         args = [
@@ -50,12 +56,13 @@ def bundle(name, deps, nginx_image, testonly = None):
             name + ".vite.cfg",
             "//:node_modules/vite",
             "//:node_modules/@vitejs/plugin-react",
-        ],
+        ] + tailwind_srcs,
         include_transitive_sources = True,
-        include_declarations = False,
+        include_types = False,
         include_npm_sources = True,
         silent_on_success = False,  # report bundle sizes
         out_dirs = [bundle_name],
+        env = {"DH_BUILDLIB_REACT_APP_TAILWIND": str(int(tailwind))},
         progress_message = "Bundling %{label}",
         testonly = testonly,
     )

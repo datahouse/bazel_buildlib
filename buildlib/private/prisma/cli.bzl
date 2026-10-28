@@ -6,31 +6,45 @@ Attention: This cannot be used for cross building (the engines always match the 
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@prisma//:version.bzl", "PRISMA7_OR_ABOVE")
 load("//private:npm_js_binary.bzl", "npm_js_binary")
-load("//private/prisma:providers.bzl", "PrismaEnginesInfo")
+load(":providers.bzl", "PrismaEnginesInfo")
 
 def _prisma_cli_impl(ctx):
     prisma_bin_info = ctx.attr.prisma_bin[DefaultInfo]
 
     engines = ctx.attr._prisma_engines[PrismaEnginesInfo]
 
-    runfiles = ctx.runfiles(
-        files = [
-            engines.libquery_engine,
-            engines.query_engine,
-            engines.schema_engine,
-        ],
-    ).merge(prisma_bin_info.default_runfiles)
+    # Base files / exports common to all Prisma versions
+    engine_files = [engines.schema_engine]
+    engine_exports = [
+        """export PRISMA_SCHEMA_ENGINE_BINARY="${RUNFILES_DIR}/%s"\n""" %
+        paths.join(ctx.workspace_name, engines.schema_engine.short_path),
+    ]
+
+    # Prisma < 7 needs additional engines.
+    if not PRISMA7_OR_ABOVE:
+        engine_files.append(engines.query_engine)
+        engine_exports.append(
+            """export PRISMA_QUERY_ENGINE_BINARY="${RUNFILES_DIR}/%s"\n""" %
+            paths.join(ctx.workspace_name, engines.query_engine.short_path),
+        )
+
+        engine_files.append(engines.libquery_engine)
+        engine_exports.append(
+            """export PRISMA_QUERY_ENGINE_LIBRARY="${RUNFILES_DIR}/%s"\n""" %
+            paths.join(ctx.workspace_name, engines.libquery_engine.short_path),
+        )
+
+    runfiles = ctx.runfiles(files = engine_files).merge(prisma_bin_info.default_runfiles)
 
     ctx.actions.expand_template(
         template = ctx.file._cli_tpl,
         output = ctx.outputs.out,
         is_executable = True,
         substitutions = {
-            "{{LIBQUERY_ENGINE}}": paths.join(ctx.workspace_name, engines.libquery_engine.short_path),
             "{{PRISMA_BIN}}": paths.join(ctx.workspace_name, prisma_bin_info.files_to_run.executable.short_path),
-            "{{QUERY_ENGINE}}": paths.join(ctx.workspace_name, engines.query_engine.short_path),
-            "{{SCHEMA_ENGINE}}": paths.join(ctx.workspace_name, engines.schema_engine.short_path),
+            "{{PRISMA_ENGINE_EXPORTS}}": "".join(engine_exports),
         },
     )
 

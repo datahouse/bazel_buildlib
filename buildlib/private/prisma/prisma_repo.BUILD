@@ -1,3 +1,4 @@
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
 load("@dh_buildlib//private/prisma:cli.bzl", "prisma_cli")
 load("@dh_buildlib//private/prisma:constants.bzl", "PLATFORMS")
 
@@ -12,5 +13,11 @@ alias(
         "@dh_buildlib//private/prisma/configs:" + platform: "@prisma_engines_" + platform + "//:engines"
         for platform in PLATFORMS.keys()
     }),
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "version",
+    srcs = ["version.bzl"],
     visibility = ["//visibility:public"],
 )

@@ -20,7 +20,11 @@ tsconfig_base = {
         # Also see https://www.typescriptlang.org/docs/handbook/modules/reference.html#node16-nodenext
         "module": "node16",
         "moduleResolution": "node16",
-        "rootDir": ".",
+        # Set pretty explicitly.
+        # Although the TS docs claim "True" is the default (https://www.typescriptlang.org/tsconfig/#pretty),
+        # it is only the default if the output is a TTY (which is not the case under rules_ts):
+        # https://github.com/microsoft/TypeScript/blob/71586adc7bec6b358809b5301ad2c6f0d7703174/src/compiler/executeCommandLine.ts#L159-L167
+        "pretty": True,
         "rootDirs": [".", "bazel-bin"],
         "skipLibCheck": True,
         "sourceMap": True,

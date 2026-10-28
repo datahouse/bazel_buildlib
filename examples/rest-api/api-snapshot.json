@@ -1,0 +1,249 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"DefaultSelection_Prisma._36_TodoListPayload_": {
+				"properties": {
+					"archived": {
+						"type": "boolean"
+					},
+					"ownerId": {
+						"type": "number",
+						"format": "double"
+					},
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"archived",
+					"ownerId",
+					"id",
+					"name"
+				],
+				"type": "object"
+			},
+			"TodoList": {
+				"$ref": "#/components/schemas/DefaultSelection_Prisma._36_TodoListPayload_",
+				"description": "Model TodoList"
+			},
+			"DefaultSelection_Prisma._36_TodoItemPayload_": {
+				"properties": {
+					"listId": {
+						"type": "number",
+						"format": "double"
+					},
+					"done": {
+						"type": "boolean"
+					},
+					"text": {
+						"type": "string"
+					},
+					"id": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"listId",
+					"done",
+					"text",
+					"id"
+				],
+				"type": "object"
+			},
+			"TodoItem": {
+				"$ref": "#/components/schemas/DefaultSelection_Prisma._36_TodoItemPayload_",
+				"description": "Model TodoItem"
+			},
+			"Pick_TodoItem.text-or-done_": {
+				"properties": {
+					"text": {
+						"type": "string"
+					},
+					"done": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"text",
+					"done"
+				],
+				"type": "object",
+				"description": "From T, pick a set of properties whose keys are in the union K"
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "Example Rest API",
+		"version": "1.0.0",
+		"description": "REST API to show tsoa integration",
+		"license": {
+			"name": "MIT"
+		},
+		"contact": {
+			"name": "unknown"
+		}
+	},
+	"paths": {
+		"/version": {
+			"get": {
+				"operationId": "Version",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns the build version of the server.",
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/todo-lists": {
+			"get": {
+				"operationId": "GetLists",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/TodoList"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns all Todo Lists.",
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/todo-lists/{listId}": {
+			"get": {
+				"operationId": "GetList",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TodoList"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns a Todo List.",
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/todo-lists/{listId}/items": {
+			"get": {
+				"operationId": "GetItems",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/TodoItem"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"description": "Returns all Todo Items for a list.",
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "CreateItem",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TodoItem"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a new Todo Item.",
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Pick_TodoItem.text-or-done_"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/api/v1"
+		}
+	]
+}

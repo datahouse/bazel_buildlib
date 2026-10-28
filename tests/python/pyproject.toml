@@ -2,8 +2,10 @@
 name = "dh_buildlib-python-EXPERIMENTAL"
 dynamic = ["version"]
 
+requires-python = "==3.11.15"
+
 dependencies = [
-  "pytest==9.0.2",
-  "black==26.1.0",
+  "pytest==9.1.1",
+  "black==26.10.0",
 ]
 

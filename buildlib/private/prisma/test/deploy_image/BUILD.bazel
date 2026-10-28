@@ -1,0 +1,72 @@
+"""tests for prisma"""
+
+load("//prisma:defs.bzl", "prisma_deploy_image", "prisma_migrations", "prisma_schema")
+load("//private:ts_library.bzl", "ts_test")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test")
+
+docker_image_for_ts_test(
+    name = "load_postgres_image",
+    image = "@postgres_image_linux_amd64",
+)
+
+prisma_schema(
+    name = "schema",
+    testonly = True,
+    srcs = ["schema.prisma"],
+)
+
+prisma_migrations(
+    name = "migrations",
+    testonly = True,
+    srcs = glob(["migrations/**"]),
+    schema = ":schema",
+    validation_db_image = "@postgres_image_linux_amd64",
+)
+
+# deploy image based on the standard node_default_platform
+prisma_deploy_image(
+    name = "deploy_image_default",
+    testonly = True,
+    migrations = ":migrations",
+)
+
+docker_image_for_ts_test(
+    name = "load_deploy_image_default",
+    image = ":deploy_image_default",
+)
+
+platform(
+    name = "node_alpine_platform",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "@dh_buildlib//prisma/linux:musl",
+        "@dh_buildlib//prisma/openssl:3",
+    ],
+)
+
+prisma_deploy_image(
+    name = "deploy_image_alpine",
+    testonly = True,
+    base = "@node_alpine3.20_image_linux_amd64",
+    migrations = ":migrations",
+    platform = ":node_alpine_platform",
+)
+
+docker_image_for_ts_test(
+    name = "load_deploy_image_alpine",
+    image = ":deploy_image_alpine",
+)
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]),
+    tags = ["requires-docker"],
+    deps = [
+        ":load_deploy_image_alpine",
+        ":load_deploy_image_default",
+        ":load_postgres_image",
+        "//:node_modules/@testcontainers/postgresql",
+        "//:node_modules/testcontainers",
+    ],
+)

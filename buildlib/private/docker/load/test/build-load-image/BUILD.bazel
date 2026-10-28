@@ -1,0 +1,36 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
+load("@docker_config//:docker_config.bzl", "DOCKER_HOST")
+load("//private:ts_library.bzl", "ts_library")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test")
+
+docker_image_for_ts_test(
+    name = "load_nginx_image",
+    testonly = False,  # use in build action
+    image = "@nginx_image_linux_amd64",
+)
+
+ts_library(
+    name = "src",
+    srcs = glob(["**/*.ts"]),
+    deps = [
+        ":load_nginx_image",
+        "//:node_modules/testcontainers",
+    ],
+)
+
+js_binary(
+    name = "builder",
+    data = [":src"],
+    entry_point = "builder.js",
+)
+
+js_run_binary(
+    name = "nginx-landing-page",
+    outs = ["index.html"],
+    args = ["$(rootpath index.html)"],
+    env = {
+        "DOCKER_HOST": DOCKER_HOST,
+    },
+    tags = ["requires-network"],
+    tool = "builder",
+)

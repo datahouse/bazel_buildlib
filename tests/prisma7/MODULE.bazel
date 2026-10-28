@@ -1,0 +1,32 @@
+bazel_dep(name = "aspect_rules_js", version = "3.5.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.10.1")
+bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "dh_buildlib", version = "0.0.0")
+local_path_override(
+    module_name = "dh_buildlib",
+    path = "../../buildlib",
+)
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+use_repo(npm, "npm")
+
+rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
+rules_ts_ext.deps(ts_version_from = "@npm//:typescript/resolved.json")
+use_repo(rules_ts_ext, "npm_typescript")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "node_image",
+    digest = "sha256:6449e19d8184d84062525b6a7524def03146c2cb04a7f08b076680d0e8e4240a",
+    image = "index.docker.io/library/node",
+    platforms = ["linux/amd64"],
+    tag = "24.22.1",
+)
+oci.pull(
+    name = "postgres_image",
+    digest = "sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6",
+    image = "index.docker.io/library/postgres",
+    platforms = ["linux/amd64"],
+    tag = "18.6",
+)
+use_repo(oci, "node_image", "node_image_linux_amd64", "postgres_image", "postgres_image_linux_amd64")

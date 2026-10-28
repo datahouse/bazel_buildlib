@@ -15,7 +15,7 @@ const main = async () => {
     help: "the eslint config to check",
   });
 
-  const args = parser.parse_args();
+  const args = parser.parse_args<{ config: string }>();
 
   const filePath = path.join(process.cwd(), args.config);
   const eslintConfigRaw = await readFile(filePath, { encoding: "utf8" });

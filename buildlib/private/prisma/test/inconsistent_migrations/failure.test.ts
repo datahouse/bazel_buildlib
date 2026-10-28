@@ -7,7 +7,10 @@ test(
       process.env.TEST_UNDER_TEST!,
     );
     expect(code).toEqual(1);
-    expect(stderr).toEqual(
+    // Substring match, because stderr may also carry unrelated output such as
+    // Node deprecation warnings from transitive deps (e.g. legacy url.parse
+    // usage) that only fire under certain runtime conditions.
+    expect(stderr).toContain(
       "Prisma migrations are not consistent with schema.prisma. Please run 'prisma migrate dev'.\n",
     );
   },

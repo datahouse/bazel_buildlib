@@ -5,6 +5,26 @@
   extends: [":semanticCommitsDisabled"],
 
   packageRules: [
+    // Match `prisma` and `@prisma/*` together to keep in sync.
+    //
+    // - examples/**: direct dependency on typegraphql-prisma, pinned to
+    //   prisma/@prisma/client ^5.18.0
+    // - buildlib/**: downstream consumers of buildlib use typegraphql-prisma
+    //   so we must keep supporting prisma 5.x too
+    // - tests/ide/**: keeping consistent with examples
+    //
+    // Tracking: https://git.datahouse.ch/datahouse/it-bazel/issues/1056
+    {
+      matchFileNames: ["examples/**", "buildlib/**", "tests/ide/**"],
+      matchPackageNames: ["prisma", "@prisma/**"],
+      allowedVersions: "< 6",
+    },
+    // - tests/prisma-musl-no-typegraphql/**: kept at 6.x to test prisma 6
+    {
+      matchFileNames: ["tests/prisma-musl-no-typegraphql/**"],
+      matchPackageNames: ["prisma", "@prisma/**"],
+      allowedVersions: "< 7",
+    },
     // Do not automerge major bazel lib updates in buildlib:
     // They are potentially breaking for downstream.
     {
@@ -22,48 +42,49 @@
       matchUpdateTypes: ["major"],
       automerge: false,
     },
-    // Trigger buildlib boilerplate write if we update pnpm.
+    // Update all lockfiles if we update a bazel mod dependency.
     //
-    // We need to do this to update the renovate config.
+    // All modules in this git repository depend on buildlib (except buildlib
+    // itself of course).
     //
-    // Repositories using dh_buildlib do this when they upgrade dh_buildlib.
-    // However, inside dh_buildlib, we need to do it right when we upgrade pnpm;
-    // otherwise tests fail.
-    {
-      matchManagers: ["npm"],
-      matchPackageNames: ["pnpm"],
-      postUpgradeTasks: {
-        commands: ["/renovate-commands/dh_buildlib_setup.write.sh"],
-        executionMode: "branch",
-      },
-    },
-    // Trigger buildlib boilerplate write if we update rules_nodjes
+    // Renovate's bazel lockfile update does not recognize this internal dependency.
+    // As a result, it fails to update lockfiles if a transitive dependency is updated.
     //
-    // We need to do this to update the renovate config.
+    // Further, note that we cannot limit this to updates in `buildlib/**`,
+    // because they will get bundled with other bazel-module updates.
+    // When such upgrade bundling takes place, only a single postUpgradeTask is run (which is
+    // tied to one of the updates) - we need loosen the `postUpgradeTasks` config such that
+    // it always runs.
     //
-    // Repositories using dh_buildlib do this when they upgrade dh_buildlib.
-    // However, inside dh_buildlib, we need to do it right when we upgrade
-    // rules_nodejs; otherwise tests fail.
+    // Note that not all config options are affected by this, because the bundling code handles specific options (notably `automerge`) specially:
+    // https://github.com/renovatebot/renovate/blob/0ca9a9703e13d587df997f69cefec33b31f0a5bb/lib/workers/repository/updates/generate.ts#L465
     {
       matchManagers: ["bazel-module"],
-      matchPackageNames: ["rules_nodejs"],
-      postUpgradeTasks: {
-        commands: [
-          "/renovate-commands/update-bzlmod-lock.sh",
-          "/renovate-commands/dh_buildlib_setup.write.sh",
-        ],
-        executionMode: "branch",
-      },
-    },
-    { matchPackageNames: ["node"], allowedVersions: "<= 24.13.0" },
-    {
-      matchDatasources: ["github-releases"],
-      matchDepNames: ["docker/compose"],
       postUpgradeTasks: {
         commands: ["/renovate-commands/update-bzlmod-lock.sh"],
         executionMode: "branch",
+        installTools: { bazelisk: {} },
       },
-      automerge: false,
+    },
+    // Github standalone binaries pulled in by our custom extension.
+    // If updated, lockfiles need a fact update.
+    {
+      matchDatasources: ["github-releases"],
+      matchFileNames: ["buildlib/MODULE.bazel"],
+      postUpgradeTasks: {
+        commands: ["/renovate-commands/update-bzlmod-lock.sh"],
+        executionMode: "branch",
+        installTools: { bazelisk: {} },
+      },
+    },
+    // https://git.datahouse.ch/datahouse/it-bazel/issues/2033
+    // Python lockfile generation is currently broken.
+    // Also disable pep621 (enabled by default), as its
+    // upgrades leave the lockfile stale.
+    {
+      matchFileNames: ["tests/python/**"],
+      matchManagers: ["pip-compile", "pep621"],
+      enabled: false,
     },
   ],
   customManagers: [
@@ -71,13 +92,9 @@
       customType: "regex",
       managerFilePatterns: ["buildlib/MODULE.bazel"],
       matchStrings: [
-        'compose\\.download\\(version\\s*=\\s*"(?<currentValue>.+)"\\)',
+        'github_bin\\.download\\([^)]*\\bgit_tag\\s*=\\s*"v(?<currentValue>[^"]+)"[^)]*\\bgithub_repo\\s*=\\s*"(?<depName>[^"]+)"[^)]*\\)',
       ],
-      depNameTemplate: "docker/compose",
       datasourceTemplate: "github-releases",
     },
   ],
-  constraints: {
-    pnpm: "10.28.0",
-  },
 }

@@ -1,24 +1,47 @@
 load("@dh_buildlib//ts:defs.bzl", "ts_library")
-load("@npm//:openapi-typescript/package_json.bzl", _openapi_typescript = "bin")
+load("@npm//:@hey-api/openapi-ts/package_json.bzl", _hapi = "bin")
 
 # Gravatar OpenAPI is from:
 # https://api.gravatar.com/v3/openapi
-_openapi_typescript.openapi_typescript(
-    name = "gravatar_schema",
-    srcs = ["gravatar.json"],
-    outs = ["gravatar-schema.ts"],
-    args = [
+_hapi.openapi_ts(
+    name = "gravatar",
+    srcs = [
         "gravatar.json",
-        "-o",
-        "gravatar-schema.ts",
+        "openapi-ts.config.ts",
+        "//:node_modules/@hey-api/openapi-ts",
+    ],
+    outs = [
+        "gravatar/client.gen.ts",
+        "gravatar/client/client.gen.ts",
+        "gravatar/client/index.ts",
+        "gravatar/client/types.gen.ts",
+        "gravatar/client/utils.gen.ts",
+        "gravatar/core/auth.gen.ts",
+        "gravatar/core/bodySerializer.gen.ts",
+        "gravatar/core/params.gen.ts",
+        "gravatar/core/pathSerializer.gen.ts",
+        "gravatar/core/queryKeySerializer.gen.ts",
+        "gravatar/core/serverSentEvents.gen.ts",
+        "gravatar/core/types.gen.ts",
+        "gravatar/core/utils.gen.ts",
+        "gravatar/sdk.gen.ts",
+        "gravatar/types.gen.ts",
+        "gravatar/zod.gen.ts",
     ],
     chdir = package_name(),
 )
 
 ts_library(
     name = "clients",
-    srcs = ["gravatar-schema.ts"],
+    srcs = [
+        "globals.d.ts",
+        ":gravatar",
+    ],
     visibility = [
         "//api:__subpackages__",
+    ],
+    deps = [
+        "//:node_modules/@types/node",
+        "//:node_modules/zod",
     ],
 )

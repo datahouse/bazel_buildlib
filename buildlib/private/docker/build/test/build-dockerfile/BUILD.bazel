@@ -1,0 +1,24 @@
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("//private/docker/build:build_dockerfile.bzl", "build_dockerfile")
+load("//private/docker/publish:image_annotations.bzl", "image_annotations")
+
+build_dockerfile(
+    name = "build_base",
+    src = "Dockerfile.something",  # non default name to make sure we pass it forward.
+    base = "@node_image_linux_amd64",
+)
+
+# Load the image as a smoke test.
+oci_image(
+    name = "test",
+    base = "build_base",
+    # Do *something* with it to force the rule to load the base image.
+    env = {"TEST": "test"},
+)
+
+# Test base image provenance tracking works accross build_dockerfile.
+image_annotations(
+    name = "annotations_test",
+    annotations = "annotations.txt",
+    image = "build_base",
+)

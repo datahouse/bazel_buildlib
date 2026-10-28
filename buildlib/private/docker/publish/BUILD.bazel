@@ -1,0 +1,22 @@
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
+load(":stamping.bzl", "load_stamp_data")
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//docker:__pkg__"],
+    deps = [
+        "//private:launcher",
+        "//private/docker/lib:bzl",
+        "@bazel_lib//lib:stamping",
+        "@bazel_skylib//lib:dicts",
+        "@package_metadata//providers:package_metadata_info.bzl",
+        "@rules_oci//oci:defs",
+    ],
+)
+
+load_stamp_data(
+    name = "push_stamp_data",
+    build_time = "build-time.txt",
+    docker_tag = "push-tag.txt",
+)

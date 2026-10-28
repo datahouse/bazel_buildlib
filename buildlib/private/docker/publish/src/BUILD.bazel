@@ -1,0 +1,38 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("//private:ts_library.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    srcs = glob(["**/*.ts"]),
+    visibility = [
+        "//private/docker/publish/test:__pkg__",
+    ],
+    deps = [
+        "//:node_modules/@types/node",
+        "//:node_modules/argparse",
+        "//:node_modules/zod",
+        "//private/docker/lib/src",
+        "//private/js-lib/src",
+    ],
+)
+
+js_binary(
+    name = "load-stamp-data",
+    data = [":src"],
+    entry_point = "load-stamp-data.js",
+    visibility = ["//private/docker/publish:__subpackages__"],
+)
+
+js_binary(
+    name = "image-annotations",
+    data = [":src"],
+    entry_point = "image-annotations.js",
+    visibility = ["//private/docker/publish:__pkg__"],
+)
+
+js_binary(
+    name = "oci-pusher",
+    data = [":src"],
+    entry_point = "oci-pusher.js",
+    visibility = ["//private/docker/publish:__pkg__"],
+)

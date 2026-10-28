@@ -1,17 +1,26 @@
 """Private rules for my-version."""
 
-load("@rules_nodejs//nodejs:providers.bzl", "STAMP_ATTR", "StampSettingInfo")
+load("@bazel_lib//lib:stamping.bzl", "STAMP_ATTRS", "maybe_stamp")
 
 visibility("private")
 
 def _gen_my_version_impl(ctx):
-    stamp = ctx.attr._stamp[StampSettingInfo].value
+    stamp = maybe_stamp(ctx)
 
     if stamp:
+        args = ctx.actions.args()
+
+        args.add("--stableStatusFile", stamp.stable_status_file)
+        args.add("--volatileStatusFile", stamp.volatile_status_file)
+        args.add("--output", ctx.outputs.out)
+
         ctx.actions.run(
-            inputs = [ctx.info_file],
+            inputs = [
+                stamp.stable_status_file,
+                stamp.volatile_status_file,
+            ],
             outputs = [ctx.outputs.out],
-            arguments = ["--info-file", ctx.info_file.path, ctx.outputs.out.path],
+            arguments = [args],
             env = {"BAZEL_BINDIR": "."},
             executable = ctx.executable._builder,
         )
@@ -20,13 +29,12 @@ def _gen_my_version_impl(ctx):
 
 gen_my_version = rule(
     implementation = _gen_my_version_impl,
-    attrs = {
+    attrs = dict({
         "out": attr.output(),
         "_builder": attr.label(
             default = "//private/my-version/src:gen-my-version",
             executable = True,
             cfg = "exec",
         ),
-        "_stamp": STAMP_ATTR,
-    },
+    }, **STAMP_ATTRS),
 )

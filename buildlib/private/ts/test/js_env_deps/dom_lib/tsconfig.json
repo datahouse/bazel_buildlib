@@ -1,5 +1,5 @@
 {
-  "compilerOptions": { "lib": ["dom", "dom.iterable", "esnext"] },
+  "compilerOptions": { "lib": ["dom", "dom.iterable", "esnext"], "types": [] },
   "extends": "../../../../../tsconfig-base.json",
   "include": ["**/*"],
   "references": []

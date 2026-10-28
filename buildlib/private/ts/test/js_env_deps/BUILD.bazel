@@ -12,6 +12,8 @@ ts_library(
     ],
 )
 
+# buildifier: disable=canonical-repository
+# The @@ is part of the expected Bazel error message output, not a label reference.
 assert_failure_test(
     name = "test_dom_failure",
     expected_failure = """@@//private/ts/test/js_env_deps:tsconfig.gen has deps requiring the DOM but doesn't set uses_dom = True.

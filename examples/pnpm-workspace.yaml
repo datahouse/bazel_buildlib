@@ -1,0 +1,7 @@
+allowBuilds: {}
+packageExtensions:
+  "@apollo/server":
+    peerDependencies:
+      "@types/express": "*"
+saveExact: true
+hoist: false

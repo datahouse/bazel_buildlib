@@ -10,9 +10,8 @@ load("//private:ts_library.bzl", "ts_library")
 ts_library(
     name = "eslint-runner",
     srcs = glob(["**/*.ts"]),
-    visibility = ["//visibility:public"],
+    visibility = ["//private/ts:__pkg__"],
     deps = [
-        "//:node_modules/@types/argparse",
         "//:node_modules/@types/eslint",
         "//:node_modules/@types/node",
         "//:node_modules/argparse",

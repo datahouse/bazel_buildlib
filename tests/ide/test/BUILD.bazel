@@ -17,5 +17,6 @@ docker_image_for_ts_test(
 ts_test(
     name = "test",
     srcs = glob(["**/*.ts"]),
+    tags = ["requires-docker"],
     deps = [":load_my_image"],
 )

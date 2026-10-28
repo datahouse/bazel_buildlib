@@ -1,0 +1,14 @@
+load("@dh_buildlib//setup/defs:buildlib_setup.bzl", "buildlib_setup")
+load("@dh_buildlib//ts/docker:defs.bzl", "node_binary_image")
+
+buildlib_setup(
+    name = "buildlib_setup",
+    enable_ts = True,
+)
+
+node_binary_image(
+    name = "node_image",
+    data = ["//src"],
+    entry_point = "//src:index.js",
+    visibility = ["//test:__pkg__"],
+)

@@ -1,3 +1,4 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("//private:ts_library.bzl", "ts_library")
 
 ts_library(
@@ -5,11 +6,18 @@ ts_library(
     srcs = glob(["**/*.ts"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//:node_modules/@types/argparse",
         "//:node_modules/@types/node",
         "//:node_modules/@types/semver",
         "//:node_modules/argparse",
+        "//:node_modules/js-yaml",
         "//:node_modules/semver",
         "//:node_modules/zod",
     ],
+)
+
+js_binary(
+    name = "update-pnpm-workspace",
+    data = [":src"],
+    entry_point = "update-pnpm-workspace.js",
+    visibility = ["//visibility:public"],
 )

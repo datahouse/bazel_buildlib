@@ -6,9 +6,7 @@ Before you start using `dh_buildlib`, please read the [Versioning and Support po
 Useful resources:
 
 - [Bazel setup](./docs/bzl-setup.md)
-- [Create a new Repo](https://git.datahouse.ch/datahouse/it-bazel-new-repo)
 - [Examples](./examples)
 - [API Docs](./buildlib/README.md#api-docs)
 - [Manage npm packages](./docs/npm.md)
-- [Known library upgrade issues](https://git.datahouse.ch/datahouse/it-bazel/issues?labels=208)
 - [IDE tips](./docs/ide.md)

@@ -5,7 +5,7 @@ tar(
     name = "tar",
     srcs = ["default.conf"],
     mtree = [
-        "etc/nginx/conf.d/default.conf uid=0 gid=0 mode=0655 time=0 type=file content=$(location default.conf)",
+        "etc/nginx/conf.d/default.conf uid=0 gid=0 mode=0655 time=0 type=file content=$(execpath default.conf)",
     ],
 )
 

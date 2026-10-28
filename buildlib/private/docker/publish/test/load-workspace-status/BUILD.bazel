@@ -1,0 +1,50 @@
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+
+js_run_binary(
+    name = "fake-load-stamp-data",
+    testonly = 1,
+    srcs = [
+        "fake-stable-status.txt",
+        "fake-volatile-status.txt",
+    ],
+    outs = [
+        "fake-build-time.txt",
+        "fake-tag.txt",
+    ],
+    args = [
+        "--stableStatusFile=fake-stable-status.txt",
+        "--volatileStatusFile=fake-volatile-status.txt",
+        "--buildTimeFile=fake-build-time.txt",
+        "--tagFile=fake-tag.txt",
+    ],
+    chdir = package_name(),
+    tool = "//private/docker/publish/src:load-stamp-data",
+)
+
+# Use write_file instead of source file to avoid trailing newline.
+write_file(
+    name = "expected-build-time",
+    out = "expected-build-time.txt",
+    content = ["2024-01-30T10:04:28.000Z"],
+)
+
+diff_test(
+    name = "fake-build-time-test",
+    file1 = "fake-build-time.txt",
+    file2 = "expected-build-time.txt",
+)
+
+# Use write_file instead of source file to avoid trailing newline.
+write_file(
+    name = "expected-tag",
+    out = "expected-tag.txt",
+    content = ["fake-tag"],
+)
+
+diff_test(
+    name = "fake-tag-test",
+    file1 = "fake-tag.txt",
+    file2 = "expected-tag.txt",
+)

@@ -1,5 +1,8 @@
 {
-  "compilerOptions": { "lib": ["dom", "dom.iterable", "esnext"] },
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["react"]
+  },
   "extends": "../../tsconfig-base.json",
   "include": ["**/*"],
   "references": [{ "path": "../../shared-lib/src" }]

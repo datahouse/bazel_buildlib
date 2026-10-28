@@ -1,0 +1,13 @@
+load("//private:ts_library.bzl", "ts_library")
+
+ts_library(
+    name = "src",
+    testonly = True,
+    srcs = glob(["**/*.ts"]),
+    assets = ["main.css"],
+    visibility = ["//private/react_app/test/tailwind:__pkg__"],
+    deps = [
+        "//private/react_app/test/tailwind/dep",
+        "//private/react_app/test/tailwind/unregistered",
+    ],
+)

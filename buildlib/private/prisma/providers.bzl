@@ -3,8 +3,6 @@
 PrismaSchemaInfo = provider(
     doc = """Provider for prisma schema info""",
     fields = {
-        "db_type": "Database type (aka provider in prisma)",
-        "db_url_env": "Environment variable for db url.",
         "schema": "Prisma schema.",
     },
 )
@@ -12,9 +10,9 @@ PrismaSchemaInfo = provider(
 PrismaEnginesInfo = provider(
     doc = "Provider for a set of prisma engines",
     fields = {
-        "libquery_engine": "Query engine (lib)",
+        "libquery_engine": "Query engine (lib) (Prisma < 7 only)",
         "platform": "Prisma platform string",
-        "query_engine": "Query engine (bin)",
+        "query_engine": "Query engine (bin)  (Prisma < 7 only)",
         "schema_engine": "Schema engine (bin)",
     },
 )

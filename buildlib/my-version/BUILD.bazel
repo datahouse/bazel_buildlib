@@ -46,8 +46,8 @@ genrule(
     # Note that there cannot be escaping issues, because my-version.txt cannot
     # contain quotes (by semver spec).
     cmd = """
-    MY_VERSION=`cat $(location :my-version.txt)`
-    TPL=$(location :MyVersion.tpl.java)
-    sed "s/@@MY_VERSION@@/$$MY_VERSION/" $$TPL > $@
+    MY_VERSION=`cat $(execpath :my-version.txt)`
+    TPL=$(execpath :MyVersion.tpl.java)
+    sed "s/{{MY_VERSION}}/$$MY_VERSION/" $$TPL > $@
     """,
 )

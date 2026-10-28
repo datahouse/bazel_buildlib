@@ -1,0 +1,10 @@
+{
+  "compilerOptions": { "types": ["dockerode", "js-yaml", "node"] },
+  "extends": "../../../../tsconfig-base.json",
+  "include": ["**/*"],
+  "references": [
+    { "path": "../../lib/src" },
+    { "path": "../../load/src" },
+    { "path": "../../../js-lib/src" }
+  ]
+}

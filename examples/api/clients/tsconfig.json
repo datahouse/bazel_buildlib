@@ -1,5 +1,24 @@
 {
+  "compilerOptions": { "types": ["node"] },
   "extends": "../../tsconfig-base.json",
-  "include": ["**/*", "../../bazel-bin/api/clients/gravatar-schema.ts"],
+  "include": [
+    "**/*",
+    "../../bazel-bin/api/clients/gravatar/client.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/client/client.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/client/index.ts",
+    "../../bazel-bin/api/clients/gravatar/client/types.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/client/utils.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/auth.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/bodySerializer.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/params.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/pathSerializer.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/queryKeySerializer.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/serverSentEvents.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/types.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/core/utils.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/sdk.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/types.gen.ts",
+    "../../bazel-bin/api/clients/gravatar/zod.gen.ts"
+  ],
   "references": []
 }

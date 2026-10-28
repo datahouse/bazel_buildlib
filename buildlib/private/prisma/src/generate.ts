@@ -10,8 +10,8 @@ interface Config {
   execPaths: string[];
   outDirs: string[];
   cliPath: string;
-  queryEngineBinary: string;
-  queryEngineLibrary: string;
+  queryEngineBinary?: string; // prisma < 7 only
+  queryEngineLibrary?: string; // prisma < 7 only
   schemaEngineBinary: string;
   schemaPath: string;
   binDir: string;
@@ -42,13 +42,11 @@ const parseArgs = () => {
   });
 
   parser.add_argument("--queryEngineBinary", {
-    help: "Path to the Bazel wrapper for the Prisma query engine binary",
-    required: true,
+    help: "Path to the Bazel wrapper for the Prisma query engine binary (Prisma < 7 only)",
   });
 
   parser.add_argument("--queryEngineLibrary", {
-    help: "Path to the Bazel wrapper for the Prisma query engine library",
-    required: true,
+    help: "Path to the Bazel wrapper for the Prisma query engine library (Prisma < 7 only)",
   });
 
   parser.add_argument("--schemaEngineBinary", {
@@ -66,7 +64,7 @@ const parseArgs = () => {
     required: true,
   });
 
-  return parser.parse_args() as Config;
+  return parser.parse_args<Config>();
 };
 
 const runPrismaGenerate = ({
@@ -84,11 +82,18 @@ const runPrismaGenerate = ({
     PRISMA_GENERATE_SKIP_AUTOINSTALL: "True",
 
     // Prisma engines with paths relative to the Bazel binDir, because the binDir is changed for Prisma generation
-    PRISMA_QUERY_ENGINE_BINARY: path.relative(binDir, queryEngineBinary),
-    PRISMA_QUERY_ENGINE_LIBRARY: path.relative(binDir, queryEngineLibrary),
+    // Note that query engines are Prisma < 7 only.
+    //
+    // We explicitly set env variables for unused / deprecated engines to make sure nothing gets downloaded.
     PRISMA_SCHEMA_ENGINE_BINARY: path.relative(binDir, schemaEngineBinary),
 
-    // Set Prisma env variables for unused engines to make sure nothing gets downloaded.
+    PRISMA_QUERY_ENGINE_BINARY: queryEngineBinary
+      ? path.relative(binDir, queryEngineBinary)
+      : "unused",
+    PRISMA_QUERY_ENGINE_LIBRARY: queryEngineLibrary
+      ? path.relative(binDir, queryEngineLibrary)
+      : "unused",
+
     PRISMA_FMT_BINARY: "unused",
     PRISMA_INTROSPECTION_ENGINE_BINARY: "unused",
 

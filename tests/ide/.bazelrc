@@ -25,6 +25,11 @@ common --tool_java_runtime_version=remotejdk_21
 # Display test output if something fails
 common --test_output=errors
 
+# Workaround for https://github.com/bazelbuild/bazel/issues/28954
+# ibazel currently no longer works without overriding the host_platform
+# for additional information: https://git.datahouse.ch/datahouse/it-bazel/issues/1695
+info --host_platform=
+
 # Import for project specific bazelrc
 # If you use this, please check (with an it-bazel issue), whether
 # this should be a central option.

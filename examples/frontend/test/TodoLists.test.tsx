@@ -50,6 +50,7 @@ const fakeData = (): GetActiveTodosData => ({
           text: "item 1.1",
           done: false,
           _count: {
+            __typename: "TodoItemCount",
             attachments: 2,
           },
         },
@@ -66,6 +67,7 @@ const fakeData = (): GetActiveTodosData => ({
           text: "item 2.1",
           done: true,
           _count: {
+            __typename: "TodoItemCount",
             attachments: 0,
           },
         },

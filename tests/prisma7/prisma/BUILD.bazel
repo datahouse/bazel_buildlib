@@ -1,0 +1,41 @@
+load("@dh_buildlib//prisma:defs.bzl", "prisma_deploy_image", "prisma_dev", "prisma_generate", "prisma_migrations", "prisma_schema")
+load("@dh_buildlib//prisma/generators:defs.bzl", "prisma_client")
+
+prisma_schema(
+    name = "schema",
+    srcs = ["schema.prisma"],
+)
+
+prisma_generate(
+    name = "generate",
+    generators = [":client.generator"],
+    schema = ":schema",
+)
+
+prisma_client(
+    name = "client",
+    generate = ":generate",
+    visibility = [
+        "//:__subpackages__",
+    ],
+)
+
+prisma_dev(
+    name = "prisma",
+    db_service = "//dc:db",
+    db_url = "postgres://postgres:ohxoh6vahNgee4aewoox@dynamic/",
+    schema = ":schema",
+)
+
+prisma_migrations(
+    name = "migrations",
+    srcs = glob(["migrations/**"]),
+    schema = ":schema",
+    validation_db_image = "@postgres_image_linux_amd64",
+)
+
+prisma_deploy_image(
+    name = "db-migrate",
+    migrations = ":migrations",
+    visibility = ["//dc:__pkg__"],
+)

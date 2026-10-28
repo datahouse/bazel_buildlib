@@ -1,9 +1,12 @@
 load("@bazel_lib//:bzl_library.bzl", "bzl_library")
 load("@tar.bzl//tar:tar.bzl", "tar")
 
-exports_files([
-    "vite.config.mjs",
-])
+exports_files(
+    [
+        "vite.config.mjs",
+    ],
+    visibility = ["//visibility:private"],
+)
 
 bzl_library(
     name = "bzl",
@@ -13,12 +16,12 @@ bzl_library(
     ],
     deps = [
         "//private:npm_js_binary",
-        "//private/docker:bzl",
+        "//private/docker/build:bzl",
+        "//private/docker/compose:bzl",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_js//js:libs",
         "@aspect_rules_js//js:providers",
         "@bazel_lib//lib:copy_file",
-        "@bazel_skylib//rules:copy_file",
         "@rules_oci//oci:defs",
         "@tar.bzl//tar:tar",
     ],
@@ -28,10 +31,10 @@ tar(
     name = "vite-config-tar",
     srcs = ["vite.config.mjs"],
     mtree = [
-        "app/vite.config.mjs uid=0 gid=0 mode=0655 time=0 type=file content=$(location vite.config.mjs)",
+        "app/vite.config.mjs uid=0 gid=0 mode=0655 time=0 type=file content=$(execpath vite.config.mjs)",
     ],
     visibility = [
-        "//visibility:public",
+        "//private/react_app/test:__pkg__",
     ],
 )
 
@@ -39,9 +42,6 @@ tar(
     name = "nginx-config-tar",
     srcs = ["default.conf"],
     mtree = [
-        "etc/nginx/conf.d/default.conf uid=0 gid=0 mode=0655 time=0 type=file content=$(location default.conf)",
-    ],
-    visibility = [
-        "//visibility:public",
+        "etc/nginx/conf.d/default.conf uid=0 gid=0 mode=0655 time=0 type=file content=$(execpath default.conf)",
     ],
 )

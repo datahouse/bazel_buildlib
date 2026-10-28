@@ -9,6 +9,7 @@ ts_library(
     ]),
     # Attention: Only add typing dependencies (see comments below).
     deps = [
+        "//:node_modules/@types/babel__core",
         "//:node_modules/@types/node",
         "//:node_modules/jest",
     ],
@@ -18,7 +19,7 @@ ts_library(
 alias(
     name = "config",
     actual = "jest.config.js",
-    visibility = ["//visibility:public"],
+    visibility = ["//private/ts:__pkg__"],
 )
 
 # Re-extract only the files we transpiled, not the dependenices:
@@ -34,5 +35,5 @@ js_info_files(
     include_transitive_sources = False,
     include_transitive_types = False,
     include_types = False,
-    visibility = ["//visibility:public"],
+    visibility = ["//private/ts:__pkg__"],
 )

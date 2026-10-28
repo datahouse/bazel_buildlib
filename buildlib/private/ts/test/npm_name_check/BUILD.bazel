@@ -1,0 +1,3 @@
+load(":npm_name_check_tests.bzl", "npm_name_check_test_suite")
+
+npm_name_check_test_suite(name = "npm_name_check_test")

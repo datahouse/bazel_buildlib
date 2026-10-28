@@ -1,0 +1,3 @@
+allowBuilds: {}
+saveExact: true
+hoist: false

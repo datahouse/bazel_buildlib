@@ -2,22 +2,8 @@
 
 load("@aspect_rules_js//js:defs.bzl", "js_test")
 load("@bazel_lib//lib:copy_to_bin.bzl", "COPY_FILE_TO_BIN_TOOLCHAINS", "copy_files_to_bin_actions")
+load("@prisma//:version.bzl", "PRISMA7_OR_ABOVE")
 load(":providers.bzl", "PrismaMigrationsInfo", "PrismaSchemaInfo")
-
-def _prisma_schema_info_impl(ctx):
-    i = ctx.attr.schema[PrismaSchemaInfo]
-    ctx.actions.write(ctx.outputs.db_url_env_out, i.db_url_env)
-    ctx.actions.write(ctx.outputs.db_type_out, i.db_type)
-
-_prisma_schema_info = rule(
-    implementation = _prisma_schema_info_impl,
-    doc = "Glue rule to extract Prisma Schema provider info",
-    attrs = {
-        "db_type_out": attr.output(),
-        "db_url_env_out": attr.output(),
-        "schema": attr.label(providers = [PrismaSchemaInfo]),
-    },
-)
 
 def _same_package(x, y):
     return x.repo_name == y.repo_name and x.package == y.package
@@ -75,15 +61,6 @@ def _prisma_migrations_macro_impl(name, srcs, schema, validation_db_image, visib
         tags = tags,
     )
 
-    _prisma_schema_info(
-        name = name + "_schema_info",
-        schema = schema,
-        db_url_env_out = name + "_db_url_env.txt",
-        db_type_out = name + "_db_type.txt",
-        testonly = testonly,
-        tags = tags,
-    )
-
     cli = Label("//prisma:cli")
 
     # Migration validation could technically be a validation action.
@@ -100,10 +77,10 @@ def _prisma_migrations_macro_impl(name, srcs, schema, validation_db_image, visib
     js_test(
         name = name + "_test",
         entry_point = Label("//private/prisma/src:validate-migrations.js"),
+        env_inherit = ["DOCKER_HOST"],
         env = {
             "DB_IMAGE_DIR": "$(rootpath %s)" % validation_db_image,
-            "DB_TYPE": "$(rootpath %s)" % (name + "_db_type.txt"),
-            "DB_URL_ENV": "$(rootpath %s)" % (name + "_db_url_env.txt"),
+            "PRISMA7_OR_ABOVE": str(int(PRISMA7_OR_ABOVE)),
             "PRISMA_CLI_PATH": "$(rootpath %s)" % cli,
             "PRISMA_SCHEMA_PATH": "$(rootpath %s)" % schema,
         },
@@ -113,8 +90,6 @@ def _prisma_migrations_macro_impl(name, srcs, schema, validation_db_image, visib
             cli,
             validation_db_image,
             name,
-            name + "_db_type.txt",
-            name + "_db_url_env.txt",
         ],
         tags = tags + [
             "requires-network",  # access to the db container.

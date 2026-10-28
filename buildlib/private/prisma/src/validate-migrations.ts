@@ -1,6 +1,6 @@
 import process from "node:process";
 import { dirname, basename, join } from "node:path";
-import { readFile, mkdtemp, rm, cp } from "node:fs/promises";
+import { readFile, mkdtemp, rm, cp, writeFile } from "node:fs/promises";
 
 import { inspect } from "node:util";
 
@@ -10,7 +10,8 @@ import {
   execFileWithCode,
   type ExecResult,
 } from "../../js-lib/src/execFileWithCode.js";
-import { loadImageDirToDocker } from "../../docker/src/loadImageToDocker.js";
+import { serveImage } from "../../docker/load/src/serveImages.js";
+import { getSchemaInfo } from "./schemaParsing.js";
 
 // Strings / messages we match on.
 const fakeMigrationName = "buildlib_migration_validation_fake_migration";
@@ -21,35 +22,31 @@ interface Config {
   prismaCliPath: string;
   schemaPath: string;
   dbImageDir: string;
-  dbUrlEnv: string;
-  dbType: string;
+  prisma7OrAbove: boolean;
 }
 
-const loadConfig = async (): Promise<Config> => {
+const loadConfig = (): Config => {
   const fromEnv = (n: string) => {
     const v = process.env[n];
     if (!v) throw new Error(`${n} not set on env`);
     return v;
   };
 
-  const fromEnvPath = (n: string) => readFile(fromEnv(n), "utf8");
-
   return {
     prismaCliPath: fromEnv("PRISMA_CLI_PATH"),
     schemaPath: fromEnv("PRISMA_SCHEMA_PATH"),
     dbImageDir: fromEnv("DB_IMAGE_DIR"),
-    dbUrlEnv: await fromEnvPath("DB_URL_ENV"),
-    dbType: await fromEnvPath("DB_TYPE"),
+    prisma7OrAbove: !!parseInt(fromEnv("PRISMA7_OR_ABOVE"), 10),
   };
 };
 
-const createDbContainer = (image: string, dbType: string) => {
-  switch (dbType) {
-    case "postgres":
+const createDbContainer = (image: string, provider: string) => {
+  switch (provider) {
+    case "postgresql":
       return new PostgreSqlContainer(image);
     default:
       throw new Error(
-        `Database type ${dbType} not supported. Please file a buildlib issue if you need this DB type.`,
+        `Database provider ${provider} not supported. Please file a buildlib issue if you need this provider type.`,
       );
   }
 };
@@ -66,17 +63,75 @@ const mkdtempDisposable = async (prefix: string) => {
   };
 };
 
+const preparePrisma56 = async (
+  tmpDirPath: string,
+  schemaPath: string,
+  dbUrl: string,
+  dbUrlEnv?: string,
+) => {
+  // Pass the DB URL via env var and use --schema flag.
+  // The migrations folder is identified relative to the schema.
+  // Therefore, we need to copy the schema to the temp directory as well.
+
+  const tmpSchemaPath = join(tmpDirPath, basename(schemaPath));
+  await cp(schemaPath, tmpSchemaPath);
+
+  if (dbUrlEnv == null)
+    throw new Error(`No db url env found in ${schemaPath}.`);
+
+  return {
+    env: {
+      ...process.env,
+      [dbUrlEnv]: dbUrl,
+    },
+    cfgArgs: ["--skip-generate", "--skip-seed", "--schema", tmpSchemaPath],
+  };
+};
+
+const preparePrisma7OrAbove = async (
+  tmpDirPath: string,
+  schemaPath: string,
+  dbUrl: string,
+) => {
+  // Pass DB URL via config file and use --config flag.
+  const tmpConfigPath = join(tmpDirPath, "config.js");
+
+  const prismaConfig = {
+    schema: join(process.cwd(), schemaPath),
+    migrations: { path: "migrations" },
+    datasource: { url: dbUrl },
+  };
+
+  await writeFile(
+    tmpConfigPath,
+    `export default ${JSON.stringify(prismaConfig)}`,
+  );
+
+  return {
+    env: process.env,
+    cfgArgs: ["--config", tmpConfigPath],
+  };
+};
+
 const runPrismaMigrateDev = async ({
   prismaCliPath,
   schemaPath,
   dbImageDir,
-  dbUrlEnv,
-  dbType,
+  prisma7OrAbove,
 }: Config) => {
-  const image = await loadImageDirToDocker(dbImageDir);
-  await using container = await createDbContainer(image, dbType).start();
+  const { provider, dbUrlEnv } = getSchemaInfo(
+    await readFile(schemaPath, "utf8"),
+  );
 
-  // Create a temporary directory to copy schema and migrations to:
+  if (provider == null)
+    throw new Error(`No database provider found in ${schemaPath}.`);
+
+  await using image = await serveImage(dbImageDir);
+  await using container = await createDbContainer(image.ref, provider).start();
+
+  const dbUrl = container.getConnectionUri();
+
+  // Create a temporary directory to copy migrations to:
   //
   // The migration consistency test relies on attempting to create a migration
   // to detect drift. If there is drift, an actual migration is created.
@@ -95,30 +150,27 @@ const runPrismaMigrateDev = async ({
   );
 
   const migrationsDirname = "migrations";
-  const tmpSchemaPath = join(tmpDir.path, basename(schemaPath));
+  const tmpMigrationsPath = join(tmpDir.path, migrationsDirname);
 
-  await cp(schemaPath, tmpSchemaPath);
-  await cp(
-    join(dirname(schemaPath), migrationsDirname),
-    join(tmpDir.path, migrationsDirname),
-    { recursive: true },
-  );
+  await cp(join(dirname(schemaPath), migrationsDirname), tmpMigrationsPath, {
+    recursive: true,
+  });
 
-  const env = {
-    ...process.env,
-    [dbUrlEnv]: container.getConnectionUri(),
-  };
+  const { env, cfgArgs } = prisma7OrAbove
+    ? await preparePrisma7OrAbove(tmpDir.path, schemaPath, dbUrl)
+    : await preparePrisma56(tmpDir.path, schemaPath, dbUrl, dbUrlEnv);
 
   return await execFileWithCode(
     prismaCliPath,
     [
       "migrate",
       "dev",
-      "--skip-generate",
-      "--skip-seed",
-      "--schema",
-      tmpSchemaPath,
-      // Pass a migration name. Otherwise prisma will try to read from stdin and hang.
+      ...cfgArgs,
+      // Pass a migration name so we can easily recognize it was created from the output.
+      //
+      // This also prevents prisma from trying to read stdin and hang.
+      // (an alternative would be to set "CI" in the env but that would create a
+      // migration with an empty name)
       "--name",
       fakeMigrationName,
     ],
@@ -153,7 +205,7 @@ const areMigrationsClean = (result: ExecResult) => {
 };
 
 const main = async () => {
-  const config = await loadConfig();
+  const config = loadConfig();
 
   const execResult = await runPrismaMigrateDev(config);
 

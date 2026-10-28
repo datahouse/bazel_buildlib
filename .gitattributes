@@ -7,3 +7,4 @@ tsconfig.json linguist-generated=true
 tsconfig-base.json linguist-generated=true
 buildlib/docs/*.md linguist-generated=true
 buildlib/docs/README.md linguist-generated=false
+examples/rest-api/api-snapshot.json linguist-generated=true

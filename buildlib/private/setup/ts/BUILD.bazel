@@ -11,9 +11,10 @@ bzl_library(
         "//private/setup:__pkg__",
     ],
     deps = [
+        "//private:prettier_format",
         "//private/setup:write_setup_source_file",
         "@aspect_rules_js//js:defs",
         "@aspect_rules_ts//ts:defs",
-        "@bazel_skylib//rules:copy_file",
+        "@bazel_lib//lib:copy_file",
     ],
 )

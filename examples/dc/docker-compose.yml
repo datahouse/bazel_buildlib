@@ -32,8 +32,6 @@ services:
 
   db:
     bazel-image: "@postgres_image_linux_amd64"
-    ports:
-      - 5432 # for prisma.
     environment:
       POSTGRES_PASSWORD: zuuboi4eemae5ee2UNga
 

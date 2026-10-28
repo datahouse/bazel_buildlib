@@ -9,7 +9,7 @@ const EXACT_VERSION_LINK =
 
 const disallow = (fieldName: string, reason: string) => {
   const message = `Do not set \`${fieldName}\`: ${reason}`;
-  return z.undefined({ message });
+  return z.undefined({ message }).optional();
 };
 
 const disallowPub = (fieldName: string) =>

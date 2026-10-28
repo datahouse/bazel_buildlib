@@ -4,6 +4,7 @@ ts_test(
     name = "test",
     srcs = glob(["**/*.ts"]),
     deps = [
+        "//:node_modules/@types/node",
         "//private/js-lib/src",
     ],
 )

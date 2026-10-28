@@ -1,0 +1,12 @@
+load("//private:ts_library.bzl", "ts_test")
+
+ts_test(
+    name = "esm-node-modules",
+    srcs = glob(["**/*.ts"]),
+    esm_node_modules = [
+        "jose",
+    ],
+    deps = [
+        "//:node_modules/jose",
+    ],
+)

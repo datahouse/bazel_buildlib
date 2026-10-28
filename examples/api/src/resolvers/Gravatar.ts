@@ -45,19 +45,13 @@ export class GravatarResolver {
       .update(user.email.trim().toLowerCase())
       .digest("hex");
 
-    const {
-      data,
-      error,
-      response: { status },
-    } = await gravatar["/profiles/{profileIdentifier}"].GET({
-      params: {
-        path: { profileIdentifier },
-      },
+    const { data, error, response } = await gravatar.getProfileById({
+      path: { profileIdentifier },
     });
 
-    if (status === 404) return undefined;
+    if (response?.status === 404) return undefined;
 
-    if (!data) throw new Error(error);
+    if (!data) throw error;
 
     return fromREST(data);
   }

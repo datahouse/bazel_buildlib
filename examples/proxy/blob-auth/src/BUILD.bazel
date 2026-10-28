@@ -5,13 +5,13 @@ _tsoa.tsoa(
     name = "tsoa",
     srcs = glob(["**/controller.ts"]) + [
         "index.ts",
+        "tsoa.json",
         "tsoa-ioc.ts",
         "//prisma:client",
-        "//proxy/blob-auth:tsoa_config",
     ],
     outs = ["routes.ts"],
     args = ["routes"],
-    chdir = package_name() + "/..",
+    chdir = package_name(),
 )
 
 ts_library(

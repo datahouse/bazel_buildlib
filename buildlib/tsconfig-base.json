@@ -10,7 +10,7 @@
     "lib": ["esnext"],
     "module": "node16",
     "moduleResolution": "node16",
-    "rootDir": ".",
+    "pretty": true,
     "rootDirs": [".", "bazel-bin"],
     "skipLibCheck": true,
     "sourceMap": true,

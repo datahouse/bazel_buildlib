@@ -7,6 +7,8 @@ def _fake_npm_repository_impl(ctx):
     ctx.file("defs.bzl", "def npm_link_all_packages(name):\n  pass\n")
     ctx.file("BUILD", """exports_files(["defs.bzl"])""")
 
+    return ctx.repo_metadata(reproducible = True)
+
 fake_npm_repository = repository_rule(
     implementation = _fake_npm_repository_impl,
 )

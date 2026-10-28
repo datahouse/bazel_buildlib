@@ -1,0 +1,15 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider            = "prisma-client"
+  output              = "client"
+  moduleFormat        = "cjs"
+  importFileExtension = "js"
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+}

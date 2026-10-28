@@ -1,9 +1,9 @@
 """Helper macro for prisma engine store."""
 
-load("@dh_buildlib//private/prisma:constants.bzl", "BINARY_TYPES")
-load("@dh_buildlib//private/prisma:lib.bzl", "get_binary_name")
-load("@dh_buildlib//private/prisma:providers.bzl", "PrismaEnginesInfo")
-load("//private/prisma:constants.bzl", "PLATFORMS")
+load("@prisma//:version.bzl", "PRISMA7_OR_ABOVE")
+load(":constants.bzl", "BINARY_TYPES", "PLATFORMS", "SCHEMA_ENGINE_BINARY")
+load(":lib.bzl", "get_binary_name")
+load(":providers.bzl", "PrismaEnginesInfo")
 
 def _prisma_engines_impl(ctx):
     return [
@@ -33,7 +33,9 @@ def prisma_engines_store(name, platform):
       platform: Prisma platform name.
     """
 
-    for binary_type in BINARY_TYPES:
+    binary_types = [SCHEMA_ENGINE_BINARY] if PRISMA7_OR_ABOVE else BINARY_TYPES
+
+    for binary_type in binary_types:
         binary_name = get_binary_name(binary_type, platform)
 
         native.genrule(
@@ -43,11 +45,19 @@ def prisma_engines_store(name, platform):
             cmd = "gunzip -c $< > $@",
         )
 
-    _prisma_engines(
-        name = name,
-        platform = platform,
-        schema_engine = ":schema-engine",
-        query_engine = ":query-engine",
-        libquery_engine = ":libquery-engine",
-        visibility = ["@prisma//:__pkg__"],
-    )
+    if PRISMA7_OR_ABOVE:
+        _prisma_engines(
+            name = name,
+            platform = platform,
+            schema_engine = ":schema-engine",
+            visibility = ["@prisma//:__pkg__"],
+        )
+    else:
+        _prisma_engines(
+            name = name,
+            platform = platform,
+            schema_engine = ":schema-engine",
+            query_engine = ":query-engine",
+            libquery_engine = ":libquery-engine",
+            visibility = ["@prisma//:__pkg__"],
+        )

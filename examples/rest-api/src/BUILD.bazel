@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@dh_buildlib//ts:defs.bzl", "json_to_ts", "ts_library")
 load("@npm//:tsoa/package_json.bzl", _tsoa = "bin")
 
@@ -12,16 +12,16 @@ _tsoa.tsoa(
     name = "tsoa",
     srcs = glob(["**/controller.ts"]) + [
         "index.ts",
+        "tsoa.json",
         "tsoa-ioc.ts",
         "//prisma:client",
-        "//rest-api:tsoa_config",
     ],
     outs = [
         "routes.ts",
         "swagger.json",
     ],
     args = ["spec-and-routes"],
-    chdir = package_name() + "/..",
+    chdir = package_name(),
 )
 
 json_to_ts(
@@ -48,4 +48,12 @@ ts_library(
         "//prisma:client",
         "//prisma/rls",
     ],
+)
+
+alias(
+    # Alias for the api-snapshot rule.
+    # Not needed if you don't have that rule.
+    name = "api.json",
+    actual = "swagger.json",
+    visibility = ["//rest-api:__pkg__"],
 )

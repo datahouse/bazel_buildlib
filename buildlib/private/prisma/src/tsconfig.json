@@ -1,5 +1,10 @@
 {
+  "compilerOptions": { "types": ["node"] },
   "extends": "../../../tsconfig-base.json",
   "include": ["**/*"],
-  "references": [{ "path": "../../docker/src" }, { "path": "../../js-lib/src" }]
+  "references": [
+    { "path": "../../docker/compose/src" },
+    { "path": "../../docker/load/src" },
+    { "path": "../../js-lib/src" }
+  ]
 }

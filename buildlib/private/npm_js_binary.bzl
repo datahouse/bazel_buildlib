@@ -56,7 +56,7 @@ def _select_entrypoint(name, node_module, entry_point, from_root_workspace, test
     dep_lbl = "//:node_modules/" + node_module
 
     if from_root_workspace:
-        dep_lbl = "@@" + dep_lbl
+        dep_lbl = "@@" + dep_lbl  # buildifier: disable=canonical-repository
 
     entry_point_lbl = name + ".entry_point"
 

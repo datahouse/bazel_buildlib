@@ -1,12 +1,12 @@
-bazel_dep(name = "aspect_rules_js", version = "2.9.2")
-bazel_dep(name = "aspect_rules_ts", version = "3.8.3")
-bazel_dep(name = "bazel_skylib", version = "1.8.2")
-bazel_dep(name = "rules_oci", version = "2.2.7")
-bazel_dep(name = "tar.bzl", version = "0.7.0")
+bazel_dep(name = "aspect_rules_js", version = "3.5.2")
+bazel_dep(name = "aspect_rules_ts", version = "3.10.1")
+bazel_dep(name = "bazel_lib", version = "3.7.2")
+bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "tar.bzl", version = "0.10.9")
 bazel_dep(name = "dh_buildlib", version = "0.0.0")
 
 # When setting up in a different repository this should be
-# `git_override` (use it-bazel-new-repo to set it up).
+# `git_override` (use a repository template to set this up).
 local_path_override(
     module_name = "dh_buildlib",
     path = "../buildlib",
@@ -26,23 +26,23 @@ use_repo(rules_ts_ext, "npm_typescript")
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
     name = "nginx_image",
-    digest = "sha256:c881927c4077710ac4b1da63b83aa163937fb47457950c267d92f7e4dedf4aec",
+    digest = "sha256:6e67f8eaac94fc456588d4ff6c470d984841f5b5dc4279863d5cbe6ec5a60def",
     image = "index.docker.io/library/nginx",
     platforms = ["linux/amd64"],
-    tag = "1.29.4",  # ignored, doc only
+    tag = "1.31.8",
 )
 oci.pull(
     name = "node_image",
-    digest = "sha256:b2b2184ba9b78c022e1d6a7924ec6fba577adf28f15c9d9c457730cc4ad3807a",
+    digest = "sha256:6449e19d8184d84062525b6a7524def03146c2cb04a7f08b076680d0e8e4240a",
     image = "index.docker.io/library/node",
     platforms = ["linux/amd64"],
-    tag = "24.13.0",  # ignored, doc only
+    tag = "24.22.1",
 )
 oci.pull(
     name = "postgres_image",
-    digest = "sha256:5773fe724c49c42a7a9ca70202e11e1dff21fb7235b335a73f39297d200b73a2",
+    digest = "sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6",
     image = "index.docker.io/library/postgres",
     platforms = ["linux/amd64"],
-    tag = "18.1",  # ignored, doc only
+    tag = "18.6",
 )
 use_repo(oci, "nginx_image", "nginx_image_linux_amd64", "node_image", "node_image_linux_amd64", "postgres_image", "postgres_image_linux_amd64")

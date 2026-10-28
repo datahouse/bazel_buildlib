@@ -1,0 +1,12 @@
+--- oci/private/pull.bzl
++++ oci/private/pull.bzl
+@@ -199,8 +199,7 @@ package_metadata(
+ copy_to_directory(
+     name = "{target_name}",
+     out = "layout",
+-    # Always use hardlink to avoid having copies of the blobs from external repository in the output-tree.
+-    hardlink = "on",
++    hardlink = "off",
+     include_external_repositories = ["*"],
+     srcs = glob(["blobs/**"]) + [
+         "oci-layout",

@@ -1,0 +1,31 @@
+load("@bazel_lib//:bzl_library.bzl", "bzl_library")
+
+bzl_library(
+    name = "bzl",
+    srcs = glob(["*.bzl"]),
+    visibility = [
+        "//docker:__pkg__",
+        "//private/prisma:__pkg__",
+        "//private/react_app:__pkg__",
+        "//ts/docker:__pkg__",
+    ],
+    deps = [
+        "@aspect_rules_js//js:libs",
+        "@aspect_rules_js//js:providers",
+        "@bazel_skylib//lib:paths",
+        "@docker_config",
+        "@rules_oci//oci:defs",
+        "@tar.bzl//tar:tar",
+    ],
+)
+
+platform(
+    name = "node_default_platform",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "//prisma/linux:debian",
+        "//prisma/openssl:3",
+    ],
+    visibility = ["//visibility:public"],
+)

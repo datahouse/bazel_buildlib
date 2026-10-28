@@ -6,7 +6,7 @@ load("//ts/docker:defs.bzl", "docker_image_for_ts_test")
 hot_reload_base(
     name = "hot-base-test-image",
     node_image = "@node_image_linux_amd64",
-    node_image_platform = "//private/docker:node_default_platform",
+    node_image_platform = "//private/docker/build:node_default_platform",
     deps = [],
 )
 
@@ -15,12 +15,26 @@ docker_image_for_ts_test(
     image = ":hot-base-test-image",
 )
 
+hot_reload_base(
+    name = "hot-base-test-image-tailwind",
+    node_image = "@node_image_linux_amd64",
+    node_image_platform = "//private/docker/build:node_default_platform",
+    tailwind = True,
+    deps = [],
+)
+
+docker_image_for_ts_test(
+    name = "load_hot_base_test_image_tailwind",
+    image = ":hot-base-test-image-tailwind",
+)
+
 ts_test(
     name = "test",
     srcs = glob(["**/*.ts"]),
-    tags = ["requires-network"],  # access to docker socket
+    tags = ["requires-docker"],
     deps = [
         ":load_hot_base_test_image",
+        ":load_hot_base_test_image_tailwind",
         "//:node_modules/testcontainers",
     ],
 )

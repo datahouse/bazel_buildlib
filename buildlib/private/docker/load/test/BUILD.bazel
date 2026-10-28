@@ -1,0 +1,25 @@
+load("//private:ts_library.bzl", "ts_test")
+load("//ts/docker:defs.bzl", "docker_image_for_ts_test")
+
+docker_image_for_ts_test(
+    name = "load_node_test_image",
+    image = "@node_image_linux_amd64",
+)
+
+ts_test(
+    name = "test",
+    srcs = glob(["**/*.ts"]),
+    data = ["@node_image_linux_amd64"],
+    env = {
+        "NODE_IMAGE_FOR_SERVE_IMAGES_TEST": "$(rootpath @node_image_linux_amd64)",
+    },
+    tags = ["requires-docker"],
+    deps = [
+        ":load_node_test_image",
+        "//:node_modules/@types/dockerode",
+        "//:node_modules/@types/node",
+        "//:node_modules/dockerode",
+        "//private/docker/lib/src",
+        "//private/docker/load/src",
+    ],
+)

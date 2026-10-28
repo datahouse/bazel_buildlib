@@ -1,0 +1,37 @@
+load("@bazel_lib//lib:expand_template.bzl", "expand_template")
+load("@docker_config//:docker_config.bzl", "DOCKER_HOST", "allow_non_localhost_bind")
+load("//private:ts_library.bzl", "ts_library")
+
+expand_template(
+    name = "bazel_vars",
+    out = "bazelVars.ts",
+    data = ["@zot"],
+    substitutions = {
+        "{{ALLOW_NON_LOCALHOST_BIND}}": json.encode(allow_non_localhost_bind),
+        "{{DOCKER_HOST}}": json.encode(DOCKER_HOST),
+        "{{ZOT_BIN_PATH}}": "$(rlocationpath @zot)",
+    },
+    template = [
+        """export const zotBinPath: string = "{{ZOT_BIN_PATH}}";""",
+        """export const dockerHost: string = {{DOCKER_HOST}};""",
+        """export const allowNonLocalhostBind: boolean = {{ALLOW_NON_LOCALHOST_BIND}};""",
+    ],
+)
+
+ts_library(
+    name = "src",
+    srcs = glob(["**/*.ts"]) + ["bazel_vars"],
+    visibility = [
+        "//private/docker/build/src:__pkg__",
+        "//private/docker/compose/src:__pkg__",
+        "//private/docker/load:__subpackages__",
+        "//private/prisma/src:__pkg__",
+    ],
+    deps = [
+        "//:node_modules/@types/dockerode",
+        "//:node_modules/@types/node",
+        "//:node_modules/dockerode",
+        "//:node_modules/zod",
+        "//private/docker/lib/src",
+    ],
+)

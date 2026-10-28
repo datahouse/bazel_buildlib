@@ -11,3 +11,8 @@ generates:
       customDirectives:
         apolloUnmask: true
       inlineFragmentTypes: "mask"
+      # __typename definitions (for apollo client).
+      # https://git.datahouse.ch/datahouse/it-bazel/pulls/1816
+      # https://github.com/dotansimha/graphql-code-generator/pull/10552
+      skipTypeNameForRoot: true
+      nonOptionalTypename: true

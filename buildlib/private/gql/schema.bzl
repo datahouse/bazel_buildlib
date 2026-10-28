@@ -1,7 +1,7 @@
 """Rule to generate a GraphQL schema file from a GraphQL value (in typescript)."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@bazel_lib//lib:copy_file.bzl", "copy_file")
 
 def gql_schema(name, schema_import, out, deps = [], visibility = None, testonly = None):
     """Generate a .graphql file by importing TS code defining a schema.
@@ -26,7 +26,7 @@ def gql_schema(name, schema_import, out, deps = [], visibility = None, testonly 
 
     copy_file(
         name = name + ".generator",
-        src = Label("//private/gql/src:gen-schema.js"),
+        src = Label("//private/gql:gen-schema.js"),
         out = name + ".generator.js",
         testonly = testonly,
     )

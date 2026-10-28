@@ -3,7 +3,9 @@ load("//private:bzl_lib_for_docs.bzl", "bzl_lib_for_docs")
 bzl_lib_for_docs(
     name = "defs",
     deps = [
-        "//private/docker:bzl",
+        "//private/docker/build:bzl",
         "//private/docker/compose:bzl",
+        "//private/docker/publish:bzl",
+        "@docker_config",
     ],
 )

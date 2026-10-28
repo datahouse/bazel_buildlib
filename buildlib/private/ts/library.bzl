@@ -83,6 +83,8 @@ def ts_library(
         name = name + ".lint",
         srcs = srcs,
         deps = deps,
+        tsconfig = ":tsconfig",
+        eslint_config = "//:eslint_config",
         tags = tags,
         testonly = testonly,
     )

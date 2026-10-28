@@ -17,9 +17,9 @@ bzl_library(
         "//private:prettier_format",
         "@aspect_rules_swc//swc:defs",
         "@aspect_rules_ts//ts:defs",
+        "@bazel_lib//lib:copy_file",
         "@bazel_lib//lib:write_source_files",
         "@bazel_skylib//rules:common_settings",
-        "@bazel_skylib//rules:copy_file",
         "@bazel_skylib//rules:select_file",
     ],
 )

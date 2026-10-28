@@ -1,5 +1,6 @@
 {
+  "compilerOptions": { "types": ["jest"] },
   "extends": "../../../tsconfig-base.json",
   "include": ["**/*"],
-  "references": []
+  "references": [{ "path": "../src" }]
 }

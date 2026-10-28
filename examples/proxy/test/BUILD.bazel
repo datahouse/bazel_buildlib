@@ -14,9 +14,7 @@ docker_image_for_ts_test(
 ts_test(
     name = "test",
     srcs = glob(["**/*.ts"]),
-    tags = [
-        "requires-network",  # access to docker socket
-    ],
+    tags = ["requires-docker"],
     deps = [
         ":load_fake_blob_auth_image",
         ":load_proxy_image",

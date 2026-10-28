@@ -1,0 +1,11 @@
+{
+  "entryFile": "index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["**/controller.ts"],
+  "spec": {},
+  "routes": {
+    "esm": true,
+    "routesDir": ".",
+    "iocModule": "./tsoa-ioc"
+  }
+}

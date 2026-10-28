@@ -1,0 +1,9 @@
+{
+  "compilerOptions": { "types": ["dockerode", "node"] },
+  "extends": "../../../../tsconfig-base.json",
+  "include": [
+    "**/*",
+    "../../../../bazel-bin/private/docker/load/src/bazelVars.ts"
+  ],
+  "references": [{ "path": "../../lib/src" }]
+}

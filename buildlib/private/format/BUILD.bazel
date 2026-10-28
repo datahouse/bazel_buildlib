@@ -1,9 +1,12 @@
 load("@bazel_lib//:bzl_library.bzl", "bzl_library")
 
-exports_files([
-    "format.sh",
-    "format-test.sh",
-])
+exports_files(
+    [
+        "format.sh",
+        "format-test.sh",
+    ],
+    visibility = ["//visibility:private"],
+)
 
 bzl_library(
     name = "bzl",

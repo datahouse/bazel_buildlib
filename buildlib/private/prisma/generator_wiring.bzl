@@ -1,7 +1,7 @@
 """Prisma generator wiring rules (internal)."""
 
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
-load("//private/prisma:providers.bzl", "PrismaGenerateInfo", "PrismaGeneratorInfo")
+load(":providers.bzl", "PrismaGenerateInfo", "PrismaGeneratorInfo")
 
 def _get_target_name(ctx, suffix):
     name = ctx.label.name

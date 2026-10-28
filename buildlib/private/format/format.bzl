@@ -75,7 +75,7 @@ def _format_impl(name, bazelrc, format_java, format_py, visibility):
         env = {
             "DH_FORMAT_SCRIPT": "$(rootpath %s)" % name,
             # Pass any file in the workspace root to determine its locaiton.
-            "FILE_IN_WORKSPACE": "$(location %s)" % bazelrc,
+            "FILE_IN_WORKSPACE": "$(rootpath %s)" % bazelrc,
         },
         tags = ["local", "external"],
     )

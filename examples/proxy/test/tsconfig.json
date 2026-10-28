@@ -1,4 +1,5 @@
 {
+  "compilerOptions": { "types": ["jest", "supertest"] },
   "extends": "../../tsconfig-base.json",
   "include": ["**/*"],
   "references": [{ "path": "fake-blob-auth" }]

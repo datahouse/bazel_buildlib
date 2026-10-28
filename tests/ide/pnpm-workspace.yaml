@@ -1,0 +1,20 @@
+allowBuilds:
+  # @parcel/watcher is required by jest >=30.5.0; it contains an install script
+  # which can be used to build from source; this is only required if the
+  # appropriate binary cannot be found. The binary is found via the
+  # optionalDependencies in the published package.json and it gets picked up in
+  # our case. It is safe to disable this.
+  #
+  # install: https://github.com/parcel-bundler/watcher/blob/b46c53feb075c9dfd2c87d2183eb259df384d90b/package.json#L35
+  # optionalDependencies are shown here: https://unpkg.com/@parcel/watcher@2.6.0/package.json
+  "@parcel/watcher": false
+  # Prisma: Handled by buildlib.
+  "@prisma/client": false
+  "@prisma/engines": false
+  prisma: false
+  # napi postinstall (https://www.npmjs.com/package/napi-postinstall)
+  # https://github.com/unrs/unrs-resolver/blob/ccb26d205e2938b16069c64a28996b48ee97ff94/napi/postinstall.js#L3
+  # Not necessary (only needed for legacy npm versions).
+  unrs-resolver: false
+saveExact: true
+hoist: false

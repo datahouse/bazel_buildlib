@@ -1,0 +1,11 @@
+# empty line intentional to make formatting check pass.
+
+single_version_override(
+    module_name = "rules_oci",
+    patches = [
+        # Workaround https://github.com/bazel-contrib/rules_oci/issues/758
+        # TODO(#1768): Remove once fixed upstream.
+        "//:rules_oci_no_hardlink.patch",
+        "//:rules_oci_no_symlink.patch",
+    ],
+)

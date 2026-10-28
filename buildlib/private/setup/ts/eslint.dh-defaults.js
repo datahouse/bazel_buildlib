@@ -1,4 +1,4 @@
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 
 import globals from "globals";
 import eslint from "@eslint/js";
@@ -10,25 +10,6 @@ import react from "eslint-plugin-react";
 import { FlatCompat } from "@eslint/eslintrc";
 
 const rules = {
-  // Disable all typescript-eslint rules that are affected by imprecise types.
-  //
-  // It seems that typescript-eslint is not as powerful as tsc when
-  // determining types: "complex" types (e.g. Map<string, string> or a
-  // PrismaClient extension) sometimes get simplified to any.
-  //
-  // An example upstream report of this:
-  // https://github.com/typescript-eslint/typescript-eslint/issues/3856
-  //
-  // As a result, the rules below cause false alerts (all of them are rules
-  // we'd actually want to enable). So until this is fixed upstream, we
-  // unfortunately need to disable them to avoid unnecessary noise.
-  "@typescript-eslint/no-unsafe-assignment": "off",
-  "@typescript-eslint/no-unsafe-argument": "off",
-  "@typescript-eslint/no-unsafe-call": "off",
-  "@typescript-eslint/no-unsafe-member-access": "off",
-  "@typescript-eslint/no-unsafe-return": "off",
-  "@typescript-eslint/no-redundant-type-constituents": "off",
-
   // class-methods-use-this is too noisy:
   // Both type-graphql and tsoa use classes as encapsulation for logic, but
   // this check assumes they are (mainly) used as encapsulation of data.
@@ -88,6 +69,11 @@ const rules = {
 
   // we need await inside loops because sometimes we cannot list promises
   "no-await-in-loop": "off",
+
+  // continue is fine if used correctly.
+  // this check is way too noisy.
+  "no-continue": "off",
+
   "no-restricted-syntax": [
     "error",
     {
@@ -179,6 +165,10 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
+  // Downstream consumers should not lint the default config in bazel-bin. Otherwise they
+  // can see lint failures in a file they do not own or control-particularly when applying
+  // stricter rules than the defaults.
+  globalIgnores(["bazel-bin/dhDefaults.eslint.config.js"]),
   // In general, we use recommended configs rather than strict or full rule sets.
   // Recommended presets provide reliable, broadly applicable rules without the
   // breaking/frequent changes of full configs or the added noise of stricter ones.
@@ -302,10 +292,7 @@ export default defineConfig([
         // projectService replaces the old project option; it lets IDEs pick up the correct tsconfig
         // and enables ESLint to lint files outside the main tsconfig.json, with improved monorepo support.
         projectService: {
-          allowDefaultProject: [
-            "eslint.config.js",
-            "bazel-bin/dhDefaults.eslint.config.js",
-          ],
+          allowDefaultProject: ["eslint.config.js"],
         },
       },
     },

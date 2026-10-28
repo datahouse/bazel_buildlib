@@ -44,11 +44,11 @@ const parseArgs = () => {
     required: true,
   });
 
-  return parser.parse_args() as {
+  return parser.parse_args<{
     files: string[];
     fix: boolean;
     fixTargetName: string;
-  };
+  }>();
 };
 
 /** Change the filePath of the given results using the provided mapper. */
@@ -117,9 +117,9 @@ const main = async () => {
   const { files, fix, fixTargetName } = parseArgs();
 
   // load eslint from the project's node_modules (not the one of buildlib).
-  const eslintMod: ESLintModule = await import(
+  const eslintMod = (await import(
     path.join(process.cwd(), "/node_modules/eslint/lib/api.js")
-  );
+  )) as ESLintModule;
 
   const eslint = new eslintMod.ESLint({ fix });
 

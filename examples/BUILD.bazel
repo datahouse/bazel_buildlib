@@ -21,6 +21,7 @@ dh_docker_images_push(
     images = {
         # Put your own images here (or leave empty to start with).
         "api": "//api",
+        "db": "@postgres_image_linux_amd64",
         "db-migrate": "//prisma:db-migrate",
         "frontend": "//frontend",
         "proxy": "//proxy",

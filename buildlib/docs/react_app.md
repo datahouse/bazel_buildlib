@@ -11,7 +11,8 @@ Also see [examples/frontend/BUILD.bazel](../../examples/frontend/BUILD.bazel).
 <pre>
 load("@dh_buildlib//react_app:defs.bzl", "react_app")
 
-react_app(*, <a href="#react_app-name">name</a>, <a href="#react_app-deps">deps</a>, <a href="#react_app-srcs">srcs</a>, <a href="#react_app-nginx_image">nginx_image</a>, <a href="#react_app-node_image">node_image</a>, <a href="#react_app-node_image_platform">node_image_platform</a>, <a href="#react_app-testonly">testonly</a>, <a href="#react_app-visibility">visibility</a>)
+react_app(*, <a href="#react_app-name">name</a>, <a href="#react_app-deps">deps</a>, <a href="#react_app-srcs">srcs</a>, <a href="#react_app-nginx_image">nginx_image</a>, <a href="#react_app-node_image">node_image</a>, <a href="#react_app-node_image_platform">node_image_platform</a>, <a href="#react_app-tailwind">tailwind</a>, <a href="#react_app-testonly">testonly</a>,
+          <a href="#react_app-visibility">visibility</a>)
 </pre>
 
 Bundles a react single page app into a hot-reloadable docker image.
@@ -42,7 +43,8 @@ Example: [`@examples//frontend`](../../examples/frontend/BUILD.bazel#:~:text=nam
 | <a id="react_app-srcs"></a>srcs |  Direct sources. Typically `index.html`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="react_app-nginx_image"></a>nginx_image |  Nginx base image to use for the run / cold image. Default: @nginx_image_linux_amd64   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="react_app-node_image"></a>node_image |  Node base image to use for the dev / hot image. Default: @node_image_linux_amd64   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
-| <a id="react_app-node_image_platform"></a>node_image_platform |  Platform for the node base image (for dev / hot).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@dh_buildlib//private/docker:node_default_platform"`  |
+| <a id="react_app-node_image_platform"></a>node_image_platform |  Platform for the node base image (for dev / hot).   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@dh_buildlib//private/docker/build:node_default_platform"`  |
+| <a id="react_app-tailwind"></a>tailwind |  EXPERIMENTAL Enable Tailwind CSS via `@tailwindcss/vite`, in the run and dev image.<br><br>Requires `tailwindcss` and `@tailwindcss/vite` in the consumer's `package.json` and a CSS entry imported by the app and declared via `assets`. Start it with `@import "tailwindcss" source(none);` and register the sources with [`@source`](https://tailwindcss.com/docs/detecting-classes-in-source-files#explicitly-registering-sources), relative to the CSS file. An `@source` path that does not resolve is silently ignored, and registering this target's package directory itself picks up the generated vite config.<br><br>Example: [`@buildlib//private/react_app/test/tailwind/src:main.css`](../private/react_app/test/tailwind/src/main.css)   | Boolean; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `False`  |
 | <a id="react_app-testonly"></a>testonly |  Testonly flag.   | Boolean; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `False`  |
 | <a id="react_app-visibility"></a>visibility |  The visibility to be passed to this macro's exported targets. It always implicitly includes the location where this macro is instantiated, so this attribute only needs to be explicitly set if you want the macro's targets to be additionally visible somewhere else.   | <a href="https://bazel.build/concepts/labels">List of labels</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  |
 

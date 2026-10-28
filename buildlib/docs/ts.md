@@ -80,7 +80,8 @@ Example: [`@examples//shared-lib/src`](../../examples/shared-lib/src/BUILD.bazel
 <pre>
 load("@dh_buildlib//ts:defs.bzl", "ts_test")
 
-ts_test(<a href="#ts_test-name">name</a>, <a href="#ts_test-srcs">srcs</a>, <a href="#ts_test-deps">deps</a>, <a href="#ts_test-data">data</a>, <a href="#ts_test-uses_dom">uses_dom</a>, <a href="#ts_test-env">env</a>, <a href="#ts_test-tags">tags</a>, <a href="#ts_test-tsc_repository">tsc_repository</a>)
+ts_test(<a href="#ts_test-name">name</a>, <a href="#ts_test-srcs">srcs</a>, <a href="#ts_test-deps">deps</a>, <a href="#ts_test-data">data</a>, <a href="#ts_test-uses_dom">uses_dom</a>, <a href="#ts_test-esm_node_modules">esm_node_modules</a>, <a href="#ts_test-env">env</a>, <a href="#ts_test-tags">tags</a>, <a href="#ts_test-enable_jest_esm">enable_jest_esm</a>,
+        <a href="#ts_test-tsc_repository">tsc_repository</a>)
 </pre>
 
 Typescript test (run with jest)
@@ -98,8 +99,10 @@ Example: [`@examples//shared-lib/test`](../../examples/shared-lib/test/BUILD.baz
 | <a id="ts_test-deps"></a>deps |  dependencies (other ts_library or npm dependencies)   |  `[]` |
 | <a id="ts_test-data"></a>data |  required runtime data (e.g. csv files)   |  `[]` |
 | <a id="ts_test-uses_dom"></a>uses_dom |  Whether the tests (or the code under test) requires a DOM.   |  `False` |
-| <a id="ts_test-env"></a>env |  Additional environment variables to be made available in the test (subject to `$(location)` and make variable expansion).   |  `None` |
-| <a id="ts_test-tags"></a>tags |  tags, propagated to all targets   |  `[]` |
+| <a id="ts_test-esm_node_modules"></a>esm_node_modules |  List of npm package names that publish only ESM (no CommonJS fallback). Jest will Babel-transform these packages instead of skipping them. Names must be lowercase, may contain hyphens/dots/underscores, and must not exceed 120 characters. Scoped packages (@scope/pkg) are supported. Example: `esm_node_modules = ["some-esm-pkg"]`.   |  `["graphql-upload", "react-error-boundary"]` |
+| <a id="ts_test-env"></a>env |  Additional environment variables to be made available in the test ([subject to 'Make variable' substitution](https://bazel.build/reference/be/make-variables)).   |  `None` |
+| <a id="ts_test-tags"></a>tags |  Tags propagated to all targets. In addition to standard Bazel keywords, the following keywords have special meaning: - requires-docker: Enables Docker access for the test. Automatically adds   `requires-network` and inherits the `DOCKER_HOST` environment variable,   allowing connection to an external Docker daemon.   |  `[]` |
+| <a id="ts_test-enable_jest_esm"></a>enable_jest_esm |  EXPERIMENTAL Enable [Jest ESM support](https://jestjs.io/docs/ecmascript-modules) Note that [module mocking is not supported](https://jestjs.io/docs/ecmascript-modules#module-mocking-in-esm)   |  `False` |
 | <a id="ts_test-tsc_repository"></a>tsc_repository |  which typescript bazel repository to use (most likely you will not need this option).   |  `"@npm_typescript"` |
 
 

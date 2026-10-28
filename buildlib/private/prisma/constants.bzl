@@ -123,4 +123,5 @@ QUERY_ENGINE_BINARY = "query-engine"
 QUERY_ENGINE_LIBRARY = "libquery-engine"
 SCHEMA_ENGINE_BINARY = "schema-engine"
 
+# All possible Prisma binary types - all are used by Prisma < 7; Prisma >= 7 uses only SCHEMA_ENGINE_BINARY
 BINARY_TYPES = [QUERY_ENGINE_BINARY, QUERY_ENGINE_LIBRARY, SCHEMA_ENGINE_BINARY]

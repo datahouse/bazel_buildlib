@@ -16,9 +16,7 @@ ts_test(
     env = {
         "PRISMA_CLI_PATH": "$(rootpath @dh_buildlib//prisma:cli)",
     },
-    tags = [
-        "requires-network",  # access to docker socket
-    ],
+    tags = ["requires-docker"],
     deps = [
         ":load_postgres_image",
         "//:node_modules/@testcontainers/postgresql",

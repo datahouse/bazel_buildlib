@@ -10,7 +10,7 @@ export default defineConfig([
   // repositories (in case they follow different code standards).
   globalIgnores([
     // generated
-    "api/clients/gravatar-schema.ts",
+    "api/clients/gravatar/**",
     "frontend/gql/**",
   ]),
   {

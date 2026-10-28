@@ -16,7 +16,7 @@ Rules for Typescript in/on Docker.
 <pre>
 load("@dh_buildlib//ts/docker:defs.bzl", "docker_image_for_ts_test")
 
-docker_image_for_ts_test(*, <a href="#docker_image_for_ts_test-name">name</a>, <a href="#docker_image_for_ts_test-image">image</a>, <a href="#docker_image_for_ts_test-visibility">visibility</a>)
+docker_image_for_ts_test(*, <a href="#docker_image_for_ts_test-name">name</a>, <a href="#docker_image_for_ts_test-image">image</a>, <a href="#docker_image_for_ts_test-testonly">testonly</a>, <a href="#docker_image_for_ts_test-visibility">visibility</a>)
 </pre>
 
 Prepares a docker image to be loaded in a TS test.
@@ -33,6 +33,7 @@ docker_image_for_ts_test(
 
 ts_test(
   name = "test"
+  tags = ["requires-docker"]
   deps = [":load_my_image"],
 )
 ```
@@ -52,7 +53,7 @@ test("my test", async () => {
 });
 ```
 
-Note: This rule can only be used for tests.
+Note: This rule typically should only be used for tests.
 
 Example: [`@examples//prisma/test:load_postgres_image`](../../examples/prisma/test/BUILD.bazel#:~:text=name%20%3D%20%22load_postgres_image%22%2C)
 
@@ -63,6 +64,7 @@ Example: [`@examples//prisma/test:load_postgres_image`](../../examples/prisma/te
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="docker_image_for_ts_test-name"></a>name |  A unique name for this macro instance. Normally, this is also the name for the macro's main or only target. The names of any other targets that this macro might create will be this name with a string suffix.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="docker_image_for_ts_test-image"></a>image |  The docker image to load.   | <a href="https://bazel.build/concepts/labels">Label</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | required |  |
+| <a id="docker_image_for_ts_test-testonly"></a>testonly |  testonly flag   | Boolean; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `True`  |
 | <a id="docker_image_for_ts_test-visibility"></a>visibility |  The visibility to be passed to this macro's exported targets. It always implicitly includes the location where this macro is instantiated, so this attribute only needs to be explicitly set if you want the macro's targets to be additionally visible somewhere else.   | <a href="https://bazel.build/concepts/labels">List of labels</a>; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  |
 
 
@@ -90,7 +92,7 @@ Example: [`@examples//api`](../../examples/api/BUILD.bazel#:~:text=name%20%3D%20
 | <a id="node_binary_image-data"></a>data |  ts_project(s) that are required for this app.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 | <a id="node_binary_image-base"></a>base |  docker base image, must contain the node binary. Defaults to: @node_image_linux_amd64   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="node_binary_image-entry_point"></a>entry_point |  JS file that is to be run. The cmd of the created image will be `node <entry_point>`   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="node_binary_image-platform"></a>platform |  Platform to build the dependencies that go into the image for. Mostly relevant for Prisma engines. Defaults to Debian Linux with OpenSSL 3.x.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@dh_buildlib//private/docker:node_default_platform"`  |
+| <a id="node_binary_image-platform"></a>platform |  Platform to build the dependencies that go into the image for. Mostly relevant for Prisma engines. Defaults to Debian Linux with OpenSSL 3.x.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `"@dh_buildlib//private/docker/build:node_default_platform"`  |
 | <a id="node_binary_image-ports"></a>ports |  Ports this image exposes (like EXPOSE in Dockerfile).   | List of strings; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `[]`  |
 | <a id="node_binary_image-testonly"></a>testonly |  testonly flag   | Boolean; <a href="https://bazel.build/reference/be/common-definitions#configurable-attributes">nonconfigurable</a> | optional |  `False`  |
 | <a id="node_binary_image-user"></a>user |  User the image runs with (must exist in the base image).   | String | optional |  `"node"`  |

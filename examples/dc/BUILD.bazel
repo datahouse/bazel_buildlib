@@ -2,7 +2,7 @@ load("@dh_buildlib//docker:defs.bzl", "dc_service_reference", "docker_compose")
 
 docker_compose(
     name = "dc",
-    src = "docker-compose.yml",
+    srcs = ["docker-compose.yml"],
     project = "it-bazel-examples",
     deps = [
         "//api",
